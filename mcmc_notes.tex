@@ -1,0 +1,100 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+\begin{document}
+
+\begin{center}
+\Large
+Notes on Markov Chains, Stochastic Stability, and MCMC
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+% Section: Beyond Independent Sampling
+\section{Beyond Independent Sampling}
+Discuss some of the shortfalls of Accept/Reject and other independent sampling methods here. 
+
+% Section: Markov Chains
+\section{Markov Chains}
+\subsection{Defining Markov Chains}
+\subsubsection{Measure Theoretic Setup}
+Let $(\Omega, \mathcal{A}, \Prob)$ be a measure space. Although we will rarely mention this space going forward, it it important to remember that it is always
+underlying all of the theory we develop. Now, consider a measurable space $(\mathcal{X}, \mathcal{F})$ which will call a \textit{state space}. $\mathcal{X}$ is a set of states that the Markov 
+Chain can assume, and $\mathcal{F}$ contains all of the subsets of the state space to which we will be able to assign probabilities. We will typically restrict ourselves to 
+$(\mathcal{X}, \mathcal{F}) = (\R^n, \mathcal{B})$.
+We consider a discrete-time stochastic process $\mathbb{X} = \{X_k\}_{k = 1}^{\infty}$ defined on the state space $(\mathcal{X}, \mathcal{F})$. That is, each $X_k$ is a random variable
+$X: \Omega \to \mathcal{X}$. So for $A \in \mathcal{F}$, the event $\{X_k \in A\}$ means ``at time step k, the state of the chain is somewhere in A''. Since the system is random, we 
+can only talk about the probability of this event occurring, and the probability measure $\Prob$ assigns such a probability. It is important to emphasis that all of the $X_k$ are defined on 
+the \textit{same} underlying probability space; that is, the source of randomness is the same for the system as a whole.
+
+\subsubsection{The Markov Property}
+\textbf{TODO}
+
+\subsubsection{Homogenous Chains}
+\textbf{TODO}
+
+\subsubsection{Transition Kernels}
+Under the assumption of homogeneity, a Markov chain is completely defined by its initial distribution $\nu_0 = \mathcal{L}(X_0)$ (this notation means the distribution or 
+\textit{law} of $X_0$)
+
+\subsection{Stationary Distributions}
+The basic idea of MCMC is to construct a Markov Chain with stationary distribution equal to the target distribution, and then sample using this chain. 
+Thus, it is first necessary to state some basic results regarding stationary distributions of Markov chains. 
+
+
+
+
+
+\end{document}
+
