@@ -125,6 +125,31 @@ The following proposition simply verifies our previous intuition that reversibil
 If a chain is reversible with respect to $\nu$ (that is, satisfies detailed balance), then it is invariant with respect to $\nu$. 
 \end{prop}
 
+% Section: MCMC
+\section{Markov Chain Monte Carlo (MCMC)}
+
+\subsection{Motivation: Bayesian Inference}
+Although MCMC has its origins in physics and finds applications in various domains, it has become known largely for its use in 
+Bayesian statistics. In Bayesian inference, we seek to summarize the distribution of the parameter of interest $x$ conditional on observed 
+data: 
+\[\pi(x) := \pi(x|D) = \frac{p(D|x)\pi_0(x)}{\pi(D)}\]
+$\pi(x|D)$ is known as the posterior distribution, $p(D|x)$ the likelihood (this is the model for our data; for example, a regression model), 
+$\pi_0(x)$ the prior density, and $\pi(D)$ the marginal likelihood. For complicated distributions, our best bet is to use sampling. The typical 
+situation is that $\pi(D)$ is intractable and thus can't be calculated analytically so we only have access to the unnormalized posterior 
+through pointless evaluation of $p(D|x)\pi_0(x)$. In this case, the posterior will be the target distribution for our MCMC algorithms. 
+
+\subsection{Simple Monte Carlo}
+\textbf{TODO}: approximating expectations, LLN, CLT, Monte Carlo error on order of $\frac{1}{\sqrt{k}}$
+
+\subsubsection{The Big Picture}
+MCMC tries to address some of the shortfalls of simple Monte Carlo by ditching independent samples and exploiting dependence 
+to produce a more efficient sampling scheme. In particular, MCMC constructs a Markov chain $\mathbb{X} = \{X_k\}$ with unique invariant 
+distribution equal to the target distribution $\pi$. The chain also of course must be initialized with some starting distribution $X_0 \sim \pi_0$.
+Here is a high-level overview of how we will proceed in analyzing this approach: 
+\begin{enumerate}
+\end{enumerate} 
+
+\subsection{Metropolis-Hastings}
 
 
 
