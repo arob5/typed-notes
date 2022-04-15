@@ -49,6 +49,7 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{thm}{Theorem}
 \newtheorem{corollary}{Corollary}
+\newtheorem{notation}{Notation}
 
 \begin{document}
 
@@ -86,12 +87,43 @@ the \textit{same} underlying probability space; that is, the source of randomnes
 
 \subsubsection{Transition Kernels}
 Under the assumption of homogeneity, a Markov chain is completely defined by its initial distribution $\nu_0 = \mathcal{L}(X_0)$ (this notation means the distribution or 
-\textit{law} of $X_0$)
+\textit{law} of $X_0$) and its \textbf{transition probability kernel} $P$. (include definition)
 
 \subsection{Stationary Distributions}
 The basic idea of MCMC is to construct a Markov Chain with stationary distribution equal to the target distribution, and then sample using this chain. 
 Thus, it is first necessary to state some basic results regarding stationary distributions of Markov chains. 
+\begin{definition}
+A probability distribution $\nu$ is said to be \textbf{stationary} (equivalently, \textbf{invariant}) with respect to a homogenous Markov chain with transition kernel $P$ provided
+that $\nu P = \nu$. 
+\end{definition}
+In general, invariant distributions are not unique. Thus, when we're designing Markov chains with an intended invariant distribution in mind, we will have to prove uniqueness
+(otherwise we might be sampling from the wrong distribution). Since invariant distributions will be central in our design of sampling algorithms, it will be essential to check whether 
+a given distribution is invariant or not. Unfortunately, checking $\nu P = \nu$ involves evaluating a potentially difficult integral. Fortunately, there is a very convenient sufficient condition 
+that's much easier to check. To define this condition, we'll first need to define one more concept. But first, let's try to intuitively motivate this condition. Invariance says that if we make one 
+time step forward then the distribution of the chain does not change. Now, consider a chain that runs the same forward as it does in reverse. Intuitively, this seems to be a stronger condition than invariance and will indeed see that this reversibility condition is the sufficient condition we seek. 
 
+\begin{definition}
+Define the product measure $\mu \otimes P$ on $(\mathcal{X} \times \mathcal{X}, \mathcal{F} \times \mathcal{F})$ by: 
+\[(\mu \otimes P)(A \times B) := \int_{A \times B} \mu(dx) P(x, dy)\]
+for $A, B \in \mathcal{F}$
+\end{definition}
+To get a better sense of this, first consider fixing $x$. Then integrating over $y$ gives the probability of transitioning from $x$ to $B$, weighted by 
+the probability of being at $x$. Do this 
+for all $x \in A$ and you have the probability of transitioning from $A$ to $B$ (again, weighted appropriately). So we can interpret 
+$(\mu \otimes P)(A \times B)$ as ``the probability of observing a chain that is currently in A and then one step later is in B'' (note that 
+``currently'' means with respect to the distribution $\mu$). Or put more simply, we're just considering the joint distribution between 
+a state and the subsequent state. Now we arrive at the sufficient condition hinted at before. 
+
+\begin{definition}
+We say that a chain satisfies the \textbf{detailed balance} condition with respect to distribution $\mu$ provided 
+\[(\mu \otimes P)(A \times B) = (\mu \otimes P)(B \times A)\]
+for all $A, B \in \mathcal{F}$. In this case, we say that the chain is \textbf{reversible} with respect to $\mu$. 
+\end{definition}
+
+The following proposition simply verifies our previous intuition that reversibility should be a sufficient condition for invariance. 
+\begin{prop}
+If a chain is reversible with respect to $\nu$ (that is, satisfies detailed balance), then it is invariant with respect to $\nu$. 
+\end{prop}
 
 
 
