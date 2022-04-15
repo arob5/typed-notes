@@ -137,6 +137,7 @@ $\pi(x|D)$ is known as the posterior distribution, $p(D|x)$ the likelihood (this
 $\pi_0(x)$ the prior density, and $\pi(D)$ the marginal likelihood. For complicated distributions, our best bet is to use sampling. The typical 
 situation is that $\pi(D)$ is intractable and thus can't be calculated analytically so we only have access to the unnormalized posterior 
 through pointless evaluation of $p(D|x)\pi_0(x)$. In this case, the posterior will be the target distribution for our MCMC algorithms. 
+Throughout these notes, I will always denote the target distribution as $\pi$. 
 
 \subsection{Simple Monte Carlo}
 \textbf{TODO}: approximating expectations, LLN, CLT, Monte Carlo error on order of $\frac{1}{\sqrt{k}}$
@@ -147,6 +148,13 @@ to produce a more efficient sampling scheme. In particular, MCMC constructs a Ma
 distribution equal to the target distribution $\pi$. The chain also of course must be initialized with some starting distribution $X_0 \sim \pi_0$.
 Here is a high-level overview of how we will proceed in analyzing this approach: 
 \begin{enumerate}
+\item Construct a Markov chain with \textit{unique} stationary distribution $\pi$. This is a necessary first step, but it leaves many open questions: 
+will the chain actually converge to the stationary distribution? (that is, is the limiting distribution equal to the stationary distribution?) How fast will 
+it converge? Can we quantify the fluctuations around the limit? 
+\item To first answer the most basic questions of convergence, we will develop a Law of Large Numbers (LLN) for Markov chains, analogous to the 
+standard LLN for independent samples that guarantees convergence for simple Monte Carlo. 
+\item Next we will want to develop more quantitative results; that is, to quantify the fluctuations in the limiting process. This will come in the form of a 
+type of Central Limit Theorem (CLT) for Markov chains, which will allow us to calculate confidence intervals. 
 \end{enumerate} 
 
 \subsection{Metropolis-Hastings}
