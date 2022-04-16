@@ -190,6 +190,11 @@ of this equation, we can set $\alpha$ as follows:
 \[\text{If } \psi > 1 \text{, set } \alpha(x, y) := 1 \text{ and } \alpha(y, x) := \frac{1}{\psi}\]
 That is, 
 \[\alpha(x, y) := \min\left\{\frac{h_\pi(y) q(y, x)}{h_\pi(x)q(x, y)}, 1\right\}\]
+Thus, with $\alpha$ defined by this formula it follows from detailed balance that $\pi$ is a stationary distribution of the Markov chain, as desired. This result is a necessary 
+first step in designing MCMC algorithms, but let's be clear on what it \textit{doesn't} mean. We have not concluded any results that guarantee that iterating through time 
+steps will eventually yield convergence to this stationary distribution, and even if there is convergence we have no idea how quickly the rate of convergence would be. This 
+is a serious issue: if we're generating samples at each time step, we have no idea whether the samples are actually following the distribution of interest or not. We will address
+this issues later.
 
 \end{document}
 
