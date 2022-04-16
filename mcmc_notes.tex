@@ -196,5 +196,14 @@ steps will eventually yield convergence to this stationary distribution, and eve
 is a serious issue: if we're generating samples at each time step, we have no idea whether the samples are actually following the distribution of interest or not. We will address
 this issues later.
 
+Finally, one more remark: did we really need the detailed balance condition to arrive at this acceptance probability? Could we just have used the definition of invariance instead?
+Let's try. By definition $P$ is invariant with respect to $\pi$ if $\pi P = \pi$; that is $(\pi P)(A) = \pi(A)$ for all $A \in \mathcal{F}$ or 
+\[\pi(A) = \int P(x, A) \pi(dx) \text{ for all } A \in \mathcal{F}\]
+Using our assumption that densities exist and the specific structure we have chosen for $P$ we can re-write this as
+\[h_\pi(y) = \int q(x, y) \alpha(x, y) h_\pi(x) dx\]
+At this point we are kind of stuck: to solve for the $\alpha$ that satisfies this equality we would have to evaluate the integral on the right-hand side. We now see the power 
+of the detailed balance condition: it only requires us to check transition probabilities between \textit{two} (arbitrary) states: $x$ and $y$. Using the definition of invariance
+directly requires us to consider \textit{all} of the possible ways to get to $y$ from the current distribution $\pi$, hence the integral over $x$. Thus, the detailed balance condition
+is much easier to check. 
 \end{document}
 
