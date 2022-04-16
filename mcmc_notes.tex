@@ -157,9 +157,39 @@ standard LLN for independent samples that guarantees convergence for simple Mont
 type of Central Limit Theorem (CLT) for Markov chains, which will allow us to calculate confidence intervals. 
 \end{enumerate} 
 
-\subsection{Metropolis-Hastings}
+\subsection{Step 1: Constructing a Markov Chain with Stationary Distribution $\pi$}
+When we assume that the target distribution $\pi$ has a density I will denote this density by $h_\pi$. 
 
+\subsubsection{Metropolis-Hastings}
+We begin with one of the most well-known and widely used MCMC algorithms, Metropolis-Hastings (MH). Instead of just stating the algorithm, I will 
+try to build up to it to hopefully give more of a sense of discovery. First, let's recall the basic structure of one of the fundamental independent sampling
+techniques: the Accept-Reject algorithm. In this method, a sample is \textit{proposed} by sampling from some distribution from which we already know how to 
+sample. Next, the sample is either accepted or rejected depending on some criteria. Let's adopt the same basic structure for our new method.
 
+For now, let's assume densities exist to keep things simple - we will generalize this after. Let $q(x, \cdot)$ denote the density of the \textit{proposal distribution}; 
+that is $q(x, y)$ is proportional to the probability of proposing a new state $y \in \mathcal{X}$ given current state $x \in \mathcal{X}$. Recall from Accept-Reject that 
+once a new value was proposed then it was either accepted or rejected according to some decision rule. Let's adopt that idea here and let $\alpha(x, y)$ denote 
+the probability of accepting the new state $y$ given the current state $x$. Note that this is completely separate from the probability of proposing $y$ given $x$, but 
+we still allow the acceptance probability to depend on the previous state. Therefore, the value $q(x, y)\alpha(x, y)$ is proportional to the probability of transitioning 
+to $y$ from $x$. 
+
+Now, let's take a step back and recall our goal: to construct a Markov chain (that is, a transition kernel) $P$ with stationary distribution $\pi$. From the detailed balance 
+condition we know that if
+\[(\pi \otimes P)(A \times B) = (\pi \otimes P)(B \times A) \text{ for all } A, B \in \mathcal{F}\]
+then $P$ is invariant with respect to $\pi$. Thus, we seek to construct $P$ such that this equality is satisfied. But, first we can simplify this expression. We have 
+assumed densities exist so we can re-write this as: 
+\[h_\pi (x)P(x, y) = h_\pi (y)P(y, x) \text{ for all } x, y \in \mathcal{X}\]
+And finally, we have assumed some specific structure on $P$: 
+\[h_\pi (x)q(x, y)\alpha(x, y)= h_\pi (y)q(y, x)\alpha(y, x) \text{ for all } x, y \in \mathcal{X}\]
+Let's suppose $q$ is fixed; that is, the choice of proposal is a decision we'll have to make when implementing MH in a specific setting. This leaves us to 
+define the acceptance probability $\alpha$ such that the above equation is satisfied. Rearranging, 
+\[\frac{\alpha(x, y)}{\alpha(y, x)} = \frac{h_\pi(y)q(y, x)}{h_\pi(x)q(x, y)}\]
+Note that we have the additional constraint that the acceptance probability must of course be bounded in $[0, 1]$. Thus, letting $\psi$ denote the right-hand side 
+of this equation, we can set $\alpha$ as follows:
+\[\text{If } \psi \leq 1 \text{, set } \alpha(x, y) := \psi \text{ and } \alpha(y, x) := 1\]
+\[\text{If } \psi > 1 \text{, set } \alpha(x, y) := 1 \text{ and } \alpha(y, x) := \frac{1}{\psi}\]
+That is, 
+\[\alpha(x, y) := \min\left\{\frac{h_\pi(y) q(y, x)}{h_\pi(x)q(x, y)}, 1\right\}\]
 
 \end{document}
 
