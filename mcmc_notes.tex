@@ -272,7 +272,51 @@ converges pointwise to
 We have talked about wanting to approximate expectations of functions of the random variable $X$, so having a definition of convergence that says 
 ``the expectations of all (continuous and bounded) functions converge to the expectation with respect to the limiting distribution'' does indeed seem like 
 a useful concept. We should be very clear here that we're considering a sequence of distributions, not random variables. The definition involves taking 
-expectations with respect to these different distributions and considering how these expectations converge. 
+expectations with respect to these different distributions and considering how these expectations converge. One cool thing about this is that it allows us to 
+define what it means for a sequence of random variables to converge even if they are not defined on the same probability space (but note that for are purposes 
+all of the random variables are defined on the same space). 
+\begin{definition}
+A sequence of random variables $(X_k)$ is said to \textbf{converge in distribution} to a random variable $X$, written $X_k \overset{d}{\to} X$, provided that 
+$\mathcal{L}(X_k) \overset{w}{\to} \mathcal{L}(X)$. 
+\end{definition}
+
+If the random variables are all defined on the same space, we have a few other notions of convergence. 
+\textbf{TODO}: 
+\begin{itemize}
+\item Define convergence in prob and a.s. convergence. 
+\item Mention chain of implications for different kinds of convergence. 
+\end{itemize}
+
+\subsection{Ergodicity and the Law of Large Numbers}
+Recall the classical Strong Law of Large Numbers (SLLN). 
+\begin{thm}
+Let $(X_k)$ be a sequence of iid random variables with $\E \abs{X_1} < \infty$ (that is, $X_k \in L_1$ for all $k$). Then 
+$\overline{X}_N := \frac{1}{N} \sum_{k = 1}^{N} X_k \overset{\text{a.s.}}{\to} \E X_1$. 
+\end{thm} 
+Note that this implies $f(\overline{X}_N) \overset{\text{a.s.}}{\to} \E f(X_1)$ provided $\E \abs{f(X_1)} < \infty$. Now, the challenge is to derive an analogous result
+that applies to the current setting, where the $(X_k)$ are states of the Markov chain and are certainly not independent. Unsurprisingly, in order to conclude a useful result
+in this more complicated setting, we will require some additional assumptions; namely, the concept of \textit{ergodicity}. 
+
+\subsubsection{Motivating Ergodicity}
+The concept of ergodicity is in general defined for dynamical systems. Markov chains can be formulated as dynamical systems, and therefore the definition we will
+give for ergodicity here is really a special case of the more general concept. To motivate why we even need this concept let's think about what challenges we might 
+run into when trying to generalize the LLN to this setting. In the independent case, each sample is by definition from the distribution of interest. In the Markov chain case, 
+we are sampling from a sequence of distributions that converge to the distribution of interest. One cause for concern is that the sequence constructed from the Markov chain 
+gets ``stuck'' in some subset of $\mathcal{X}$ and thus fails to explore the entire space. More generally, we might worry that certain trajectories of the chain might err and 
+not sample according to the target distribution. In practice, we want to run the algorithm (that is, generate a single trajectory of the system) and have confidence that the trajectory 
+is tending to the desired distribution. Put differently, we hope that the time average of any specific trajectory is equal to the ``ensemble'' average, or the average tendency of the system
+as a whole. This is the essence of \textit{ergodicity}, that the time average of any trajectory equals the ensemble average. More concretely, we say a Markov chain with stationary 
+distribution $\pi$ is ergodic if, for any $x \in \mathcal{X}$, the probability of transitioning to the set $A \in \mathcal{F}$, in time, tends towards $\pi(A)$. 
+
+\begin{definition}
+A Markov chain with transition kernel $P$ and invariant distribution $\pi$ is said to be \textbf{ergodic} provided $\lim_{k \to \infty} P^k(x, A) = \pi(A)$ for all 
+$x \in \mathcal{X}$ and all $A \in \mathcal{F}$. 
+\end{definition}
+
+Intuitively, this means that the samples we generate will be distributed according to distributions that are approaching the target distribution $\pi$ as $k$ grows large. 
+This definition should not sound too crazy; we had previously constructed Markov chains with invariant distribution $\pi$, and noted that we would need to prove some 
+sort of convergence result that tells us the chain actually tends towards $\pi$. Thus, ergodicity is precisely the property that we want to prove.  
+
 
 
 \end{document}
