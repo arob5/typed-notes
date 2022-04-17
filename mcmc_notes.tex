@@ -240,6 +240,24 @@ $\nu_{k} = \nu_0 P^k$, then will $\nu_k \to \pi$ in some sense? If so, how long 
 $\nu_k$ fluctuate around $\pi$? In particular, we are interested in approximating expectations and hence want to better understand the convergence
 $\E X_k \to \E X$. These questions will be answered in the subsequent sections. 
 
+\section{Markov Chains and Ergodicity}
+In this section we begin a more formal study of convergence in order to answer the questions presented in the previous section. First, let's take a step 
+back and recall the setup. We have an underlying probability space $(\Omega, \mathcal{A}, \Prob)$, and a random variable $X: \Omega \to \mathcal{X}$
+with distribution $\pi = \mathcal{L}(X)$. This random variable is the main object of interest: our goal is to sample from it, approximate its expectation, 
+etc. We approached this problem in the previous section by defining a Markov chain with transition kernel $P$ on the state space $\mathcal{X}$ with stationary distribution 
+$\pi$. By choosing a starting distribution $\nu_0$ and iterating $\nu_k = \nu_0 P^k$ we can obtain a sequence of samples $X_k \sim \nu_k$. For sampling purposes, 
+we will obviously want some sort of guarantee of convergence $\nu_k \to \pi$. We will thus need to develop a notion of limits of probability distributions. 
+Next considering the goal of 
+approximating expectations, a natural choice of estimator to approximate
+\[\E_\pi f(X) = \int_{\mathcal{X}} f(x) \mu(dx)\]
+is 
+\[\frac{1}{k} \sum_{i = 1}^{k} f(X_i)\]
+We will thus want to develop a Law of Large Numbers (LLN) type result: 
+\[\frac{1}{k} \sum_{i = 1}^{k} f(X_i) \to \E_\pi f(X)\]
+The theoretical challenge of course is that the samples $X_k$ are not independent, so the results will be a bit more involved than in the classical independent 
+case. We begin this section by developing some of the theory necessary to answer these questions. 
+
+
 
 
 \end{document}
