@@ -158,7 +158,8 @@ type of Central Limit Theorem (CLT) for Markov chains, which will allow us to ca
 \end{enumerate} 
 
 \subsection{Step 1: Constructing a Markov Chain with Stationary Distribution $\pi$}
-When we assume that the target distribution $\pi$ has a density I will denote this density by $h_\pi$. 
+When we assume that the target distribution $\pi$ has a density with respect to a measure $\mu$ (typically the Lebesgue or counting measure).
+I will denote this density by $h_\pi$. 
 
 \subsubsection{Metropolis-Hastings}
 We begin with one of the most well-known and widely used MCMC algorithms, Metropolis-Hastings (MH). Instead of just stating the algorithm, I will 
@@ -196,7 +197,7 @@ steps will eventually yield convergence to this stationary distribution, and eve
 is a serious issue: if we're generating samples at each time step, we have no idea whether the samples are actually following the distribution of interest or not. We will address
 this issues later.
 
-Finally, one more remark: did we really need the detailed balance condition to arrive at this acceptance probability? Could we just have used the definition of invariance instead?
+Before proceeding, one more remark: did we really need the detailed balance condition to arrive at this acceptance probability? Could we just have used the definition of invariance instead?
 Let's try. By definition $P$ is invariant with respect to $\pi$ if $\pi P = \pi$; that is $(\pi P)(A) = \pi(A)$ for all $A \in \mathcal{F}$ or 
 \[\pi(A) = \int P(x, A) \pi(dx) \text{ for all } A \in \mathcal{F}\]
 Using our assumption that densities exist and the specific structure we have chosen for $P$ we can re-write this as
@@ -205,5 +206,41 @@ At this point we are kind of stuck: to solve for the $\alpha$ that satisfies thi
 of the detailed balance condition: it only requires us to check transition probabilities between \textit{two} (arbitrary) states: $x$ and $y$. Using the definition of invariance
 directly requires us to consider \textit{all} of the possible ways to get to $y$ from the current distribution $\pi$, hence the integral over $x$. Thus, the detailed balance condition
 is much easier to check. 
+
+Thus far, we have talked loosely about how we have defined a Markov chain by considering a kernel of the form ``first propose a new state and then accept with some 
+probability''. However, we have not actually formally defined the kernel or proved that the Markov property is satisfied. The latter result should be pretty obvious: both the 
+proposal and the acceptance probability only depend on the current state. Now let's consider the formal definition of the kernel. Recall, that $P(x, \cdot)$ must be a probability 
+measure such that $P(x, A)$ is the probability of transitioning to $A \in \mathcal{F}$ from state $x \in \mathcal{X}$. One key thing to realize here is that there are two ways 
+to end up in $A$: 
+\begin{enumerate} 
+\item Propose and accept a state in $A$. 
+\item Reject the proposed state, but $x$ is already in $A$. 
+\end{enumerate}
+The probability of 1 can be found by integrating over all ways of proposing/accepting a state in $A$: 
+\[\int_{A} q(x, y)\alpha(x, y)\mu(dy)\]
+Recall that the densities here are all with respect to the measure $\mu$. The probability of 2 depends on whether or not $x \in A$ so we utilize the delta function 
+$\delta_x(A)$ which assumes the value $1$ if $x \in A$ and $0$ otherwise. We also integrate over the whole state space this time as we are considering all of the ways
+that a proposed state might be rejected. 
+\[\delta_x(A)\int_\mathcal{X} q(x, y)[1 - \alpha(x, y)]\mu(dy)\]
+Denoting this second integral by $\overline{\alpha}(x)$ we thus have the full kernel: 
+\[P(x, A) = \int_{A} q(x, y)\alpha(x, y)\mu(dy) + \overline{\alpha}(x) \delta_x(A)\]
+
+\textbf{TODO}: 
+\begin{itemize} 
+\item Independent MH
+\item MH with symmetric proposal 
+\item Gibbs 
+\end{itemize}
+
+In summary, this section has introduced how to construct a transition kernel that is invariant with respect to the target distribution $\pi$. In doing so we have introduced 
+a variety of algorithms that fall in the Metropolis-Hastings family. However, what we have developed so far is the bare minimum; we essentially have no theoretical guarantees
+for how these algorithms would perform in practice. Here are some questions we have yet to answer: is $\pi$ in fact the \textit{unique} invariant distribution, or should we be worried
+we might actually be sampling from some other invariant distribution? If we initialize one of these sampling algorithms with $X_0 \sim \nu_0$ and then iterate 
+$\nu_{k} = \nu_0 P^k$, then will $\nu_k \to \pi$ in some sense? If so, how long will it take for $\nu_k \approx \pi$? And if a certain convergence threshold is reached, how will 
+$\nu_k$ fluctuate around $\pi$? In particular, we are interested in approximating expectations and hence want to better understand the convergence
+$\E X_k \to \E X$. These questions will be answered in the subsequent sections. 
+
+
+
 \end{document}
 
