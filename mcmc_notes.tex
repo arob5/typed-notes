@@ -257,7 +257,22 @@ We will thus want to develop a Law of Large Numbers (LLN) type result:
 The theoretical challenge of course is that the samples $X_k$ are not independent, so the results will be a bit more involved than in the classical independent 
 case. We begin this section by developing some of the theory necessary to answer these questions. 
 
+\subsection{Qualitative Convergence}
+By ``qualitative convergence'' we refer to convergence results that do not quantify the fluctuations that a sequence exhibits around its limit; instead, we simply
+seek to define the binary notion of whether a sequence converges or not. In general, we will consider different notions of what it means for a sequence of random 
+variables to converge, but to begin we instead consider a sequence of distributions. 
 
+\begin{definition}
+A sequence of probability measures $(\nu_k)$ are said to \textbf{converge weakly} to a probability measure $\nu$, written $\nu_k \overset{w}{\to} \nu$, 
+provided $\E_{\nu_k} f(X) \to \E_\nu f(X)$ for all bounded, continuous functions $f$. Put differently, the sequence of real numbers
+\[\int f(x) \nu_k(dx) \]
+converges pointwise to 
+\[\int f(x) \nu(dx)\]
+\end{definition}
+We have talked about wanting to approximate expectations of functions of the random variable $X$, so having a definition of convergence that says 
+``the expectations of all (continuous and bounded) functions converge to the expectation with respect to the limiting distribution'' does indeed seem like 
+a useful concept. We should be very clear here that we're considering a sequence of distributions, not random variables. The definition involves taking 
+expectations with respect to these different distributions and considering how these expectations converge. 
 
 
 \end{document}
