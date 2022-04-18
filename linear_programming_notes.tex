@@ -67,7 +67,6 @@ Linear programming, or linear optimization, simply deals with the optimization o
 \begin{align*}
 &\min c^T x \\
 &\text{s.t. } Ax \leq b \\
-&\;\;\;\;\;\;\; x \geq 0
 \end{align*}
 where $A \in \R^{m \times n}$, $b \in \R^m$, and $c, x \in \R^n$. Each row $a_i$ of $A$ defines a constraint $a_i^T x \leq b$ and thus this problem
 has $m$ constraints. We call a vector $x \in \R^n$ a \textit{feasible point} if it satisfies all of the constraints. Note that since linear functions are convex
@@ -97,8 +96,12 @@ Although the Simplex Method is older, it is still in use for solving LP problems
 point methods tend to be the primary tool. 
 
 \section{Polytopes and Extreme Points}
-In the introduction, I have spoken loosely about ``corners'' of feasible sets. To actually begin developing the theory we must put this notion on firm mathematical ground. In essence, 
-this section is developing the basic geometry of linear programs. First, we must state a few basic definitions. 
+This section develops the basic geometry of linear programs, and introduces terminology and concepts that will be crucial when considering algorithms for solving linear programs
+later on. 
+
+\subsection{Polytopes and Extreme Points}
+In the introduction, I have spoken loosely about ``corners'' of feasible sets. To actually begin developing the theory we must put this notion on firm mathematical ground. 
+First, we must state a few basic definitions. 
 \begin{definition}
 A set defined by linear inequality constraints $\{x \in \R^n: Ax \leq b\}$ is called a \textbf{polyhedron}. If it is bounded we call it a \textbf{polytope}. 
 \end{definition}
@@ -121,8 +124,56 @@ exists a linear objective such that $x$ is the strictly optimal solution to the 
 \item Basic Feasible Solution (Linear algebra definition): $x \in P$ is a \textbf{basic feasible solution} (BFS) provided that at least $n$ of the constraints are independent and tight. 
 \end{enumerate}
 \end{definition}
-I already gave away that the big result here is that extreme points, vertices, and BFS are all equivalent.
+I already gave away that the big result here is that extreme points, vertices, and BFS are all equivalent. While the first definition should be intuitive (draw a picture) the latter two may be 
+less so. For the third definition, recall the hypercube example from above. In $\R^2$ the corners of the cube form at the intersection of 2 constraints, and in $\R^3$ at the intersection 
+of 3 constraints, etc. This definition thus says that this result is not unique to this example, that corners of polyhedra in $\R^n$ must occur at points where (at least) $n$ constraints 
+are active. 
 
+\subsection{Standard Form Polyhedra/Linear Programs}
+As a reminder, we defined a linear program as the optimization problem: 
+\begin{align*}
+&\min c^T x \\
+&\text{s.t. } Ax \leq b \\
+\end{align*}
+
+I claim that any problem of this form can be written in the following form: 
+\begin{align*}
+&\min c^T x \\
+&\text{s.t. } Ax = b \\
+&\;\;\;\;\;\;\; x \geq 0
+\end{align*}
+We call this the \textbf{standard form} representation. Note that $A$, $b$, and $c$ may not be equal to their counterparts in the non-standard form problem. 
+The proof is fairly straightforward. 
+\begin{proof}
+We introduce a vector of \textit{slack variables} $s \in \R^n$, $s \geq 0$: 
+\begin{align*}
+&\min c^T x \\
+&\text{s.t. } Ax + s = b \\
+&\;\;\;\;\;\;\; s \geq 0
+\end{align*}
+Clearly the optimal solutions to these two problems coincide; the non-negativity constraints on $s$ ensure that any feasible solution in the first 
+formulation is also feasible in the second. Also note that the variable $s$ does not show up in the objective of the second problem and thus will
+not affect the optimal solution. Next we must show that we can re-write this such that all variables are subject to non-negativity constraints. 
+To do this we can simply define new variables that are the positive and negative parts of the existing variables. Let 
+$x_i^+ := \max\{x_i, 0\}$ and $x_i^- := \max\{-x_i, 0\}$. Thus $x_i = x_i^+ - x_i^-$ with $x_i^+, x_i^- \geq 0$ so we may re-write the problem as: 
+\begin{align*}
+&\min c^T x \\
+&\text{s.t. } Ax_i^+ - Ax_i^- + s = b \\
+&\;\;\;\;\;\;\; s \geq 0 \\
+&\;\;\;\;\;\;\; x_i^+ \geq 0 \\
+&\;\;\;\;\;\;\; x_i^- \geq 0
+\end{align*}
+To be absolutely clear that we have accomplished our goal of writing this as a standard form problem, we can define $\tilde{A} := \begin{pmatrix} A & -A & I \end{pmatrix} \in \R^{m \times 3n}$, 
+$\tilde{x} := \begin{pmatrix} x^+ \\ x^- \\ s \end{pmatrix} \in \R^{3n}$, and $\tilde{c} := \begin{pmatrix} c \\ 0 \end{pmatrix} \in \R^{3n}$. Then the above problem can be written: 
+\begin{align*}
+&\min \tilde{c}^T \tilde{x} \\
+&\text{s.t. } \tilde{A}\tilde{x} = b \\
+&\;\;\;\;\;\;\; \tilde{x} \geq 0
+\end{align*}
+
+\end{proof}
+	
+	
 	
 \end{document}
 	
