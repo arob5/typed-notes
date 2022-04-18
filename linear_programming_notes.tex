@@ -1,0 +1,129 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{notation}{Notation}
+
+\begin{document}
+
+\begin{center}
+\Large
+Notes on Linear Programming
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+\section{High Level Overview}
+Linear programming, or linear optimization, simply deals with the optimization of linear functions subject to a set of linear constraints: 
+\begin{align*}
+&\min c^T x \\
+&\text{s.t. } Ax \leq b \\
+&\;\;\;\;\;\;\; x \geq 0
+\end{align*}
+where $A \in \R^{m \times n}$, $b \in \R^m$, and $c, x \in \R^n$. Each row $a_i$ of $A$ defines a constraint $a_i^T x \leq b$ and thus this problem
+has $m$ constraints. We call a vector $x \in \R^n$ a \textit{feasible point} if it satisfies all of the constraints. Note that since linear functions are convex
+(and concave) then this problem is actually a specific case of convex optimization and hence we can apply all of the nice convex optimization theory
+(duality, etc.) in this case as well. 
+
+The basic story of linear programming can actually be summarized quite succinctly: the constraints define a \textit{feasible set} in $\R^n$ and due to the fact that the objective function is linear then 
+the minimum must occur at one of the ``corners'' of this set. This is really the fundamental theorem of linear programming; it reduces this continuous optimization
+problem to a selection problem over a discrete, finite set of points. So, we can just enumerate over these points and we're done, right? In theory, sure, but consider 
+why this might be a problem in practice. Consider the following $2n$ inequality constraints which define the $n$-dimensional hypercube as the feasible set in $\R^n$:
+\[0 \leq x_i \leq 1, \ \forall i = 1, \dots, n\]
+How many corners does this feasible set have? Clearly in $\R^2$ a square has 4 corners, in $\R^3$ a cube has 8, and the pattern continues: in $\R^n$ these $2n$
+constraints yield a feasible set with $2^n$ corners. Therefore, the number of potential solutions we'd have to check grows exponentially in the dimension of the 
+problem. Moreover, the brute force approach wouldn't just require iterating over these points; we'd have to actually \textit{find} these points by solving linear systems 
+of equations. For large $n$ this quickly becomes infeasible. Therefore, the crux of linear programming is to find efficient algorithms that do not require exploring every
+corner of the feasible set. There are two primary methods that have emerged: 
+\begin{enumerate} 
+\item The Simplex Method: Dating back to the 1940s, this is the older of the two methods. It can be thought of as a greedy steepest descent algorithm over the edges of the feasible
+set; that is, the algorithm moves from one corner to the adjacent corner that causes the largest decrease in the objective. 
+\item Interior Point Methods: Discovered in the late 1960s but popularized in the mid-80s, this is a more modern approach. The general idea is that, despite the fact that the optimum 
+must occur at a corner, it may be useful to consider points in the interior of the feasible set. This is due to the fact that in the interior we can actually calculate derivatives and use 
+calculus to help determine where to go next; incorporating gradient information can lead to more intelligent choices about which points to consider next. This is kind of like an 
+``exploration vs. exploitation'' type idea; although we are intentionally spending time looking at points that we know cannot possibly be the solution, we are gaining much more 
+information that can hopefully lead to faster convergence in the long run. 
+\end{enumerate}
+Although the Simplex Method is older, it is still in use for solving LP problems. However, in more complicated settings (semi-definite programming, quadratic programming) interior 
+point methods tend to be the primary tool. 
+
+\section{Polytopes and Extreme Points}
+In the introduction, I have spoken loosely about ``corners'' of feasible sets. To actually begin developing the theory we must put this notion on firm mathematical ground. In essence, 
+this section is developing the basic geometry of linear programs. First, we must state a few basic definitions. 
+\begin{definition}
+A set defined by linear inequality constraints $\{x \in \R^n: Ax \leq b\}$ is called a \textbf{polyhedron}. If it is bounded we call it a \textbf{polytope}. 
+\end{definition}
+
+\begin{definition}
+A set of linear inequality constraints is said to be \textbf{independent} if the vectors $a_i$ defining the constraints are linearly independent. A constraint is said to be 
+\textbf{tight} (or binding or active) if it is satisfied with equality.  
+\end{definition}
+
+Now we seek a rigorous definition of ``corners'' of polytopes. Some linear programming texts (e.g. Bertsimas) may spend a whole section introducing a few different characterizations
+and then in a dramatic conclusion prove that they are all equivalent. I'm going to skip over this exposition and just state  the result that the three following definitions are all equivalent. 
+These are thus all equivalent characterizations of what I was previously calling a ``corner''. 
+\begin{definition}
+Let $P$ be a polytope. 
+\begin{enumerate} 
+\item Extreme Point (Convex analysis definition): $x \in P$ is an \textbf{extreme point} of $P$ provided that there does not exist vectors $y \neq z$ in $P$ and scalar $\lambda \in (0, 1)$
+such that $x = \lambda y + (1 - \lambda)z$. 
+\item Vertex (Optimization definition): $x \in P$ is a \textbf{vertex} of $P$ provided that there exists $c \in \R^n$ satisfying $c^T x < c^T y$ for all $y \in P$, $y \neq x$. This says that there
+exists a linear objective such that $x$ is the strictly optimal solution to the constrained optimization problem: $\min_{y \in P} c^T y$. 
+\item Basic Feasible Solution (Linear algebra definition): $x \in P$ is a \textbf{basic feasible solution} (BFS) provided that at least $n$ of the constraints are independent and tight. 
+\end{enumerate}
+\end{definition}
+I already gave away that the big result here is that extreme points, vertices, and BFS are all equivalent.
+
+	
+\end{document}
+	
+	

@@ -315,8 +315,14 @@ $x \in \mathcal{X}$ and all $A \in \mathcal{F}$.
 
 Intuitively, this means that the samples we generate will be distributed according to distributions that are approaching the target distribution $\pi$ as $k$ grows large. 
 This definition should not sound too crazy; we had previously constructed Markov chains with invariant distribution $\pi$, and noted that we would need to prove some 
-sort of convergence result that tells us the chain actually tends towards $\pi$. Thus, ergodicity is precisely the property that we want to prove.  
+sort of convergence result that tells us the chain actually tends towards $\pi$. Thus, ergodicity is precisely the property that we want to prove. 
 
+\subsection{Irreducibility and LLN}
+The goal is thus to consider the conditions under which a Markov chain is ergodic. A slightly easier goal is to consider the conditions under which  LLN type result 
+will hold. This is not surprising: the SLLN guarantees almost sure convergence of expectations, while ergodicity takes things a step farther and considers the convergence
+of distributions. We would thus expect ergodicity to imply a SLLN.  
+
+With this in mind, let's begin contemplating some sufficient conditions for these results to hold. 
 
 
 \end{document}
