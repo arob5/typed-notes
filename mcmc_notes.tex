@@ -324,6 +324,79 @@ of distributions. We would thus expect ergodicity to imply a SLLN.
 
 With this in mind, let's begin contemplating some sufficient conditions for these results to hold. 
 
+\section{Mixing and Markov Chain CLTs}
+Let's review what we've accomplished so far: 
+\begin{enumerate}
+\item We have constructed Markov chains with stationary distribution $\pi$. 
+\item We have derived a form of the LLN for Markov chains, which tells us that the sample mean calculated from the MCMC samples will converge almost surely 
+to the expectation with respect to the stationary distribution $\pi$: 
+\[\lim_{i \to \infty} \frac{1}{k} \sum_{i = 1}^{k} \phi(X_i) = \phi(\pi) \text{ a.s.}\]
+\item We showed under which conditions the chain is \textit{geometrically ergodic}, which helped us quantify the \textit{rate} of convergence in the LLN. In particular, 
+we considered the distance from $\pi$ in total variation distance: 
+\[d_V(\nu P^k, \pi) \leq O(\rho^k d_V(\nu, \pi))\]
+\item Finally, we considered a stronger form of convergence known as \textit{quantitative convergence}, in which we introduced the concepts of metric convergence 
+and Wasserstein distance.
+\end{enumerate}
+
+This is all helpful, but we are missing one key ingredient; we have yet to consider the distribution of the fluctuations around $\pi$ as $k$ grows large, which will help us 
+construct confidence intervals. In particular, letting $\hat{\pi}(\phi) := \frac{1}{k} \sum_{i = 1}^{k} \phi(X_i)$ we seek to establish the conditions under which: 
+\[\sqrt{k}[\hat{\pi}(\phi) - \pi(\phi)] \overset{d}{\to} N(0, \sigma_\phi^2)\]
+for some asymptotic variance $\sigma_\phi^2$. If we're able to obtain an estimate of this variance $\hat{\sigma}_\phi^2$ then we can construct the typical 
+$100(1 - \alpha)\%$ confidence intervals: 
+\[\left(\hat{\pi}(\phi) - \frac{z_{\alpha/2}}{\sqrt{k}}\hat{\sigma}_\phi, \hat{\pi}(\phi) + \frac{z_{\alpha/2}}{\sqrt{k}}\hat{\sigma}_\phi \right)\]
+such that the probability that $\pi(\phi)$ falls in this interval tends to $1 - \alpha$ in the limit. The reason this is so valuable is that it allows us to tune the precision 
+of our estimate for the expectation by adjusting the number of samples $k$. 
+
+\section{Stochastic Differential Equations (SDEs)}
+We now begin to build up the theory necessary to develop more sophisticated MCMC algorithms, in particular Langevin Monte Carlo. This algorithm is based on the 
+discretization of a \textit{continuous time} stochastic process. Up until this point we've been considering Markov chains in which the index set is the natural numbers. 
+We now allow this index set to be $\R$ or $\R_+$. The basic idea going forward will be to consider these ``idealized'' continuous processes as a model for MCMC algorithms. 
+Then to actually be able to implement such algorithms in a computer, we discretize these idealized processes; that is, approximate them with Markov chains. Throughout this 
+section we work in the Euclidean state-space $\mathcal{X} = \R^d$. 
+
+\subsection{Review of Random Walks}
+\textbf{TODO}
+
+\subsection{Transitioning from ODEs to SDEs}
+Recall from ODEs the form of a (potentially nonlinear) ordinary differential equation: 
+\[\frac{dx(t)}{dt} = F(x(t)) + G(x(t)) W(t)\]
+We might first consider the simpler equation 
+\[\frac{dx(t)}{dt} = F(x(t))\]
+Now consider this: what if the process we are modeling is noisy or random in nature and thus we only want to consider $F(x(t))$ to be the 
+\textit{average} value of $\frac{dx(t)}{dt}$. Well, why not add on a Gaussian white noise term? 
+ \[\frac{dx(t)}{dt} = F(x(t)) + \epsilon_t, \ \epsilon_t \overset{\text{iid}}{\sim} N(0, 1)\]
+This seems to be a reasonable thing to do, but note that it takes us out of the familiar realm of ODEs; we are now faced with a completely new mathematic object and 
+at this point we don't even have a sense of what it would mean to ``solve'' the above equation. Generalizing one step further, we might add back in the G term: 
+ \[\frac{dx(t)}{dt} = F(x(t)) + G(x(t))\epsilon_t, \ \epsilon_t \overset{\text{iid}}{\sim} N(0, 1)\]
+ Now $G(x(t))$ acts as an ``amplitude'' for the noise term, magnifying or reducing the impact of the Gaussian noise over time and space. Note that this equation 
+ mirrors the general equation for a non-linear ODE given above, with $W(t) = \epsilon_t$. In this case we call $W(t)$ a \textit{white noise process}. What if we did just 
+ try to pave forward and tackle this equation with the ODE methods? Well, the first step is to integrate both sides with respect to $t$, so we immediately run into a problem. 
+ What does it even mean to integrate $\int_{0}^{t} W(s) ds = \int_{0}^{t} \epsilon_{s} ds$? This is currently undefined. Note that we know how to integrate random variables 
+ over a probability space and with respect to a probability measure, but this is not that. This is a time integral over a stochastic process.
+ 
+ Let's start thinking about how we might find a suitable and useful definition for this integral. An immediate difficulty is that the Gaussian distribution is supported on the entire 
+ real line and hence $\{W(t)\}_{t \in [a, b]}$ unbounded on any interval with $a < b$. As we try to overcome these difficulties we will be very informal, just trying to find a method 
+ of attack that seems promising before putting things on formal ground. In this spirit, let's assume $B(t) := \int_{0}^{t} W(s) ds$ is a Gaussian random variable. This seems somewhat
+ reasonable since any linear combination of Gaussians $\sum_{i = 1}^{N} Z_i$ is Gaussian and an integrate is like a continuous version of a sum. Under this assumption, and assuming
+ we can exchange integration and expectation we have: 
+ \begin{align*}
+ \E B(t) &= \int_{0}^{t} \E W(s) ds = \int_{0}^{t} 0 ds = 0 \\
+ \Var(B(t)) &= \int_{0}^{t} \Var(W(s)) ds = \int_{0}^{t} 1 ds = t
+ \end{align*}
+where to find the variance I (again without any rigorous justification) generalized the notion that the variance of a sum of independent random variables is the sum of the variances. 
+Using this heuristic we've found that the variance of the process $B(t)$ increases linearly in time. Let's go a step further here and consider $W(t) \overset{\text{iid}}{\sim} N(0, I_d)$, 
+a white noise process in $d$ dimensions. We'd still find $\E B(t) = 0$ (interpreting the integral component-wise) and now $\Var(B(t))$ as the covariance matrix of $B(t)$. 
+To find this covariance matrix, first note that by independence $\E W(t$ for $s \neq t$.
+
+\subsection{Different Ways to Think about Brownian Motion}
+\textbf{TODO}
+\begin{enumerate}
+\item As solution to the differential equation presented above 
+\item Bayesian approach to modeling unknown quantities 
+\item Generalization of a random walkc
+\end{enumerate}
+
+
 
 \end{document}
 
