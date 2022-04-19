@@ -354,7 +354,7 @@ We now allow this index set to be $\R$ or $\R_+$. The basic idea going forward w
 Then to actually be able to implement such algorithms in a computer, we discretize these idealized processes; that is, approximate them with Markov chains. Throughout this 
 section we work in the Euclidean state-space $\mathcal{X} = \R^d$. 
 
-\subsection{Review of Random Walks}
+\subsection{Review of Random Walks and Gaussian Processes}
 \textbf{TODO}
 
 \subsection{Transitioning from ODEs to SDEs}
@@ -385,17 +385,72 @@ at this point we don't even have a sense of what it would mean to ``solve'' the 
  \end{align*}
 where to find the variance I (again without any rigorous justification) generalized the notion that the variance of a sum of independent random variables is the sum of the variances. 
 Using this heuristic we've found that the variance of the process $B(t)$ increases linearly in time. Let's go a step further here and consider $W(t) \overset{\text{iid}}{\sim} N(0, I_d)$, 
-a white noise process in $d$ dimensions. We'd still find $\E B(t) = 0$ (interpreting the integral component-wise) and now $\Var(B(t))$ as the covariance matrix of $B(t)$. 
-To find this covariance matrix, first note that by independence $\E W(t$ for $s \neq t$.
+a white noise process in $d$ dimensions. We'd still find $\E B(t) = 0$ (interpreting the integral component-wise) and now $\Cov(B(t))$ is the covariance matrix of $B(t)$. 
+To find this covariance matrix, first note that by independence that $\E W(t)W(s)^T = \mathbb{I}[t = s]I_d$ (since $\E W(t)_i W(s)_j = 1$ $\iff$ $t = s$ and $i = j$). 
+Below I consider the covariance between two different time periods; $\Cov(B(t))$ follows as a special case when $t = s$.  
+\begin{align*}
+\Cov(B(t), B(s))_{ij} = \left(\E B(t)B(s)^T\right)_{ij} &= \E\left[\int_{0}^{t} W(t^\prime)_i dt^\prime \cdot \int_{0}^{s} W(s^\prime)_j ds^\prime \right] \\
+		    			  &= \E\left[\int_{0}^{t} \int_{0}^{s} W(t^\prime)_i W(s^\prime)_j dt^\prime ds^\prime \right] \\
+					  &= \int_{0}^{t}\int_{0}^{s}  \E \left[W(t^\prime)_i W(s^\prime)_j\right] dt^\prime ds^\prime \\
+					  &= \int_{0}^{t}\int_{0}^{s} \mathbb{I}[t^\prime = s^\prime] \mathbb{I}[i = j] dt^\prime ds^\prime \\
+					  &= \int_{0}^{\min\{t, s\}} \mathbb{I}[i = j] dt^\prime \\
+					  &= \min\{t, s\} \mathbb{I}[i = j]\\
+\end{align*}
+Thus, $\E B(t)B(s)^T = \min\{t, s\} I_d$. So the covariance of $B(t)$ between two time values is governed by the minimum of the two times. If we fix the smaller time 
+value, say $t$, and arbitrarily increase $s$ then the covariance will remain constant. However, if we increase $t$ and $s$ by the same amount then the covariance 
+will increase. In particular, $\Var(B(t)_i) = t$ so the variance increases linearly in time, which coincides with our previous calculation. We will come to know the process $B(t)$ as a \textit{Brownian motion}. As a recap, let's consider what we've found: 
+\begin{align*}
+&\text{White Noise Process: } \E W(t) = 0 \text{ and } \Cov(W(t), W(s)) = \mathbb{I}[t = s]I_d \\
+&\text{Brownian Motion: }: \E B(t) = 0 \text{ and } \Cov(B(t), B(s)) =  \min\{t, s\} I_d
+\end{align*}
+
+\textbf{TODO: include conditional distribution of Brownian motion, and the fact that increments are independent (Notes, pg. 98}
 
 \subsection{Different Ways to Think about Brownian Motion}
 \textbf{TODO}
 \begin{enumerate}
 \item As solution to the differential equation presented above 
+\item Continuous generalization of linear combination of Gaussians
 \item Bayesian approach to modeling unknown quantities 
-\item Generalization of a random walkc
+\item Generalization of a random walk
 \end{enumerate}
 
+\subsection{Returning to the Differential Equation}
+Going forward, we will formulate SDEs in terms of Brownian motion instead of white noise. The reason for this will become clear later but for now I will 
+just saw that (in a sense that can be made formal) white noise can be thought of as the time derivative of Brownian motion: 
+\[\frac{dB(t)}{dt} = W(t)\]
+I will also henceforth switch to writing the time dependence as a subscript instead of using functional notation: $B_t := B(t)$. 
+Recall that there is an underlying probability space $(\Omega, \mathcal{A}, \Prob)$. We should note that, for $\omega \in \Omega$, $B_t(\omega)$
+is continuous with respect to $t$ but \textit{not differentiable} (Brownian motion is ``jagged''). Thus, claiming that white noise can be thought of as the 
+time derivative of Brownian motion implies that we are considering a different notion of derivatives here. This is all I will say on this matter for the time 
+being. For matrices, $\Gamma, \Lambda \in \R^{d \times d}$ we recall the linear ODE:
+\[\frac{dx(t)}{dt} = \Gamma x(t) + \Lambda W(t) \]
+We previously considered generalizing the deterministic function $W(t)$ by considering it as a white-noise Gaussian process. We now replace this term 
+using the equality $\frac{dB(t)}{dt} = W(t)$ mentioned above: 
+\[\frac{dX_t}{dt} = \Gamma X_t + \Lambda \frac{dB_t}{dt} \]
+This is often written 
+\[dX_t = \Gamma X_t dt + \Gamma dB_t\]
+We can also generalize the non-linear ODE as: 
+\[dX_t = F(X_t) dt + G(X_t) dB_t\]
+Things might seem a bit frustrating up to this point, as none of the above expressions have yet been given rigorous meaning. However, I believe it is helpful 
+to give a general, informal flavor of what we're trying to do prior to pursuing rigor, which we will do in the next section. 
+
+\subsection{Ito Calculus}
+We seek to give formal meaning to the expressions given in the previous section. The plan of attack is to formulate SDEs as equivalent integral equations, which will 
+then require defining \textit{stochastic integrals}. We will see that this approach naturally leads to the requirement that stochastic processes be integrated with respect to
+ a Brownian motion. In measure theory, the Lebesgue integral is defined with respect to a measure and in the theory of differential forms, $k$-forms are the natural objects 
+ of integration. Here, it turns out that Brownian motions play the central role. In general, Ito calculus can be thought of as a theory of integration of stochastic processes. 
+ Even though we are interested in stochastic \textit{differential} equations, the workhorse of the theory is actually a new notion of integral. 
+ 
+ Let us first recall the heuristic SDE we originally considered by simply supposing that $W_t \overset{iid}{\sim} N(0, 1)$. 
+ \[\frac{dX_t}{dt} = F(X_t) + G(X_t) W_t\]
+ It should immediately be clear that standard calculus cannot handle this expression. Even for a fixed trajectory (i.e. fix $\omega \in \Omega$), $W_t(\omega)$
+ will be discontinuous (it's white noise so will bounce around). So trying to do much more with this expression seems like a dead end. Let's instead consider integrating
+ both sides of this expression with respect to time $t$. This yields the integral equation
+ \[X_t - X_{t_0} = \int_{t_0}^{t} F(X_t) dt + \int_{t_0}^{t} G(X_t) W_t dt\]
+The first integral doesn't actually pose any major issues. Once a realization $\omega \in \Omega$ is fixed, we have a standard integral over time
+\[\int_{t_0}^{t} F(X_t(\omega)) dt \]
+which we can define in the Riemann or Lebesgue sense provided that the function $t \mapsto F(X_t(\omega))$ is reasonably well-behaved. 
 
 
 \end{document}
