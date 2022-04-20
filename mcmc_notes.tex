@@ -450,7 +450,46 @@ then require defining \textit{stochastic integrals}. We will see that this appro
  \[X_t - X_{t_0} = \int_{t_0}^{t} F(X_t) dt + \int_{t_0}^{t} G(X_t) W_t dt\]
 The first integral doesn't actually pose any major issues. Once a realization $\omega \in \Omega$ is fixed, we have a standard integral over time
 \[\int_{t_0}^{t} F(X_t(\omega)) dt \]
-which we can define in the Riemann or Lebesgue sense provided that the function $t \mapsto F(X_t(\omega))$ is reasonably well-behaved. 
+which we can define in the Riemann or Lebesgue (with respect to Lebesgue measure) sense provided that the function $t \mapsto F(X_t(\omega))$ is reasonably well-behaved. 
+It's the second integral where we run into problems:
+\[\int_{t_0}^{t} G(X_t(\omega)) W_t(\omega) dt\]
+To see why this is an issue, let's try to proceed by defining this as a Riemann integral. The Riemann integral is defined by considering a partition of $[t_0, t_k]$ and calculating
+lower and upper Riemann sums with respect to this partition. The lower sums use the infimum of the integrand in each segment of the partition and the upper sums use 
+the supremum. We then consider the supremum of the lower sums and infimum of the upper sums each taken over the set of all possible partitions. If this infimum and 
+supremum are equal then the function is said to be Riemann integrable. The issue with using this formulation here is that $W_t(\omega)$ is unbounded. Since it is 
+a white noise process then we can essentially make no assumptions on what a realization of it might look like. For example, it could be that $W_s(\omega) \to -\infty$
+as $s \to t$. Then the infimum of the integrand over the segment of a partition containing the latter portion of this interval will be $-\infty$. Thus, we cannot define this 
+as a Riemann integral. Okay, so it's time to consider generalizing; one idea is to consider the Stieltjes (which can be defined in a Riemann or Lebesgue sense). Recall 
+that the Stieltjes integral looks something like 
+\[\int_{a}^{b} f(x) dg(x)\]
+where the $dg(x)$ indicates (in the Riemann case) that the increments in the Riemann sum $t_{i + 1} - t_i$ are first scaled by $g$: $g(t_{i + 1}) - g(t_i)$. Thus it is in fact 
+a generalization of the Riemann integral. Obviously, we can't use this integral directly in our case but we can borrow the basic idea and try to consider $W_t(\omega) dt$ 
+as the increment of some other stochastic process $\beta_t$ so that 
+\[\int_{t_0}^{t} G(X_t) W_t dt = \int_{t_0}^{t} G(X_t) d\beta_t \]
+Now recall that for the Stieltjes integral we typically take $g$ to be monotone and right semi-continuous. Now recall some facts we stated about Brownian motion in 
+the previous section: its variance increases linearly and it is continuous. Following this hint, it does turn out that Brownian motion is the ``right'' process to integrate with 
+respect to. Also recall that we previously mentioned that the white noise process can be thought of as the derivative of a Brownian motion. We now see why: 
+to arrive at this expression we considered $W_t dt = d\beta_t$, which we can rearrange as $\frac{d\beta_t}{dt} = W_t$. 
+Before getting ahead of ourselves, we should actually give a formal definition of Brownian motion. 
+\begin{definition}
+A \textbf{Brownian motion} $B_t \in \R^d$ is a continuous stochastic process satisfying the following properties: 
+\begin{enumerate} 
+\item Any increment $\Delta B_k := B_{t_{k + 1}} - B_{t_k}$ satisfies $\Delta B_t \sim N(0, (t_{k + 1} - t_{k})I_d)$\footnote{Brownian motion can actually be defined more generally 
+by considering a white noise process other than Gaussian, in which case the covariance is not proportional to $I_d$. See Sarkka and Solin (2019)}
+\item Increments with disjoint time spans are independent. 
+\item The process starts at the origin: $B(0) = 0$. 
+\end{enumerate}
+\end{definition}
+
+Now some basic facts: 
+\begin{enumerate}
+\item The function $t \mapsto B_t$ is almost surely continuous. This is often given in the definition of Brownian motion. 
+\item $t \mapsto B_t$ is nowhere differentiable.  
+\end{enumerate}
+
+\textbf{TODO: left off at page 44 of book}
+
+
 
 
 \end{document}
