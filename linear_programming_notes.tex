@@ -95,6 +95,34 @@ information that can hopefully lead to faster convergence in the long run.
 Although the Simplex Method is older, it is still in use for solving LP problems. However, in more complicated settings (semi-definite programming, quadratic programming) interior 
 point methods tend to be the primary tool. 
 
+
+\section{Examples and Tricks for Representing Problems as LPs}
+
+\subsection{Absolute Values}
+Although absolute values introduce non-linearity in some situations we can take advantage of the general form of LPs to be able to represent constraints and/or objective functions
+containing absolute values. Straightforward absolute value constraints are actually quite simple; say we want to constraint a decision variable as 
+\[\abs{x_i} \leq b_i\]
+Well, this is just equivalent to 
+\[-b_i \leq x_i \leq b_i\]
+which constitutes two linear inequality constraints. Absolute values in the objective function are a bit trickier. Consider, 
+\begin{align*}
+&\min \sum_{i = 1}^{n} \abs{x_i} \\
+&\text{s.t. } Ax \leq b \\
+\end{align*}
+
+To represent this as an LP, the idea is to introduce new variables $z_i, i = 1, \dots, n$ which we constrain to be non-negative. These variables are intended to represent $\abs{x_i}$ so 
+we must constrain them as $-z_i \leq x_i \leq z_i$, or $\abs{x_i} \leq z_i$. This leads to the formulation, 
+\begin{align*}
+&\min \sum_{i = 1}^{n} z_i \\
+&\text{s.t. } Ax \leq b \\
+&\;\;\;\;\;\; -z_i \leq x_i \leq z_i \\
+&\;\;\;\;\;\; z_i \geq 0
+\end{align*}
+Since $\abs{x_i} \leq z_i$ then pushing down $z_i$ will also push down $\abs{x_i}$ and clearly the minimum of the two will coincide. 
+
+
+
+
 \section{Polytopes and Extreme Points}
 This section develops the basic geometry of linear programs, and introduces terminology and concepts that will be crucial when considering algorithms for solving linear programs
 later on. 
@@ -172,6 +200,22 @@ $\tilde{x} := \begin{pmatrix} x^+ \\ x^- \\ s \end{pmatrix} \in \R^{3n}$, and $\
 \end{align*}
 
 \end{proof}
+
+Recall that $A$ is an $m \times n$ matrix. When discussing problems in standard form it is customary to make the assumption $m \leq n$ for the following reason. It can be shown that 
+linearly dependent constraints (that is, when $A$ has linearly dependent columns) are in fact redundant. Without loss of generality we can then assume that $A$ has linearly independent 
+rows. Since each row of $A$ is in $\R^n$ then this assumption implies the condition $m \leq n$.  
+
+Standard form problems have a very nice interpretation. If we let $A_i$ denote column $i$ of $A$ then the constraints can be written: 
+\begin{align*}
+&\sum_{i = 1}^{n} A_i x_i = b\\
+&\;\;\;\;\;\;\; x \geq 0
+\end{align*}
+So we may view the columns $A_i$ as ``resource vectors'' and the $x_i$ are non-negative amounts of each resource, subject to the constraint that the total amount of resources must
+sum to $b$. The task is thus to minimize the cost subject to this resource constraint. 
+
+In general both the general form and standard forms of a linear program are useful
+to work with. The general form (that is, with constraint $Ax \leq b$) is often convenient when developing the theory of linear programming. However, the standard form often tends to be 
+more computationally convenient and hence is typically used for the design of algorithms. 
 	
 	
 	
