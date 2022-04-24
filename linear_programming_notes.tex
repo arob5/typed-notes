@@ -408,6 +408,42 @@ So what this theorem is telling us is that the following two approaches by the p
 \item Player B chooses a strategy that minimizes player A's best-case expected payoff across all possible strategies for player A. 
 \end{itemize}
 
+Now let's proceed with the proof. 
+\begin{proof}
+The basic idea here is to re-write both sides of the equation as LPs such that one is the dual of the other, and then apply strong duality. To this end, let's first consider the lefthand side. The first 
+step is to re-write
+\[\min_{y \in \Delta_B} x^T A y\]
+Recall that $y$ must satisfy the constraints of a probability mass function. Thus to minimize $x^T A y$ the trick is to consider the smallest value in the vector $x^T A$ and then put all of the probability
+mass into the component of $y$ corresponding to that smallest value. This yields, 
+\[\min_{y \in \Delta_B} x^T A y = \min_{j \in S_B} (x^T A)_j = \min_{j \in [n]} (x^T A)_j\]
+where the second equality follows from $S_B = \{1, \dots, n\} =: [n]$. Thus, the lefthand side can be written as: 
+\begin{align*}
+&\max_{x \in \Delta_A}  \min_{j \in [n]} (x^T A)_j \\
+\end{align*}
+We can introduce the variable $t := \min_{j \in [n]} (x^T A)_j$ and then re-write this as
+\begin{align*}
+&\max_{x \in \Delta_A}  t \\
+&\text{s.t. } t \leq (x^T A)_j \ \forall j \in [n]  \\
+\end{align*}
+Then since $x \in \Delta_A$ is simply constraining $x$ to be a valid probability mass function then we can write these constraints out explicitly. 
+\begin{align*}
+\max & \ t \\
+\text{s.t. } &t \leq (x^T A)_j \ \forall j \in [n]  \\
+&\sum_{j = 1}^{n} x_j = 1 \\
+&x \geq 0
+\end{align*}
+Note that we do not need to explicitly constraint $x \in [0, 1]$ since requiring the $x_i$ to be non-negative and to sum to $1$ implicitly implies this constraint. This is a linear 
+program. Now for the righthand side. The reasoning is essentially exactly the same so we will go through this more quickly. We have 
+\[ \max_{x \in \Delta_A} x^T A y = \max_{i \in [m]} (Ay)_i\]
+We consider a new variable $s := \max_{i \in [m]} (Ay)_i$, which then yields: 
+\begin{align*}
+\min & \ s \\
+\text{s.t. } &s \geq (Ay)_i \ \forall i \in [m]  \\
+&\sum_{i = 1}^{m} y_i = 1 \\
+&y \geq 0
+\end{align*}
+These two problems can shown to be dual to each other (consider what the values of $c, b$, etc. are for each LP to see this). Thus by strong duality the theorem is proved. 
+\end{proof}
 
 
 	
