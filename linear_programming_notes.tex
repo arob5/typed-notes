@@ -337,12 +337,77 @@ the players choose respective strategies $i \in S_A$, $j \in S_B$. We will assum
 This leads us to the notion of a \textbf{Nash Equilibrium}. Intuitively, a Nash Equilibrium is a situation in which, given the other players strategy, neither one
 would be better off transitioning to a new strategy. It is in this sense that the game is in equilibrium. 
 \begin{definition}
- A Nash Equilibrium is a strategy profile $(i, j) \in S_A \times S_B$ such that each player's strategy is optimal given the other player's strategy; that is, 
+ A Nash equilibrium is a strategy profile $(i, j) \in S_A \times S_B$ such that each player's strategy is optimal given the other player's strategy; that is, 
  \begin{itemize}
  \item $A_{ij} \geq A_{kj} \text{ for all } k \in S_A$ 
  \item $B_{ij} \geq B_{i\ell} \text{ for all } \ell \in S_B$
  \end{itemize}
 \end{definition}
+
+We me generalize the idea of two-player games by considering that each players strategy is picked at random. That is, for player A we associate their 
+set of strategies $S_A$ with a probability vector $p_A \in \Delta_A$ such that $(p_A)_i$ is the probability that player A employs strategy $i \in S_A$. 
+$\Delta_A$ is the set of all possible probability vectors for player $A$,
+\[ \Delta_A := \left\{p = (p_1, \dots, p_m) : p_i \in [0, 1] \text{ and } \sum_{i = 1}^{m} p_i = 1\right\} \]
+While in the non-random setting, player A picked a strategy $i \in S_A$, in this setting player A picks a probability vector $p_A \in \Delta_A$; that is, the player 
+gets to choose the probability of each strategy but not the strategy itself. 
+The vector $p_B$ is defined analogously for player B. 
+$p_A$ is called the \textit{mixed strategy} for player $A$ and the pair $p_A, p_B$ is called a \textit{mixed strategy profile}. 
+In the mixed strategy setting the notion of payoff is replaced with \textit{expected payoff}. The expected payoff for 
+player A is: 
+\[\sum_{(i, j) \in S_A \times S_B} A_{ij} (p_A)_i (p_B)_j = (p_A)^T A p_B\]
+The expected payoff is conveniently written as the above quadratic form. We may now generalize the notion of Nash equilibrium to this random setting. The 
+definition is basically identical to the previous case, just replacing \text{payoff} with \textit{expected payoff}. 
+\begin{definition}
+A mixed Nash equilibrium is a mixed strategy profile $p_A \in \Delta_A, p_B \in \Delta_B$ such that the expected payoff for each player is optimal given the other 
+players mixed strategy; that is, 
+\begin{itemize}
+\item $(p_A)^T A p_B \geq (p^\prime_A)^T A p_B$ \text{ for all } $p^\prime_A \in \Delta_A$
+\item $(p_A)^T B p_B \geq (p_A)^T B p^\prime_B$ \text{ for all } $p^\prime_B \in \Delta_B$
+\end{itemize} 
+\end{definition}
+
+Now, one final definition to complete our brief foray into game theory. 
+\begin{definition}
+A two-player game is called a \textbf{zero-sum game} if the payoff matrices of the players satisfy $A = -B$. 
+\end{definition}
+This simply means that a gain for one player results in a loss of equal size for the other player, and vice versa; that is, cooperation if futile. 
+
+Now, the question is: how does this all connect back to LPs? Well, the major result in the theory of two-player games is that every two-player, zero-sum
+game has a mixed Nash equilibrium. The proof of this famous result relies on another result known as the minimax theorem, which in turn is proved using
+strong duality. We should also emphasize that the minimax theorem is very important in and of itself and generalizations of this theorem have found 
+many applications in machine learning, statistics, decision theory, etc. 
+
+\begin{thm}
+(Von Neumann's Minimax Theorem) For any matrix $A \in \R^{\abs{M} \times \abs{N}}$, 
+\[ \max_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y = \min_{y \in \Delta_B} \max_{x \in \Delta_A} x^T A y \]
+\end{thm}
+Before the proof, a couple comments. First, note that I have switched notation to $x := p_A$, $y := p_B$ to reduce clutter. Now let's break down what this is saying.
+
+\bigskip
+
+\textbf{Lefthand side:}
+\begin{itemize}
+\item $L_x := \min_{y \in \Delta_B} x^T A y$: For a fixed mixed strategy for player $A$, this is the minimum expected payoff for A across all possible mixed strategies for player B.  
+In other words, this is a lower bound on expected payoff for player $A$ given player A's mixed strategy $x$. 
+\item $\max_{x \in \Delta_A} L_x$: This maximizes the above lower bound over all possible mixed strategies for player A.  That is, we can think of player A as choosing a mixed strategy 
+$x$ that takes into account all possible strategies for player B and chooses $x$ such that player A's expected payoff in the worst-case scenario is maximized. 
+\end{itemize}
+
+\bigskip
+
+\textbf{Righthand side:}
+\begin{itemize}
+\item $U_y := \max_{x \in \Delta_A} x^T A y$: For a fixed mixed strategy for player B, this is the maximum expected payoff for player A across all possible strategies for player A. In other words, 
+this is an upper bound on A's expected payoff given a fixed strategy for B. 
+\item $\min_{y \in \Delta_B} U_y$: Here we can think of player B as trying to minimize A's maximum expected payoff across all strategies for B. 
+\end{itemize}
+
+So what this theorem is telling us is that the following two approaches by the players A and B will result in the same outcome. 
+\begin{itemize}
+\item Player A chooses a strategy that maximizes their worst-case expected payoff across all possible strategies for player B. 
+\item Player B chooses a strategy that minimizes player A's best-case expected payoff across all possible strategies for player A. 
+\end{itemize}
+
 
 
 	
