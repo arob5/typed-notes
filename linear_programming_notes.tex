@@ -217,6 +217,80 @@ In general both the general form and standard forms of a linear program are usef
 to work with. The general form (that is, with constraint $Ax \leq b$) is often convenient when developing the theory of linear programming. However, the standard form often tends to be 
 more computationally convenient and hence is typically used for the design of algorithms. 
 	
+\section{LP Duality}
+Duality is a very important concept in optimization; more generally, it is a property of convex programming but here we consider duality in the special case of linear programming. Duality 
+is a special characterization of optimality in LPs, and thus something that can be exploited to help design optimization algorithms. Before immediately introducing duality, we start by asking 
+a different question that will lead us on the path to duality: when is a LP feasible? In other words, when in the feasible set non-empty? Now we see the convenience of the standard form LP, since 
+the feasible set is simply defined by a linear system of equations (plus the non-negativity constraints, but let's ignore that for now). Thus, the equivalent question is: does $Ax = b$ have a solution. 
+From linear algebra, we already know how to answer this; just use Gaussian elimination! The results from this method are summarized in the following theorem. 
+\begin{thm}
+Let $A \in \R^{m \times n}$ and $b \in \R^m$, exactly one and only one of the following statements holds: 
+\begin{enumerate}
+\item $x \in \R^n$ is a solution to $Ax = b$.
+\item There exists $y \in \R^m$ such that $y^T A = 0$ but $y^T b \neq 0$. 
+\end{enumerate}
+When the system does not have a solution then a vector $y \in \R^m$ satisfying the second statement is called a \textbf{certificate of infeasibility}. 
+\end{thm}
+The second statement might look a bit weird at first glance, but it is actually very intuitive. Suppose we have a system of two equations $E_1$ and $E_2$. We learn in elementary math 
+that one strategy to solve such a system is to add the equations together and then solve the resulting single equation. More generally, we might take a linear combination of the two equations
+such as $y_1 E_1 + y_2 E_2$ for some $y_1, y_2 \in \R$. If this results in an equation of the form $0 = d$, where $d \neq 0$ we know this is impossible and hence the equation does not have a 
+solution. That's all this second statement says; the vector $y$ produces a linear combination of the system of equations and if the result is unsolvable then so is the original system. 
+
+As I briefly alluded to before, the above theorem by itself is not that useful for our current problem as it ignores the non-negativity constraints $x \geq 0$. A result known as \textit{Farkas' Lemma}
+gives the analogous result in this case. 
+\begin{thm}
+Let $A \in \R^{m \times n}$ and $b \in \R^m$, exactly one and only one of the following statements holds: 
+\begin{enumerate}
+\item $x \in \R^n$ is a solution to $Ax = b$, $x \geq 0$.
+\item There exists $y \in \R^m$ such that $y^T A \leq 0$ but $y^T b > 0$. 
+\end{enumerate}
+\end{thm}
+This result is exactly what we would have hoped for; it is basically a direct analog of the previous well-known result from linear algebra but adapted to consider the non-negativity constraints. 
+
+Now we begin to consider duality. Recall that the ultimate goal is to design methods and algorithms to solve LPs. We have seen one way to attack this problem; namely, the Simplex Method. 
+Duality theorem will give us a different and powerful avenue of attack for certain problems. The basic idea is to first find upper and lower bounds on the optimal solution. If we are able to tighten 
+these bounds then we can get closer and closer to the solution. Ideally we could continue this logic and find the \textit{least upper bound} and \textit{greatest lower bound}, which would then yield
+the true solution. The \textit{primal-dual} method does exactly this. 
+
+\bigskip
+
+\textbf{Finding upper bounds:} The naive approach here is simply to guess solutions (i.e. try to pick a point in the feasible set) and then evaluate the solution in some way to determine its 
+quality. In particular, if we correctly guess a feasible point and then evaluate the objective function using this point, then the result will be an upper bound on the true minimum. If we are able 
+to guess multiple feasible points then we can keep doing this and refining this upper bound. However, it is not obvious how to guess such solutions. For high-dimensional problems especially
+this seems like a very challenging task. 
+
+\bigskip
+
+\textbf{Finding lower bounds:} Consider a nice example courtesy of Aaron Singer's lecture notes (see resources). 
+\begin{align*}
+\min \ &x_1 + 2x_2 + 4x_3 \\
+ \text{s.t. } &x_1 + x_2 + 2x_3 = 5 \\
+ &2x_1 + x_2 + 3x_3 = 8 \\
+ &x_1, x_2, x_3 \geq 0
+\end{align*}
+Recall that any solution to this system of equations must also solve linear combinations of these equations. So here's an idea: Consider taking twice the first 
+constraint equation minus the second; that is
+\[\begin{pmatrix} 2 & -1\end{pmatrix}^T A = \begin{pmatrix} 2 & -1\end{pmatrix}^Tb\]
+Carrying this out yields the equation: 
+\[0x_1 + x_2 + x_3 = 2\]
+So the optimal solution, whatever it may be, \textit{must} satisfy this equation. But take a look at the objective function
+\[x_1 + 2x_2 + 4x_3\]
+We notice that each of the values scaling the objective function is strictly larger than those in the above equation that the solution must satisfy 
+(1 > 0, 2 > 1, 4 > 1). Since the $x_i$ are constrained to be non-negative this means that the true minimum value can be no smaller than 2. We conclude 
+that 2 is a lower bound on the true minimum. If we happened to pick a linear combination of the constraints and a feasible point that resulted in lower and 
+upper bounds of the same value, then we would know we found the optimal solution. This seems very unlikely, but the ideas explored here turn out to 
+be powerful. 
+
+\subsection{Primal-Dual Theory}
+
+
+
+
+	
+\section{TODO}
+\begin{itemize}
+\item Shortest path LP (lecture 18)
+\end{itemize}
 	
 	
 \end{document}
