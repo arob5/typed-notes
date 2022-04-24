@@ -282,6 +282,38 @@ upper bounds of the same value, then we would know we found the optimal solution
 be powerful. 
 
 \subsection{Primal-Dual Theory}
+We will call the standard LP we have been working with the \textbf{primal problem}. 
+\begin{align*}
+&\min c^T x \\
+&\text{s.t. } Ax = b \\
+&\;\;\;\;\;\;\; x \geq 0
+\end{align*}
+
+The \textbf{dual problem} seeks to solve the same problem by maximizing a lower bound on the optimal solution in the primal problem. The definition of the dual simply 
+follows from generalizing the lower bound example presented above. Recall what we did: we took a linear combination of the constraint equations $y^T A = y^T b$, where 
+the vector $y$ encodes the coefficients in the linear combinations. Then we concluded that $y^T b$ was a lower bound on the optimal solution provided that the coefficients
+resulting from $y^T A$ were smaller than the respective coefficients in the cost vector $c$; that is, $y^T A \leq c^T$. The dual problem simply considers the maximum of lower 
+bounds of this form. 
+\begin{align*}
+&\min y^T b \\
+&\text{s.t. } y^T A \leq c \\
+\end{align*}
+
+From the preceding example, we suspect that these two problems should give the same solution. We proceed to make this intuition rigorous. We begin with a slightly less
+ambitious goal, simply proving that the dual formulation provides a lower bound on the optimal solution. This is known as \textbf{weak duality}. 
+
+\begin{thm}
+Let $x \in \R^n$ and $y \in \R^m$ be solutions to the primal and dual problems, respectively. Then $y^T b \leq c^T x$. 
+\end{thm}
+
+\begin{proof}
+This simply uses the feasibility of $x$ and $y$ in the respective problems. 
+\begin{align*}
+y^T b &= y^T(Ax) && Ax = b \text{ from primal} \\
+	 &= (y^T A)x \\
+	 &\leq c^T x && y^T A \leq c^T \text{ from dual and } x \geq 0 \text{ from primal} \\
+\end{align*}
+\end{proof}
 
 
 
