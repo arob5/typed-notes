@@ -445,6 +445,36 @@ We consider a new variable $s := \max_{i \in [m]} (Ay)_i$, which then yields:
 These two problems can shown to be dual to each other (consider what the values of $c, b$, etc. are for each LP to see this). Thus by strong duality the theorem is proved. 
 \end{proof}
 
+\textbf{TODO: Include Nash Equilibrium existence theorem and proof}
+
+
+\subsubsection{Learning Theory and Boosting}
+We now consider a second application of duality, particularly the notion of binary classification in theoretical machine learning. As setup, suppose we seek to classify objects from a set
+$\mathcal{X}$. We observe data which is sampled from an unknown distribution $q$ on $\mathcal{X}$. To address the classification problem, the first step is to establish the class of 
+models we will be using. Formally, we call this the \textit{hypothesis class} $\mathcal{H} = \{h | h: \mathcal{X} \to \{0, 1\}\}$. Note that this hypothesis class is very rich; we have not assumed 
+linear classifiers, etc. Rather, we seek to see what theory we can develop under very minimal restrictions on $\mathcal{H}$. In the hope of developing any theory at all, we must make some standing 
+assumptions. What if the problem is simply impossible in the sense that no classifier could ever do better than chance? We want to restrict such a possibility, so we make the \textit{weak learning assumption}, 
+which intuitively says that there exists some $h \in \mathcal{H}$ which is correct at least half the time (at least a little better than chance). For $x \in \mathcal{X}$ let $c(x)$ denote the correct class. Then the 
+assumption formally states: 
+\[\exists \gamma > 0 \text{ s.t. } \forall q \ \exists h: \mathcal{X} \to \{0, 1\} \text{ such that } \Prob_{x \sim q}\left(h(x) \neq c(x)\right) \leq \frac{1 - \gamma}{2}\]
+We can also re-write this a second way. If we let $W_{h}(x) = \mathbb{I}\{h(x) \neq c(x)\}$ be the indicator random variable that assumes the value 1 if $h$ incorrectly classifies $x$ and $0$ otherwise, then 
+the weak learning assumption simply says there exists $h \in \mathcal{H}$ with $\E_{x \sim q} [W_h(x)] \leq \frac{1 - \gamma}{2}$. We can also write out this expectation explicitly (which will turn out to be useful
+in the below proof): 
+\[\E_{x \sim q} [W_h(x)] = \sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) W_h(x_i) \leq \frac{1 - \gamma}{2}\] 
+
+It turns out that even under this very mild assumption we can actually prove some powerful theoretical results. The basic idea is as follows: even if there is just a single classifier that barely classifies better than 
+chance, we can exploit this by taking many independent 
+
+\begin{thm}
+Suppose $\mathcal{H}$ satisfies the weak learning assumption. Then there exists a distribution $p$ on $\mathcal{H}$ such that the weighted majority classifier 
+\[c_p(x) = \begin{cases} 
+      1 & \sum_{h \in \mathcal{H}} p(x)h(x) \geq \frac{1}{2} \\
+      0 & \text{otherwise}
+   \end{cases}
+\]
+is always correct: $c_p(x) = c(x) \ \forall x \in \mathcal{X}$
+\end{thm}
+
 
 	
 \section{TODO}
