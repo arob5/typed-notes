@@ -451,8 +451,10 @@ These two problems can shown to be dual to each other (consider what the values 
 \subsubsection{Learning Theory and Boosting}
 We now consider a second application of duality, particularly the notion of binary classification in theoretical machine learning. As setup, suppose we seek to classify objects from a set
 $\mathcal{X}$. We observe data which is sampled from an unknown distribution $q$ on $\mathcal{X}$. To address the classification problem, the first step is to establish the class of 
-models we will be using. Formally, we call this the \textit{hypothesis class} $\mathcal{H} = \{h | h: \mathcal{X} \to \{0, 1\}\}$. Note that this hypothesis class is very rich; we have not assumed 
-linear classifiers, etc. Rather, we seek to see what theory we can develop under very minimal restrictions on $\mathcal{H}$. In the hope of developing any theory at all, we must make some standing 
+models we will be using. Formally, we call this the \textit{hypothesis class} $\mathcal{H} = \{h | h: \mathcal{X} \to \{0, 1\}\}$. To keep things simple we assume both $\mathcal{X}$ and 
+$\mathcal{H}$ are finite sets. 
+
+In the hope of developing any theory at all, we must make some standing 
 assumptions. What if the problem is simply impossible in the sense that no classifier could ever do better than chance? We want to restrict such a possibility, so we make the \textit{weak learning assumption}, 
 which intuitively says that there exists some $h \in \mathcal{H}$ which is correct at least half the time (at least a little better than chance). For $x \in \mathcal{X}$ let $c(x)$ denote the correct class. Then the 
 assumption formally states: 
@@ -475,6 +477,24 @@ Suppose $\mathcal{H}$ satisfies the weak learning assumption. Then there exists 
 is always correct: $c_p(x) = c(x) \ \forall x \in \mathcal{X}$
 \end{thm}
 
+\begin{proof}
+Recall from above that the weak learning assumption implies the existence of a classifier $h_j \in \mathcal{H}$ satisfying 
+\[\sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) W_{h_i}(x_i) \leq \frac{1 - \gamma}{2}\]
+Define the matrix $M_{ij} \in \{-1, +1\}^{\abs{X} \times \abs{H}}$ by 
+\[M_{ij}  = \begin{cases} 
+      +1 & h_j(x_i) \neq c(x_i) \\
+      -1 & h_j(x_i) = c(x_i)
+   \end{cases}
+\]
+We then have the relationship $M_{ij} = 2W_{h_j}(x_i) - 1$. With this in mind, let's re-write the above inequality. 
+\[\sum_{i = 1}^{\abs{\mathcal{X}}} \frac{1}{2}q(x_i) \left[2W_{h_i}(x_i) - 1\right] + \sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) \leq \frac{1 - \gamma}{2}\]
+Since $\sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) = 1$, and plugging in the above expression for $M_{ij}$, this can be re-written as
+\[\sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i)M_{ij} \leq -\gamma \]
+If we abuse notation and consider $q$ to be a vector with $q_i := q(x_i)$ then we may write this as $qM_j \leq -\gamma$, where $M_j$ is column $j$ of $M$. Alternatively, 
+\[qMe_j \leq -\gamma\]
+where $e_j$ is the $i^{\text{th}}$ standard basis vector of $\R^{\abs{\mathcal{H}}}$. So weak learning says that for \textit{any} distribution $q$ on $\mathcal{X}$
+\textbf{TODO: Finish this proof}
+\end{proof}
 
 	
 \section{TODO}
