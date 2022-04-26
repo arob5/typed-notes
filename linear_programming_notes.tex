@@ -520,44 +520,92 @@ $\mathcal{H}$ are finite sets.
 
 In the hope of developing any theory at all, we must make some standing 
 assumptions. What if the problem is simply impossible in the sense that no classifier could ever do better than chance? We want to restrict such a possibility, so we make the \textit{weak learning assumption}, 
-which intuitively says that there exists some $h \in \mathcal{H}$ which is correct at least half the time (at least a little better than chance). For $x \in \mathcal{X}$ let $c(x)$ denote the correct class. Then the 
+which intuitively says that there exists some $h \in \mathcal{H}$ which is correct at least half the time (at least a little better than chance). For $x \in \mathcal{X}$ let $h_*(x)$ denote the correct class. Then the 
 assumption formally states: 
-\[\exists \gamma > 0 \text{ s.t. } \forall q \ \exists h: \mathcal{X} \to \{0, 1\} \text{ such that } \Prob_{x \sim q}\left(h(x) \neq c(x)\right) \leq \frac{1 - \gamma}{2}\]
-We can also re-write this a second way. If we let $W_{h}(x) = \mathbb{I}\{h(x) \neq c(x)\}$ be the indicator random variable that assumes the value 1 if $h$ incorrectly classifies $x$ and $0$ otherwise, then 
+\[\exists \gamma > 0 \text{ s.t. } \forall q \ \exists h: \mathcal{X} \to \{0, 1\} \text{ such that } \Prob_{x \sim q}\left(h(x) \neq h_*(x)\right) \leq \frac{1 - \gamma}{2}\]
+We can also re-write this a second way. If we let $W_{h}(x) = \mathbb{I}\{h(x) \neq h_*(x)\}$ be the indicator random variable that assumes the value 1 if $h$ incorrectly classifies $x$ and $0$ otherwise, then 
 the weak learning assumption simply says there exists $h \in \mathcal{H}$ with $\E_{x \sim q} [W_h(x)] \leq \frac{1 - \gamma}{2}$. We can also write out this expectation explicitly (which will turn out to be useful
 in the below proof): 
 \[\E_{x \sim q} [W_h(x)] = \sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) W_h(x_i) \leq \frac{1 - \gamma}{2}\] 
 
-It turns out that even under this very mild assumption we can actually prove some powerful theoretical results. The basic idea is as follows: even if there is just a single classifier that barely classifies better than 
-chance, we can exploit this by taking many independent 
+It turns out that even under this very mild assumption we can actually prove a very powerful result. 
 
 \begin{thm}
 Suppose $\mathcal{H}$ satisfies the weak learning assumption. Then there exists a distribution $p$ on $\mathcal{H}$ such that the weighted majority classifier 
-\[c_p(x) = \begin{cases} 
-      1 & \sum_{h \in \mathcal{H}} p(x)h(x) \geq \frac{1}{2} \\
+\[h_p(x) = \begin{cases} 
+      1 & \sum_{h \in \mathcal{H}} p(h)h(x) \geq \frac{1}{2} \\
       0 & \text{otherwise}
    \end{cases}
 \]
-is always correct: $c_p(x) = c(x) \ \forall x \in \mathcal{X}$
+is always correct: $h_p(x) = c(x) \ \forall x \in \mathcal{X}$
 \end{thm}
 
 \begin{proof}
-Recall from above that the weak learning assumption implies the existence of a classifier $h_j \in \mathcal{H}$ satisfying 
-\[\sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) W_{h_i}(x_i) \leq \frac{1 - \gamma}{2}\]
-Define the matrix $M_{ij} \in \{-1, +1\}^{\abs{X} \times \abs{H}}$ by 
-\[M_{ij}  = \begin{cases} 
-      +1 & h_j(x_i) \neq c(x_i) \\
-      -1 & h_j(x_i) = c(x_i)
+The key to this proof is to view the boosting problem as a zero-sum game. We consider 
+\begin{itemize}
+\item $\mathcal{X} = \{x_1, \dots, x_m\}$ to be the pure strategies of the ``adversary'' 
+\item $\mathcal{H} = \{h_1, \dots, h_n\}$ to be the pure strategies of the ``booster''
+\end{itemize}
+The adversary wins if the booster misclassifies an item; that is, if the booster plays $h_j \in \mathcal{H}$ and the adversary plays $x \in \mathcal{X}$ then the adversary 
+wins if $h_j(x) \neq h_*(x)$, where we denote the true class of $x$ by $h_*(x)$. Thus we may define the adversary's payoff matrix $A \in \{0, 1\}^{\abs{\mathcal{X}} \times \abs{\mathcal{H}}}$ 
+by 
+\[A_{ij}  = \begin{cases} 
+      +1 & h_j(x_i) \neq h_*(x_i) \\
+      -1 & h_j(x_i) = h_*(x_i)
    \end{cases}
 \]
-We then have the relationship $M_{ij} = 2W_{h_j}(x_i) - 1$. With this in mind, let's re-write the above inequality. 
-\[\sum_{i = 1}^{\abs{\mathcal{X}}} \frac{1}{2}q(x_i) \left[2W_{h_i}(x_i) - 1\right] + \sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) \leq \frac{1 - \gamma}{2}\]
-Since $\sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) = 1$, and plugging in the above expression for $M_{ij}$, this can be re-written as
-\[\sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i)M_{ij} \leq -\gamma \]
-If we abuse notation and consider $q$ to be a vector with $q_i := q(x_i)$ then we may write this as $qM_j \leq -\gamma$, where $M_j$ is column $j$ of $M$. Alternatively, 
-\[qMe_j \leq -\gamma\]
-where $e_j$ is the $i^{\text{th}}$ standard basis vector of $\R^{\abs{\mathcal{H}}}$. So weak learning says that for \textit{any} distribution $q$ on $\mathcal{X}$
-\textbf{TODO: Finish this proof}
+So the adversary receives payoff $1$ if the item is classified incorrectly and $-1$ otherwise; the payoffs are flipped for the booster. The $\{+1, -1\}$ values are required for this to constitute a 
+zero-sum game. However, we can essentially encodes the same information as a binary $\{0, 1\}$ random variable: 
+\[A_{ij} = 2\mathbb{I}\{h_j(x_i) \neq h_*(x_i)\} - 1\] 
+
+
+The game is played in the following randomized sense: 
+\begin{itemize}
+\item The adversary picks a probability distribution $q \in \Delta_{\mathcal{X}}$ over $\mathcal{X}$
+\item The booster picks a probability distribution $p \in \Delta_{\mathcal{H}}$ over $\mathcal{H}$
+\end{itemize}
+In other words, we are considering mixed strategies rather than pure strategies. Let's consider the expected payoff from this game. Intuitively, we will consider the case in which the 
+adversary ``goes first''. The adversaries payoff is then given by 
+\[\max_{q \in \Delta_{\mathcal{X}}} \min_{p \in \Delta_\mathcal{H}} q^T A p\]
+Now we make use of the weak learning assumption. This assumption guarantees the existence of a classifier $h_j \in \mathcal{H}$ satisfying 
+\begin{align*}
+\frac{1 - \gamma}{2} > \Prob_{x \sim q}\left\{h_j(x) \neq h_*(x) \right\} &= \sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) \mathbb{I}\{h_j(x_i) \neq h_*(x_i)\} \\
+												  	& = \sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i) \left[\frac{A_{ij} + 1}{2}\right]
+\end{align*}
+where the final step follows from the algebraic relationship noted above. Rearranging this inequality, 
+\[\sum_{i = 1}^{\abs{\mathcal{X}}} q(x_i)A_{ij} \leq -\gamma \]
+If we abuse notation and consider $q$ to be a vector with $q_i := q(x_i)$ then we may write this as $qA_j \leq -\gamma$, where $A_j$ is column $j$ of $A$. Alternatively, 
+\[qAe_j \leq -\gamma\]
+where $e_j$ is the $i^{\text{th}}$ standard basis vector of $\R^{\abs{\mathcal{H}}}$. Note that this holds for any $q$. We also note that 
+\[ -\gamma \geq qA e_j \geq \min_{k \in \{1, \dots, \abs{\mathcal{H}}\}} q^T A p = \min_{p \in \Delta_{\mathcal{H}}} q^T A p\]
+where the final equality follows from the fact that the minimum value will be realized by placing all of the probability mass on the smallest entry of $q^T A$. 
+
+We will use this inequality to produce a contradiction. In particular, 
+suppose, for a contradiction, that no distribution $p \in \Delta_{\mathcal{H}}$ exists such that $h_p$ is a perfect classifier. Then for any $p \in \Delta_{\mathcal{H}}$ there exists an item $x_i \in \mathcal{X}$ satisfying 
+\[h_*(x_i) \neq h_p(x_i) = \mathbb{I}\left\{\sum_{j = 1}^{\abs{\mathcal{H}}} p(h_j)h_j(x_i) \geq \frac{1}{2}\right\}\]
+By definition of the weighted majority classifier, for $h_p$ to classify $x_i$ incorrectly, the following must hold: 
+\begin{align*}
+\frac{1}{2} &< \sum_{j = 1}^{\abs{\mathcal{H}}} p(h_j) \mathbb{I}\{h_j(x_i) \neq h_*(x_i) \\
+		&= \sum_{j = 1}^{\abs{\mathcal{H}}} p(h_j) \left[\frac{A_{ij} + 1}{2}\right]\}
+\end{align*}
+which yields
+\[\sum_{j = 1}^{\abs{\mathcal{H}}} p(h_j) A_{ij} > 0\]
+or 
+\[e_i^T A p > 0\]
+Following the same logic as above, we can now conclude
+\[0 < e_i^T A p \leq \max_{\ell \in \{1, \dots, \abs{\mathcal{X}}\}} e_\ell^T A p \leq \max_{q \in \Delta_{\mathcal{X}}} q^T A p\]
+We have thus concluded: 
+\begin{align*}
+&\min_{p \in \Delta_{\mathcal{H}}} q^T A p \leq -\gamma \text{ for all } q \in \Delta_{\mathcal{X}} \\
+&\max_{q \in \Delta_{\mathcal{X}}} q^T A p > 0 \text{ for all } p \in \Delta_{\mathcal{H}}
+\end{align*}
+which implies
+\begin{align*}
+& \max_{q \in \Delta_{\mathcal{X}}} \min_{p \in \Delta_{\mathcal{H}}} q^T A p \leq -\gamma < 0 \\
+&\min_{p \in \Delta_{\mathcal{H}}} \max_{q \in \Delta_{\mathcal{X}}} q^T A p \geq 0
+\end{align*}
+But by the minimax theorem, the lefthand sides of these expressions must be equal. We have arrived at a contradiction, and thus conclude that there must exist a perfect 
+weighted majority classifier $h_p$. 
 \end{proof}
 
 	
