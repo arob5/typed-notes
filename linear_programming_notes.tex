@@ -408,6 +408,33 @@ So what this theorem is telling us is that the following two approaches by the p
 \item Player B chooses a strategy that minimizes player A's best-case expected payoff across all possible strategies for player A. 
 \end{itemize}
 
+We can actually make this even more intuitive. Suppose the game is sequential (one player plays a strategy, then the second player responds). The question is: does it matter 
+which player goes first? Let's see what happens. 
+
+\bigskip
+
+\textbf{Player B goes first}. Suppose B starts by playing $\hat{y} \in \Delta_B$. Then naturally A will respond by playing $\hat{x} \in \argmax_{x \in \Delta_A} x^T A \hat{y}$; of course A will just 
+choose the strategy to maximize their own payoff as best they can given what B already played. But B knows in advance that A will choose this! 
+So $B's$ initial strategy will then naturally be: $\hat{y} \in \argmin_{y \in \Delta_B} \argmax_{x \in \Delta_A} x^T A y$. That is, B will choose the strategy that minimizes A's payoff. Since this is 
+a zero-sum game this is equivalent to maximizing B's payoff. This implies A's expected payoff is $\min_{y \in \Delta_B} \max_{x \in \Delta_A} x^T A y$ when B goes first. 
+
+\bigskip
+
+\textbf{Player A goes first}: The same reasoning works here. Player A knows that player B will respond with a strategy that minimizes A's payoff given the strategy A played. So with this knowledge
+A will choose the strategy to maximize their own payoff. Thus, A will 
+play $\hat{x} \in \argmax_{x \in \Delta_A} \argmin_{y \in \Delta_B} x^T A y$. This implies A's expected payoff is $\max_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y$ when A goes first. 
+Note that we've phrased all of these statements in terms of A's payoff; we could of course have done the same thing with B, 
+but due to the zero-sum game assumption we can easily switch between the two formulations since $A = -B$. 
+
+\bigskip
+
+\textbf{So does the order of play matter?} Well, going second certainly couldn't hurt (that is, having more information can't be worse) so
+\[\min_{y \in \Delta_B} \max_{x \in \Delta_A} x^T A y \geq \max_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y\]
+This just says A's expected payoff going second is at least as large as when A goes first. So going second can't hurt. But can going second actually help? The minimax theorem can be viewed
+as an answer to this question, with the answer being no! Viewed in this sequential game interpretation, this is quite a nice result to have to build a theory of games. It means (under these assumptions 
+at least) we don't need to consider different cases for which player goes first. The same result will occur either way. 
+
+
 Now let's proceed with the proof. 
 \begin{proof}
 The basic idea here is to re-write both sides of the equation as LPs such that one is the dual of the other, and then apply strong duality. To this end, let's first consider the lefthand side. The first 
