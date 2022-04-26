@@ -415,14 +415,14 @@ which player goes first? Let's see what happens.
 
 \textbf{Player B goes first}. Suppose B starts by playing $\hat{y} \in \Delta_B$. Then naturally A will respond by playing $\hat{x} \in \argmax_{x \in \Delta_A} x^T A \hat{y}$; of course A will just 
 choose the strategy to maximize their own payoff as best they can given what B already played. But B knows in advance that A will choose this! 
-So $B's$ initial strategy will then naturally be: $\hat{y} \in \argmin_{y \in \Delta_B} \argmax_{x \in \Delta_A} x^T A y$. That is, B will choose the strategy that minimizes A's payoff. Since this is 
+So $B's$ initial strategy will then naturally be: $\hat{y} \in \argmin_{y \in \Delta_B} \max_{x \in \Delta_A} x^T A y$. That is, B will choose the strategy that minimizes A's payoff. Since this is 
 a zero-sum game this is equivalent to maximizing B's payoff. This implies A's expected payoff is $\min_{y \in \Delta_B} \max_{x \in \Delta_A} x^T A y$ when B goes first. 
 
 \bigskip
 
 \textbf{Player A goes first}: The same reasoning works here. Player A knows that player B will respond with a strategy that minimizes A's payoff given the strategy A played. So with this knowledge
 A will choose the strategy to maximize their own payoff. Thus, A will 
-play $\hat{x} \in \argmax_{x \in \Delta_A} \argmin_{y \in \Delta_B} x^T A y$. This implies A's expected payoff is $\max_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y$ when A goes first. 
+play $\hat{x} \in \argmax_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y$. This implies A's expected payoff is $\max_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y$ when A goes first. 
 Note that we've phrased all of these statements in terms of A's payoff; we could of course have done the same thing with B, 
 but due to the zero-sum game assumption we can easily switch between the two formulations since $A = -B$. 
 
@@ -472,7 +472,41 @@ We consider a new variable $s := \max_{i \in [m]} (Ay)_i$, which then yields:
 These two problems can shown to be dual to each other (consider what the values of $c, b$, etc. are for each LP to see this). Thus by strong duality the theorem is proved. 
 \end{proof}
 
-\textbf{TODO: Include Nash Equilibrium existence theorem and proof}
+Now to the big result: the proof of existence of mixed Nash Equilibria in zero-sum games. Note that it was John Nash who originally proved this theorem by other means, but John von Neumann
+proved the minimax theorem and showed that this result implied the Nash equilibrium result. 
+
+\begin{thm}
+Every zero-sum game has a mixed Nash Equilibrium. 
+\end{thm}
+
+\begin{proof}
+I claim that $(x_*, y_*)$ is a mixed NE, where:
+\begin{align*}
+x_* &:= \argmax_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y \\
+y_* &:= \argmin_{y \in \Delta_B} \max_{x \in \Delta_A} x^T A y
+\end{align*}
+
+Let's recall what a mixed NE is; we're trying to show: 
+\begin{align*}
+x_*^T A y_* &\geq x^T A y_* \text{ for all }  x \in \Delta_A \\
+x_*^T B y_* &\geq x_*^T B y \text{ for all } y \in \Delta_B 
+\end{align*}
+Since this is a zero-sum game $A = -B$ so we can write the second line in terms of A: 
+\[x_*^T A y_* \leq x_*^T A y \text{ for all } y \in \Delta_B \]
+This is just expressing the fact the B maximizes their expected payoff by minimizing A's expected payoff. We can re-write these requirements for a mixed NE as
+\begin{align*}
+x_*^T A y_* &= \max_{x \in \Delta_A} x^T A y_* \\
+x_*^T A y_* &= \min_{y \in \Delta_B} x_*^T B y 
+\end{align*}
+To show this, consider the following. 
+\[\max_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y = \min_{y \in \Delta_B} x_*^T A y \leq x_*^T A y_* \leq \max_{x \in \Delta_A} x^T A y_* = \min_{y \in \Delta_B} \max_{x \in \Delta_A} x^T A y \]
+The inner inequalities follow directly from the definition of $\min$ and $\max$, while the outer equalities follow from the definition of $x_*, y_*$ at the beginning of the proof. Now, from the minimax 
+theorem we known that 
+\[\max_{x \in \Delta_A} \min_{y \in \Delta_B} x^T A y = \min_{y \in \Delta_B} \max_{x \in \Delta_A} x^T A y \]
+Since the other terms are sandwiched between these expressions we then know that the inequalities must be equalities; that is, 
+\[\min_{y \in \Delta_B} x_*^T A y = x_*^T A y_* = \max_{x \in \Delta_A} x^T A y_*\]
+which is precisely what we wanted to show. 
+\end{proof}
 
 
 \subsubsection{Learning Theory and Boosting}
