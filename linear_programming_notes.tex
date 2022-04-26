@@ -351,7 +351,10 @@ $\Delta_A$ is the set of all possible probability vectors for player $A$,
 While in the non-random setting, player A picked a strategy $i \in S_A$, in this setting player A picks a probability vector $p_A \in \Delta_A$; that is, the player 
 gets to choose the probability of each strategy but not the strategy itself. 
 The vector $p_B$ is defined analogously for player B. 
-$p_A$ is called the \textit{mixed strategy} for player $A$ and the pair $p_A, p_B$ is called a \textit{mixed strategy profile}. 
+$p_A$ is called the \textit{mixed strategy} for player $A$ and the pair $p_A, p_B$ is called a \textit{mixed strategy profile}. Notice that the mixed strategy, say for A, is just 
+a probability distribution over the strategies $S_A =\{1, \dots, m\}$. For clarity, we refer to the elements of $S_A$ as \textit{pure strategies} with the mixed strategies 
+then being a probability distribution over pure strategies. 
+
 In the mixed strategy setting the notion of payoff is replaced with \textit{expected payoff}. The expected payoff for 
 player A is: 
 \[\sum_{(i, j) \in S_A \times S_B} A_{ij} (p_A)_i (p_B)_j = (p_A)^T A p_B\]
