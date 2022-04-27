@@ -295,8 +295,14 @@ the vector $y$ encodes the coefficients in the linear combinations. Then we conc
 resulting from $y^T A$ were smaller than the respective coefficients in the cost vector $c$; that is, $y^T A \leq c^T$. The dual problem simply considers the maximum of lower 
 bounds of this form. 
 \begin{align*}
-&\min y^T b \\
-&\text{s.t. } y^T A \leq c \\
+&\max y^T b \\
+&\text{s.t. } y^T A \leq c^T \\
+\end{align*}
+
+We can of course transpose the constraint to perhaps write this a bit neater. 
+\begin{align*}
+&\max y^T b \\
+&\text{s.t. } A^T y \leq c \\
 \end{align*}
 
 From the preceding example, we suspect that these two problems should give the same solution. We proceed to make this intuition rigorous. We begin with a slightly less
