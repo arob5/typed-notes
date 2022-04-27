@@ -1,0 +1,121 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{notation}{Notation}
+
+\begin{document}
+
+\begin{center}
+\Large
+Topics in Linear Models
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+
+Topics to Incude: 
+- Model checking
+- WLS
+- Computation (QR Decomposition)
+- ANOVE 
+
+References: 
+- BU Notes
+- ANOVA section from Casella and Berger
+
+\section{ANOVA}
+	\begin{itemize} 
+	\item The general idea: we have a categorical predictor (typically called a factor) that divides the data into groups, and we want to compare the means between these groups. 
+	\item This can easily be formulated as a linear model; The model: \\[.2cm]
+	Suppose we have grouped data $(y_{ij})$, $i = 1, \dots, n_j$; $j = 1, \dots m$ ($m$ groups, $n_j$ observations in group $j$). Now we can let $x = (x_1, x_2, \dots, x_m)$
+	be $m$ dummy variables encoding membership to each group ($x_{ij} = 1$ if observation $i$ is in group $j$). Furthermore, let Then the model is simply a regression of 
+	$y$ on these dummies. Moreover, let $\alpha = (\alpha_1, \dots, \alpha_m)$ be the coefficient on each respective dummy variable (these are typically called
+	\textit{fixed effects} since we're assuming they're unknown but non-random. Here we exclude an intercept so that we can include all $m$ dummies. 
+	\[y_i = x_{i1}\alpha_1 + \dots + x_{im}\alpha_m + \epsilon_{i}, \text{ where } \epsilon_i \stackrel{\text{iid}}{\sim} N(0, \sigma^2) \text{ and } i = 1, \dots, N = \sum_{j = 1}^{m} n_j\]
+	Then $\E[y_i|x_{ij} = 1, x_{i\ell} = 0 \ \forall \ell \neq j] = \alpha_j$. i.e. the $\alpha_j$ are the group means. In matrix notation: 
+	\[y = X\alpha + \epsilon\]
+	where $X$ contains binary 0/1 elements determining group membership. We can also write this model equivalently in a grouped notation that makes it even clearer that the $\alpha_j$ are group means: 
+	\[y_{ij} = \alpha_j + \epsilon_{ij}, \ i = 1, \dots, n_j; \ j = 1, \dots, m\]
+	\item Parameter estimates: 
+	\[\hat{\alpha} = (X^T X)^{-1}X^T y = \begin{pmatrix} \overline{y}_1 \\ \overline{y}_2 \\ \vdots \\ \overline{y}_m\end{pmatrix} \]
+	\item Hypothesis testing: this is the main emphasis of ANOVA
+	\begin{align*} 
+	&H_0: \alpha_1 = \dots = \alpha_m \text{ (that is, all group means are equal)} \\
+	&H_1: \text{ Not all group means equal}
+	\end{align*} 
+	Note that enforcing $H_0$ requires $m - 1$ linear constraints: 
+	\begin{align*} 
+	\alpha_1 - \alpha_2 &= 0 \\
+	\alpha_2 - \alpha_3 &= 0 \\
+	\vdots \\
+	\alpha_{m - 1} - \alpha_m &= 0
+	\end{align*} 
+	We know from our linear model theory that we can test this using an F-test. Let $RSS_0$ denote the residual sum of squares from the model under $H_0$: 
+	\[y_{i} = \alpha + \epsilon_{i}\]
+	and let $RSS_1$ pertain to the full model. Recall that in general, if $H_0$ imposes $q$ linear constraints and $H_1$ has $p$ parameters, then 
+	\[F = \frac{(RSS_0 - RSS_1)/q}{RSS_1/(n - p)} \sim F_{q, n - p}\]
+	Now in this case we have $q = m - 1$ and $n - p = N - m$. Moreover, 
+	\[RSS_0 = \sum_{i = 1}^{N} (y_i - \hat{y}_i)^2 = \sum_{i = 1}^{N} (y_i - \overline{y})^2 = TSS \text{ (intercept-only model)}\]
+	\[RSS_1 = \sum_{i = 1}^{N} (y_i - \hat{y}_i)^2 = \sum_{j = 1}^{m} \sum_{i = 1}^{n_j} (y_i - \overline{y}_j)^2 = WSS \text{ (WSS = Within-Group Sum of Squares)}\]
+	Now, it can be shown that $TSS - WSS = BSS$, where $BSS$ is the between-group sum of squares with $m - 1$ degrees of freedom: 
+	\[BSS = \sum_{j = 1}^{m} n_j(\overline{y}_j - \overline{y})^2\]
+	So the $F$ statistic becomes: 
+	\[F = \frac{BSS/(m - 1)}{WSS/(N - m)} \sim F_{m - 1, N - m}\]
+	\end{itemize} 
+
+
+
+\end{document}
+
+
+
