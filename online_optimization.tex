@@ -8,6 +8,7 @@
 \usepackage[pdftex]{graphicx}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{bbm} % For mathbbm for indicator function
 \usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
 
 % Plotting
@@ -127,22 +128,33 @@ some guess $u \in \R^d$ (in the above examples, $u$ was the mean of the distribu
 \begin{definition}
 Let $x = (x_1, \dots, x_T)^T$, where $x_t \in V \subset \R^d$ be the vectors output by an algorithm at each of $T$ rounds. Suppose the values incur loss $\ell_t(x_t)$ at round $t$, where $\ell_t: \R^d \to \R$
 for $t = 1, \dots, T$. Also let $u \in V$ be a ``predictor'' which the loss will be measured with respect to. We then define the \textit{regret} as: 
-\[\textit{Regret}_T(x, u) := \sum_{t = 1}^{T} \ell_t(x_t) - \sum_{t = 1}^{T} \ell_t(u) \]
+\[\text{Regret}_T(x, u) := \sum_{t = 1}^{T} \ell_t(x_t) - \sum_{t = 1}^{T} \ell_t(u) \]
 \end{definition}
-As we will see, the generality of this definition will be powerful in allowing it to apply in a diverse array of settings. 
+As we will see, the generality of this definition will be powerful in allowing it to apply in a diverse array of settings. Note that there are many different assumptions we could tweak in this framework; for example, 
+we can suppose that the loss functions $\ell_t$ are known to the player in advance, or are they chosen by the adversary and only revealed once the player has made their guess $x_t$? The latter assumption, along 
+with the assumption that the $\ell_t$ are convex, form the general \textit{online convex optimization} framework. We can also generalize further to allow the baseline $u$ be a sequence $u_1, \dots, u_T$ which 
+we measure loss with respect to. 
 
 \section{Regret Minimization: A Simple Example}
 \textbf{TODO: include the example from Prof Orabana's first week of notes}
 
 
-
 \section{Learning from Experts}
 One important online optimization problem is that of learning from expert advice. The problem is typically defined as follows: a decision-maker must make a decision at each of $T$ rounds. Here let's 
-consider a simple set of possible decisions $\{A, B\}$ so that this can be thought of as a repeated binary classification problem. We also suppose that once you pick from this set, you then observe whether 
-$A$ or $B$ actually occurred. If your prediction matches the true realization you are not penalized; otherwise, you suffer a penalty  Typically in binary classification we base the classification on information 
+consider a simple set of possible realizations $V = \{A, B\}$ so that this can be thought of as a repeated binary classification problem. We consider the zero-one loss 
+$\ell(x_t, y_t) = \mathbbm{1}(x_t \neq y_t)$. Typically in binary classification we base the classification on information 
 given in the form of \textit{features} or \textit{predictors}. In this setting we refer to the analogous concept as \textit{experts}; in particular, we consider a set of $N$ experts that each recommend a decision
-in $\{A, B\}$ each time step. Your goal is thus to use this expert advice in order to make the best possible decisions. 
+in $\{A, B\}$ each time step. Your goal is thus to use this expert advice in order to make the best possible decisions. Note that one's first approach in solving this problem would likely be to develop an 
+algorithm to minimize the number of mistakes: 
+\[\min_{x_t} \sum_{t = 1}^{T} \ell(x_t, y_t)\]
+However, this is not a good baseline to evaluate our algorithms. Indeed, it can be shown that no randomized algorithm can make fewer than $\frac{T}{2}$ in expectation. Moreover, the trivial algorithm 
+of simply flipping a coin at each step $x_t \overset{iid}{\sim} \text{Bern}(1/2)$ achieves this lower bound. So this turned out to be very uninteresting: $\frac{T}{2}$ mistakes was both optimal and trivial 
+to obtain. The solution of course is to instead consider the \textit{regret}, which requires choosing a useful benchmark. Recalling the general definition of regret, we therefore must decide on a suitable 
+predictor $u$. In the learning from experts setting, a natural choice is to consider loss with respect to the loss of the \textit{best expert}. We therefore consider
+\[\text{Regret}_T(x, u) := \sum_{t = 1}^{T} \ell_t(x_t) - \sum_{t = 1}^{T} \ell_t(u) = \sum_{t = 1}^{T} \mathbbm{1}\{x_t \neq y_t\} - \min_{1 \leq i \leq N} \sum_{t = 1}^{T} \mathbbm{1}\{u^{(i)}_t \neq y_t\}\]
+where $u^{(i)}_t$ denotes the advice from the $i^{\text{th}}$ expert at round $t$. 
 
+\subsection{The Weighted Majority Algorithm}
 
 
 
