@@ -10,6 +10,8 @@
 \usepackage{subcaption}
 \usepackage{bbm} % For mathbbm for indicator function
 \usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
 
 % Plotting
 \usepackage{pgfplots}
@@ -151,11 +153,64 @@ However, this is not a good baseline to evaluate our algorithms. Indeed, it can 
 of simply flipping a coin at each step $x_t \overset{iid}{\sim} \text{Bern}(1/2)$ achieves this lower bound. So this turned out to be very uninteresting: $\frac{T}{2}$ mistakes was both optimal and trivial 
 to obtain. The solution of course is to instead consider the \textit{regret}, which requires choosing a useful benchmark. Recalling the general definition of regret, we therefore must decide on a suitable 
 predictor $u$. In the learning from experts setting, a natural choice is to consider loss with respect to the loss of the \textit{best expert}. We therefore consider
-\[\text{Regret}_T(x, u) := \sum_{t = 1}^{T} \ell_t(x_t) - \sum_{t = 1}^{T} \ell_t(u) = \sum_{t = 1}^{T} \mathbbm{1}\{x_t \neq y_t\} - \min_{1 \leq i \leq N} \sum_{t = 1}^{T} \mathbbm{1}\{u^{(i)}_t \neq y_t\}\]
-where $u^{(i)}_t$ denotes the advice from the $i^{\text{th}}$ expert at round $t$. 
+\[\text{Regret}_T(x, u) := \frac{1}{T} \sum_{t = 1}^{T} \ell_t(x_t) - \frac{1}{T} \sum_{t = 1}^{T} \ell_t(u_t) = \frac{1}{T} \sum_{t = 1}^{T} \mathbbm{1}\{x_t \neq y_t\} - \min_{1 \leq i \leq N} \frac{1}{T} \sum_{t = 1}^{T} \mathbbm{1}\{u^{(i)}_t \neq y_t\}\]
+where $u^{(i)}_t$ denotes the advice from the $i^{\text{th}}$ expert at round $t$. Thus in the first expression $u_t$ is the advice from the best expert at round $t$. Note that we're considering what we previously 
+called \textit{average regret} here. I've just dropped the ``avg'' subscript to lighten notation (often when people talk about regret they're talking about this averaged version anyways). 
 
 \subsection{The Weighted Majority Algorithm}
 
+\subsubsection{Simple Case of the Infallible Expert}
+To motivate the general algorithm we first consider the simplified case in which we assume that one of the experts is never wrong. A reasonable algorithm for this case is as follows: 
+\begin{itemize}
+\item Take a majority vote of the current pool of experts. Once the true realization is revealed, if your guess was incorrect then discard all of incorrect experts (which by definition of the majority
+vote will be at least half of them). 
+\item Proceed by taking a majority vote for the remaining pool of experts. 
+\item Terminate either by reaching the final round $T$ or ending with only the single infallible expert (so will incur zero loss beyond this point). 
+\end{itemize}
+Since you're discarding at least half of the experts each time you are incorrect, this is just like a binary search for the infallible expert. So after the first mistake you are left with at most
+$N/2$ experts, then at most $N/4$ after the second mistake, and in general at most $N/2^m$ after $m$ mistakes. To find the maximum number of mistakes needed to find the infallible expert
+we solve $\frac{N}{2^m} = 1$, which yields $m \leq \log_2 N$. Accounting for the possibility that we exhaust the rounds before finding the infallible expert: $m \leq \max\{\log_2 N, T\}$. 
+Now, suppose $T >> N$. Let's consider the regret. By definition, the regret for the best expert here is $0$. Thus, 
+\[\text{Regret}_T = \frac{1}{T}(\text{\# mistakes}) - 0 \leq \frac{\log_2 N}{T} \to 0 \text{ as } T \to \infty \]
+In this case the numerator is quite sub-linear; we can bound it with a constant! Under less restrictive assumptions, the results won't be quite as nice. 
+
+\subsubsection{The General Case}
+We now drop the assumption that there exists a majority expert, but can still use the previous algorithm as motivation for the general case. To start, let's consider a different interpretation for 
+the previous algorithm. We might imagine assigning each expert a weight that encodes our degree of confidence in their advice. In the infallible expert case, we start at round $0$ by assigning each expert
+$i$ a weight of $w^{(i)}_0 = 1$ and then when we make a mistake we set any incorrect experts' weights to $0$. This unforgiving approach works because we know there exists an expert who is never wrong and
+thus we need not worry about discarding this expert. In the general case, there might not be an infallible expert but there might be various experts who are correct very often and so it would be unwise 
+to discard them. The natural extension is thus to decrease their weight by a little bit but not all the way to $0$. In particular, we might choose some $\epsilon \in (0, 1)$ and decrement the weights of the incorrect
+experts by: 
+\[w^{(i)}_{t} \gets (1 - \epsilon) w^{(i)}_{t - 1}\]
+This leads to the following algorithm. Here I continue to use that notation that $u_t^{(i)}$ is the advice from expert $i$ at round $t$, and $y_t$ is the true realization at time $t$. Also, to simplify notation I encode 
+event $A$ as $0$ and $B$ as $1$. 
+\bigskip
+
+ \begin{algorithm}[H]
+	\SetAlgoLined
+	
+	\textbf{Input}: $0 < \epsilon < 1$, $T \in \mathbb{N}$, \text{ Experts } X = \{1, \dots, N\} \\
+	
+	\bigskip
+	
+	Set $w^{(i)} := 1$ \text{ for all } i = 1, \dots, N \\
+	
+	\For{$t = 0, \dots, T$} {
+		$w := \sum_{i \in X} w^{(i)}$ \\
+		$x_t := \mathbbm{1}\left\{\sum_{i \in X} \frac{w^{(i)}}{w} u_t^{(i)} \geq \frac{1}{2} \right\}$ \\
+		
+		\If{$x_t \neq y_t$} {
+			\For{$i = 1, \dots, N$} {
+				\If{$u_t^{(i)} \neq y_t$} {
+					$w^{(i)} := \max\left\{0, (1 - \epsilon)w^{(i)}\right\}$ \\
+				}
+			}
+		}		
+	}	
+\caption{Weighted Majority Algorithm}
+\end{algorithm}
+
+\bigskip
 
 
 \end{document}
