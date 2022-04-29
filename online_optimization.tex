@@ -93,7 +93,7 @@ but that if $T$ is sufficiently large we can, over time, start to get a sense of
 known distribution setting. Thus, $\sigma^2 T$ seems to be a good benchmark - we can measure our performance relative to this idealized setting. 
 \[\text{loss}(x, y) := \E_Y \norm{X - Y}_2^2 - \sigma^2 T\]
 Note that the expectation is taken with respect to the distribution chosen by the adversary, which is unknown the the player. 
-It cleans this up a bit to divide through by $T$ and consider the average loss instead. 
+It is also useful to divide through by $T$ and consider the average loss instead. 
 \[\text{loss}_{\text{avg}}(x, y) := \frac{1}{T} \E_Y \norm{X - Y}_2^2 - \sigma^2\]
 What can we hope for? Recall our intuition that over time we hope to be able to \textit{learn} the underlying distribution and thus hope that our estimates will tend towards the estimates we would make
 when the distribution is known. That is, we hope to be able to show that the average loss tends to $0$ in the limit as $T \to \infty$. What does this imply about $\text{loss}(x, y)$? Well, first of all we should 
@@ -103,6 +103,37 @@ in time then we expect the \textit{rate} of accumulation to decrease over time. 
 are not improving over time. Thus, our hope is that $\text{loss}(x, y)$ grows \textit{sub-linearly} (could be logarithmically, square root, etc.). This makes sense because when we divide through by $T$ in order 
 to consider the average growth relative to the baseline then in order for this average distance to tend to $0$ then the denominator (which is growing linearly) must grow faster than the numerator (hence the 
 numerator must grow \textit{sub-linearly}). 
+
+With this intuition established, we proceed with the last couple steps in order to arrive at our final performance metric. I begin by re-writing $\text{loss}(x, y)$ in an equivalent way
+\[\text{loss}(x, y) = \E_Y \norm{X - Y}_2^2 - \min_{x \in [0, 1]} \E_Y \norm{X - Y}_2^2 \]
+Recall that this follows from the fact that $\sigma^2 T$ was the loss when the optimal $x \equiv x_t$ was chosen to minimize the $\ell_2$ distance. This above expression just explicitly 
+writes out this optimization perspective. Now for another generalization: we have thus far been making the restrictive assumption that the adversary chooses a fixed distribution at the start of the game. We want to 
+define a general performance metric to applies in cases without any sort of distributional assumption. We can thus simply take the previous expression and remove all randomness from the expression, 
+just treating the $x_t$ and $y_t$ as sequences of real numbers. The resulting expression is known as \textit{regret}, which captures the notion that once the true realizations are revealed you regret 
+the choices you made  and would have rather chosen the true values. In other words, it expresses what you would have chosen \textit{in hindsight}. 
+\[\text{Regret}_T(x, y) = \norm{x - y}_2^2 - \min_{x \in [0, 1]} \norm{x - y}_2^2 \]
+We will consider that we've ``won'' the game if $\text{Regret}_T(x, y)$ grows sub-linearly in $T$: 
+\[\lim_{T \to \infty} \frac{\text{Regret}_T(x, y)}{T} = 0\]
+which we've seen is another way of saying that the average regret tends to $0$. We have now arrived at the final definition of loss that we will consider. This definition will generalize a few restricting assumptions
+we have been making: 
+\begin{itemize}
+\item Instead of considering $\ell_2$ loss we will instead consider an arbitrary loss function $\ell$. We need not even explicitly consider $y$ anymore; all we need to be able to say is that 
+a guess $x_t$ generalizes some loss $\ell(x_t)$. 
+\item We will now allow for different loss functions at each round of the game, $\ell_t$, $t = 1, \dots, T$. 
+\item We drop the assumption that the values must be in $[0, 1]$, instead considering subsets of $d$-dimensional Euclidean space.  
+\item Instead of parameterizing the regret with respect to the idealized setting we have been considering, we allow the framework to be flexible and just parameterize it with respect to 
+some guess $u \in \R^d$ (in the above examples, $u$ was the mean of the distribution). 
+\end{itemize}
+\begin{definition}
+Let $x = (x_1, \dots, x_T)^T$, where $x_t \in V \subset \R^d$ be the vectors output by an algorithm at each of $T$ rounds. Suppose the values incur loss $\ell_t(x_t)$ at round $t$, where $\ell_t: \R^d \to \R$
+for $t = 1, \dots, T$. Also let $u \in V$ be a ``predictor'' which the loss will be measured with respect to. We then define the \textit{regret} as: 
+\[\textit{Regret}_T(x, u) := \sum_{t = 1}^{T} \ell_t(x_t) - \sum_{t = 1}^{T} \ell_t(u) \]
+\end{definition}
+As we will see, the generality of this definition will be powerful in allowing it to apply in a diverse array of settings. 
+
+\section{Regret Minimization: A Simple Example}
+\textbf{TODO: include the example from Prof Orabana's first week of notes}
+
 
 
 \section{Learning from Experts}
