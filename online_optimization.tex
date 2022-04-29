@@ -168,6 +168,8 @@ this final inequality shouldn't give up too much in the bound. Next, we observe 
 function framework provides a nice organization for many convergence proofs; you'll see many convergence proofs of gradient descent, etc. that feature this telescoping sum step without explicitly 
 considering a potential function, but I find that explicitly defining a potential function helps me draw parallels between similar proofs. 
 
+\subsection{TODO: include example of a potential function proof from the Banal and Gupta paper}
+
 
 
 \section{Learning from Experts}
@@ -225,8 +227,8 @@ event $A$ as $0$ and $B$ as $1$.
 	Set $w^{(i)} := 1$ \text{ for all } i = 1, \dots, N \\
 	
 	\For{$t = 0, \dots, T$} {
-		$w := \sum_{i \in X} w^{(i)}$ \\
-		$x_t := \mathbbm{1}\left\{\sum_{i \in X} \frac{w^{(i)}}{w} u_t^{(i)} \geq \frac{1}{2} \right\}$ \\
+		$\phi := \sum_{i \in X} w^{(i)}$ \\
+		$x_t := \mathbbm{1}\left\{\sum_{i \in X} \frac{w^{(i)}}{\phi} u_t^{(i)} \geq \frac{1}{2} \right\}$ \\
 		
 		\If{$x_t \neq y_t$} {
 			\For{$i = 1, \dots, N$} {
@@ -249,11 +251,15 @@ time time (i.e. number of times that $x_t \neq y_t$).
 \begin{prop}
 For any $i \in \{1, 2, \dots, N\}$, 
 \[m_T \leq 2(1 + \epsilon)m_T^{(i)} + \frac{\log N}{\epsilon}\]
+In particular, 
+\[m_T \leq 2(1 + \epsilon)m_T^{*} + \frac{\log N}{\epsilon}\]
+where $m_T^{*} $
 \end{prop}
 Before diving into the proof it is worth comparing this to the infallible expert result. In that case we found that (for $T >> N$) that $m_T \leq \log_2 N$. We see that the second term in the above 
 bound is the analog of this result, but scaled by $\frac{1}{\epsilon}$. A larger value of $\epsilon$ will punish the incorrect experts more severely and thus serve to reduce the weight of bad experts
 more quickly. However, increasing $\epsilon$ will \textit{increase} the first term, which captures the notion that enacting this stricter punishment will also have the adverse effect of rapidly decreasing the 
-rate of good experts who just happened to be wrong once or twice. Thus the optimal $\epsilon$ will balance these two factors. 
+rate of good experts who just happened to be wrong once or twice. Thus the optimal $\epsilon$ will balance these two factors. On a final note, consider that when $T >> N$ then the first term will 
+dominate and thus we conclude for the ``big $T$, small $N$ regime'' that the number of mistakes is bounded by approximately twice the number of mistakes made by the best expert. 
 
 \begin{proof}
 
