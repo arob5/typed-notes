@@ -1,0 +1,119 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+\begin{document}
+
+\begin{center}
+\Large
+Optimization Under Uncertainty/Online Optimization
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+\section{Introduction}
+This text contains a brief introduction to the field of online optimization. ``Online'' here refers to settings in which one has limited or no knowledge about the future; thus, we might 
+also call this subject ``optimization under uncertainty''. This is opposed to the ``offline'' setting dealt with in classical optimization theory. Take linear programming for instance: here we
+assume complete knowledge of the problem in the form of the objective function and relevant constraints. This complete information assumption may be unrealistic in certain applications. 
+As an example, let's consider two-player games from game theory. In the classical setup, it is assumed that both players have perfect knowledge of the others strategies (or mixed strategies). 
+A natural extension that falls under the umbrella of online learning is to consider the situation in which the adversary's strategies are unknown. In these kind of applications the decision problem 
+may be sequential in nature; that is, a player is required to make sequential decisions responding to those of the adversary. However, online learning also includes problems in which a decision is 
+made only once. 
+
+\section{General Setting and Regret Minimization}
+Consider the following game repeated over $T$ rounds: 
+\begin{itemize}
+\item An adversary picks $y_t \in [0, 1]$
+\item You pick $x_t \in [0, 1]$, trying to guess the adversary's number
+\item The adversary's number is revealed and you face an $\ell_2$ penalty: $(x_t - y_t)^2$
+\end{itemize}
+The question is: how should you guess in order to incur minimal cumulative loss? Currently, under these very light assumptions we can essentially say nothing. For example, suppose the adversary draws 
+$y_t$ randomly from a completely different distribution (unknown to you) at each round $t$. This game seems somewhat hopeless for the player. However, what if we add more structure? Suppose we know 
+in advance that the adversary always draws $y_t \overset{iid}{\sim} \mathcal{U}[0, 1]$. Let $Y \sim \mathcal{U}[0, 1]. $In this case, since we know that the mean minimizes $\ell_2$ loss we should guess 
+$x_t := \E Y= \frac{1}{2}$. Letting $x = (x_1, \dots, x_T)^T$ and $y = (y_1, \dots, y_T)^T$ the cumulative loss incurred would thus be
+\[\text{loss}(x, y) := \norm{x - y}_2^2 = \sum_{t = 1}^{T} (y_t - x_t)^2 = \sum_{t = 1}^{T} (Y_t - \E Y_t)^2 \]
+\[\E_Y[\text{loss}(x, y)] =  \sum_{t = 1}^{T} \E(Y_t - \E Y_t)^2 = \sum_{t = 1}^{T} \Var(Y) = T\Var(Y) = \frac{T}{12}\]
+where we use the fact that the $Y_t$ are iid and the final step recalls the variance of a uniform random variable. With respect to $\ell_2$ loss, this is the best we can do. Note that there was nothing special 
+about the uniform distribution here; the key assumption was that the adversary picked numbers iid from a distribution that we knew in advance. In general, if this distribution has variance $\sigma^2$ then 
+by playing our optimal choice of the mean of the distribution we will incur cumulative loss $\sigma^2 T$. 
+
+The assumption that we know the distribution is quite strong, and seems unreasonable to hold in real applications. So what can we say about the situation where the distribution is unknown in advance?
+We're still assuming that the adversary picks a fixed distribution at the beginning and samples iid from that distribution each round. Intuitively, we would imagine that our guesses will likely be pretty bad at first, 
+but that if $T$ is sufficiently large we can, over time, start to get a sense of the underlying distribution and tune our guesses accordingly. We certainly can't hope to compete with the minimal loss incurred in the 
+known distribution setting. Thus, $\sigma^2 T$ seems to be a good benchmark - we can measure our performance relative to this idealized setting. 
+\[\text{loss}(x, y) := \E_Y \norm{X - Y}_2^2 - \sigma^2 T\]
+Note that the expectation is taken with respect to the distribution chosen by the adversary, which is unknown the the player. 
+It cleans this up a bit to divide through by $T$ and consider the average loss instead. 
+\[\text{loss}_{\text{avg}}(x, y) := \frac{1}{T} \E_Y \norm{X - Y}_2^2 - \sigma^2\]
+What can we hope for? Recall our intuition that over time we hope to be able to \textit{learn} the underlying distribution and thus hope that our estimates will tend towards the estimates we would make
+when the distribution is known. That is, we hope to be able to show that the average loss tends to $0$ in the limit as $T \to \infty$. What does this imply about $\text{loss}(x, y)$? Well, first of all we should 
+not expect this to tend to $0$ since this measures the difference in the \textit{cumulative} loss with respect to the cumulative loss of the idealized setting. Since at first we expect our guesses to be significantly
+worse than in the idealized case, then the large loss accumulated for these early guesses will not go away - the cumulative loss will just keep adding to this. However, since we expect our guesses to get better
+in time then we expect the \textit{rate} of accumulation to decrease over time. For example, if $\text{loss}(x, y)$ grew linearly then this would imply a constant rate of accumulation, which would mean our guesses
+are not improving over time. Thus, our hope is that $\text{loss}(x, y)$ grows \textit{sub-linearly} (could be logarithmically, square root, etc.). This makes sense because when we divide through by $T$ in order 
+to consider the average growth relative to the baseline then in order for this average distance to tend to $0$ then the denominator (which is growing linearly) must grow faster than the numerator (hence the 
+numerator must grow \textit{sub-linearly}). 
+
+
+\section{Learning from Experts}
+One important online optimization problem is that of learning from expert advice. The problem is typically defined as follows: a decision-maker must make a decision at each of $T$ rounds. Here let's 
+consider a simple set of possible decisions $\{A, B\}$ so that this can be thought of as a repeated binary classification problem. We also suppose that once you pick from this set, you then observe whether 
+$A$ or $B$ actually occurred. If your prediction matches the true realization you are not penalized; otherwise, you suffer a penalty  Typically in binary classification we base the classification on information 
+given in the form of \textit{features} or \textit{predictors}. In this setting we refer to the analogous concept as \textit{experts}; in particular, we consider a set of $N$ experts that each recommend a decision
+in $\{A, B\}$ each time step. Your goal is thus to use this expert advice in order to make the best possible decisions. 
+
+
+
+
+\end{document}
+
