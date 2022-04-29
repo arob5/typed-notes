@@ -140,6 +140,35 @@ we measure loss with respect to.
 \section{Regret Minimization: A Simple Example}
 \textbf{TODO: include the example from Prof Orabana's first week of notes}
 
+\section{A Note on Potential Function Proofs}
+This section provides a very brief introduction to a common proof technique commonly utilized in proofs of convergence for iterative optimization algorithms. For an in-depth discussion of this topic see 
+Banal and Gupta's paper mentioned in the references. The potential function framework (not to be confused with potential functions from vector calculus/physics) is utilized in the proofs of many optimization algorithms, 
+including in the online setting. 
+
+First recall the general goal of these algorithms: supposing $f$ is convex, we seek to approximate its minimum $f(x^*)$. It is common to try to bound the additive error $f(x_T) - f(x^*) < \epsilon$, where $x_T$
+is the estimate of the true minimizer $x^*$ produced by an algorithm after $T$ iterations. The goal is to construct an upper bound on this additive error as a function of $T$. 
+
+Potential functions are a unifying technique that helps in constructing such a bound. Note that above we are considering the distance in function values $f(x_T) - f(x^*)$. We might also consider the distance 
+between the minimizers $d(x_T, x^*)$, where I intentionally keep the distance metric unspecified for now (could be $\ell_2$, etc.). If $f$ is continuous then we can easily convert between bounds on the function
+value distance and bounds on the minimizing vector distance. The potential function is defined to take into account both of these distances: 
+\[\Phi_t := a_t [f(x_t) - f(x^*)] + b_t \cdot d(x_t, x^*)\]
+where $a_t, b_t$ are non-negative multipliers that can be tailored to the needs of different proofs. The justification for the above definition is that bounding the potential function will induce a bound on 
+$f(x_T) - f(x^*)$. Indeed, suppose we obtain the bound: 
+\[\Phi_{t + 1} - \Phi_t \leq B_t\]
+Then this implies
+\[\sum_{t = 1}^{T - 1} [\Phi_{t + 1} - \Phi_t] \leq  \sum_{t = 1}^{T - 1} B_t\]
+The lefthand side is a telescoping sum and therefore we're left with 
+\[\Phi_{T} - \Phi_0 \leq  \sum_{t = 1}^{T - 1} B_t\]
+Moving $\Phi_0$ to the other side and expanding $\Phi_{T}$, 
+\[ a_T [f(x_T) - f(x^*)] + b_T \cdot d(x_T, x^*) \leq \Phi_0 + \sum_{t = 1}^{T - 1} B_t\]
+Thus, 
+\[ f(x_t) - f(x^*) \leq \frac{1}{a_T}\left[\Phi_0 - b_T \cdot d(x_T, x^*) + \sum_{t = 1}^{T - 1} B_t\right] \leq \frac{\Phi_0 + \sum_{t = 1}^{T - 1} B_t}{a_T}\]
+A couple notes: first, in the last step we simplify the bound by dropping $b_T \cdot d(x_T, x^*)$. In general, we're considering $T$ large enough such that $d(x_T, x^*)$ is small and thus
+this final inequality shouldn't give up too much in the bound. Next, we observe that $\Phi_0$ encodes the error given by the initialization $x_0$ of the algorithm (the ``initial guess''). This potential
+function framework provides a nice organization for many convergence proofs; you'll see many convergence proofs of gradient descent, etc. that feature this telescoping sum step without explicitly 
+considering a potential function, but I find that explicitly defining a potential function helps me draw parallels between similar proofs. 
+
+
 
 \section{Learning from Experts}
 One important online optimization problem is that of learning from expert advice. The problem is typically defined as follows: a decision-maker must make a decision at each of $T$ rounds. Here let's 
@@ -211,6 +240,34 @@ event $A$ as $0$ and $B$ as $1$.
 \end{algorithm}
 
 \bigskip
+
+To analyze this algorithm, we apply similar arguments to the infallible expert case. Clearly we will need some sort of assumption on the quality of expert advice. This was unnecessary in the infallible expert
+case as we could bound the regret entirely based on the existence of the infallible expert; the quality of all of the remaining experts did not factor into that bound. Without that assumption, the experts could 
+be arbitrarily bad, so our bound will be a function of $m_T^{(i)}$, the number of mistakes made by expert $i$ up until time $T$. Moreover, let $m_T$ be the number of mistakes made by the algorithm up until
+time time (i.e. number of times that $x_t \neq y_t$). 
+
+\begin{prop}
+For any $i \in \{1, 2, \dots, N\}$, 
+\[m_T \leq 2(1 + \epsilon)m_T^{(i)} + \frac{\log N}{\epsilon}\]
+\end{prop}
+Before diving into the proof it is worth comparing this to the infallible expert result. In that case we found that (for $T >> N$) that $m_T \leq \log_2 N$. We see that the second term in the above 
+bound is the analog of this result, but scaled by $\frac{1}{\epsilon}$. A larger value of $\epsilon$ will punish the incorrect experts more severely and thus serve to reduce the weight of bad experts
+more quickly. However, increasing $\epsilon$ will \textit{increase} the first term, which captures the notion that enacting this stricter punishment will also have the adverse effect of rapidly decreasing the 
+rate of good experts who just happened to be wrong once or twice. Thus the optimal $\epsilon$ will balance these two factors. 
+
+\begin{proof}
+
+\end{proof}
+
+
+\section{Resources}
+\begin{itemize}
+\item Potential Function Proofs for Gradient Methods (Bansal and Gupta) 
+\item Francesco Orabana (Boston University) lecture notes on online optimization
+\item Alina Ene (Boston University) lecture notes from Advanced Optimization Algorithms Spring 2022 course
+\item Aaron Singer (Harvard University) lecture notes from Advanced Optimization
+\end{itemize}
+
 
 
 \end{document}
