@@ -205,7 +205,10 @@ Now, suppose $T >> N$. Let's consider the regret. By definition, the regret for 
 \[\text{Regret}_T = \frac{1}{T}(\text{\# mistakes}) - 0 \leq \frac{\log_2 N}{T} \to 0 \text{ as } T \to \infty \]
 In this case the numerator is quite sub-linear; we can bound it with a constant! Under less restrictive assumptions, the results won't be quite as nice. 
 
-\subsubsection{The General Case}
+\subsubsection{The Iterated Majority Algorithm}
+\textbf{TODO}
+
+\subsubsection{The Weighted Majority Algorithm}
 We now drop the assumption that there exists a majority expert, but can still use the previous algorithm as motivation for the general case. To start, let's consider a different interpretation for 
 the previous algorithm. We might imagine assigning each expert a weight that encodes our degree of confidence in their advice. In the infallible expert case, we start at round $0$ by assigning each expert
 $i$ a weight of $w^{(i)}_0 = 1$ and then when we make a mistake we set any incorrect experts' weights to $0$. This unforgiving approach works because we know there exists an expert who is never wrong and
@@ -230,19 +233,18 @@ event $A$ as $0$ and $B$ as $1$.
 		$\phi := \sum_{i \in X} w^{(i)}$ \\
 		$x_t := \mathbbm{1}\left\{\sum_{i \in X} \frac{w^{(i)}}{\phi} u_t^{(i)} \geq \frac{1}{2} \right\}$ \\
 		
-		\If{$x_t \neq y_t$} {
-			\For{$i = 1, \dots, N$} {
-				\If{$u_t^{(i)} \neq y_t$} {
+		\For{$i = 1, \dots, N$} {
+			\If{$u_t^{(i)} \neq y_t$} {
 					$w^{(i)} := \max\left\{0, (1 - \epsilon)w^{(i)}\right\}$ \\
-				}
 			}
-		}		
-	}	
+		}
+	}			
 \caption{Weighted Majority Algorithm}
 \end{algorithm}
 
 \bigskip
 
+Notice that the weights are decremented for the incorrect experts regardless of whether $x_t$ was correct or not; we don't let the wrong experts get bailed out by their correct colleagues!
 To analyze this algorithm, we apply similar arguments to the infallible expert case. Clearly we will need some sort of assumption on the quality of expert advice. This was unnecessary in the infallible expert
 case as we could bound the regret entirely based on the existence of the infallible expert; the quality of all of the remaining experts did not factor into that bound. Without that assumption, the experts could 
 be arbitrarily bad, so our bound will be a function of $m_T^{(i)}$, the number of mistakes made by expert $i$ up until time $T$. Moreover, let $m_T$ be the number of mistakes made by the algorithm up until
@@ -253,7 +255,7 @@ For any $i \in \{1, 2, \dots, N\}$,
 \[m_T \leq 2(1 + \epsilon)m_T^{(i)} + \frac{\log N}{\epsilon}\]
 In particular, 
 \[m_T \leq 2(1 + \epsilon)m_T^{*} + \frac{\log N}{\epsilon}\]
-where $m_T^{*} $
+where $m_T^{*} := \argmin_{i} m_T^{(i)}$ is the number of mistakes of the best expert. 
 \end{prop}
 Before diving into the proof it is worth comparing this to the infallible expert result. In that case we found that (for $T >> N$) that $m_T \leq \log_2 N$. We see that the second term in the above 
 bound is the analog of this result, but scaled by $\frac{1}{\epsilon}$. A larger value of $\epsilon$ will punish the incorrect experts more severely and thus serve to reduce the weight of bad experts
@@ -262,7 +264,38 @@ rate of good experts who just happened to be wrong once or twice. Thus the optim
 dominate and thus we conclude for the ``big $T$, small $N$ regime'' that the number of mistakes is bounded by approximately twice the number of mistakes made by the best expert. 
 
 \begin{proof}
-
+Recall that the proof in the infallible expert case proceeded by bounded how many experts where left (i.e. how many with non-zero weight) as a function of how many mistakes were made.  Since the 
+weights in this case were either $0$ or $1$ then this can be viewed as bounding the sum of the weights of the experts. We proceed with the same strategy here, but it this case the weights can be any 
+real number in $[0, 1]$. To this end, we define $\phi_t := \sum_{i = 1}^{N} w_t^{(i)}$, the sum of the weights at round $t$. $\phi_t$ can be thought of as a potential function of sorts, although it doesn't 
+fit into the exact form of potential functions described earlier in this document. Recall that in that section the primary goal was to bound $\Phi_{t} - \Phi_{t - 1}$. In this case, instead of this additive bound 
+we will establish a multiplicative bound $\phi_{t} \leq \left(1 - \frac{\epsilon}{2}\right)\phi_{t - 1}$ for all $t$ when a mistake is made. 
+Note that this sharpens the obvious bound $\phi_T \leq \phi_{T - 1}$, which follows from the fact that the weights can only decrease. To this end, suppose a mistake is made at time $t$. This means that 
+the weighted average of the experts predicted incorrectly. Suppose that $x_t = 0$ but $y_t = 1$. Then 
+\[\sum_{i = 1}^{N} \frac{w_t^{(i)}}{\phi_t} \leq \frac{1}{2}\]
+or 
+\[\sum_{i = 1}^{N} w_t^{(i)} \leq \frac{\phi_t}{2}\]
+Then the weights for the incorrect experts are decremented: 
+\begin{align*}
+\phi_{t + 1} = \sum_{i = 1}^{N} w_t^{(i)} &= \sum_{i = 1}^{N} w_t^{(i)}\mathbbm{1}\{u_t^{(i)} = y_t\} + (1 - \epsilon) \sum_{i = 1}^{N} w_t^{(i)}\mathbbm{1}\{u_t^{(i)} \neq y_t\} \\
+							   &\leq \frac{\phi_t}{2} + (1 - \epsilon)\frac{\phi_t}{2} \\
+							   &= \left(1 - \frac{\epsilon}{2}\right)\phi_t
+\end{align*}
+The $x_t = 1$, $y_t = 0$ can be argued similarly. Now we recurse using this relation, 
+\begin{align*}
+\phi_T &\leq \left(1 - \frac{\epsilon}{2}\right)\phi_{T - 1} \\
+	  &\leq \left(1 - \frac{\epsilon}{2}\right)^2\phi_{T - 2} \\
+	  &\vdots \\
+	  &\leq \left(1 - \frac{\epsilon}{2}\right)^{m_T}\phi_{0} \\
+	  &= \left(1 - \frac{\epsilon}{2}\right)^{m_T} N \\
+\end{align*}
+The final line uses the fact that all weights are initialized to $1$, which implies that the sum of weights is
+just equal to the number of experts, $N$. Next consider
+\[\phi_T = \sum_{i = 1}^{N} w_T^{(i)} > w_T^{(i)} = (1 - \epsilon)^{m_T^{(i)}}\]
+which follows from the fact that the weight for expert $i$ suffers a $1 - \epsilon$ multiplicative penalty for each mistake. Putting these two bounds together, 
+\[(1 - \epsilon)^{m_T^{(i)}} < \phi_T \leq \left(1 - \frac{\epsilon}{2}\right)^{m_T}N\]
+The result then follows by taking logs, applying the approximation 
+\[-x - x^2 < \log(1 - x) < -x \text{ for } x \in \left(0, \frac{1}{2}\right)\]
+and then rearranging. 
 \end{proof}
 
 
