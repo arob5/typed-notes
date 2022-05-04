@@ -207,6 +207,8 @@ of the detailed balance condition: it only requires us to check transition proba
 directly requires us to consider \textit{all} of the possible ways to get to $y$ from the current distribution $\pi$, hence the integral over $x$. Thus, the detailed balance condition
 is much easier to check. 
 
+\bigskip
+
 Thus far, we have talked loosely about how we have defined a Markov chain by considering a kernel of the form ``first propose a new state and then accept with some 
 probability''. However, we have not actually formally defined the kernel or proved that the Markov property is satisfied. The latter result should be pretty obvious: both the 
 proposal and the acceptance probability only depend on the current state. Now let's consider the formal definition of the kernel. Recall, that $P(x, \cdot)$ must be a probability 
@@ -224,13 +226,35 @@ that a proposed state might be rejected.
 \[\delta_x(A)\int_\mathcal{X} q(x, y)[1 - \alpha(x, y)]\mu(dy)\]
 Denoting this second integral by $\overline{\alpha}(x)$ we thus have the full kernel: 
 \[P(x, A) = \int_{A} q(x, y)\alpha(x, y)\mu(dy) + \overline{\alpha}(x) \delta_x(A)\]
+Many of the common MCMC algorithms fall under this MH umbrella; different choices of proposal kernel yields different algorithms. We briefly detail a few of the well-known 
+MH algorithms here. 
 
-\textbf{TODO}: 
-\begin{itemize} 
-\item Independent MH
-\item MH with symmetric proposal 
-\item Gibbs 
-\end{itemize}
+\bigskip
+
+\textbf{Independent Proposals.} \textbf{TODO} 
+
+\bigskip
+
+\textbf{Random Walk Monte Carlo.} \textbf{TODO} 
+
+\bigskip
+
+\textbf{The Gibbs Sampler.} \textbf{TODO} 
+
+\bigskip
+
+\textbf{Langevin Monte Carlo.} Our goal is to construct a Markov chain that will converge as quickly as possible to the stationary distribution. In the above proposals, the 
+accept-reject mechanism ($\alpha$) seems to be carrying most of the load as to ensuring ``smart'' decisions as to where to transition next. Though this mechanism does 
+only use two points of information about the target density in making the decision: the density at the current state and the density at the proposed state. The accept-reject 
+mechanism accepts or rejects based on the ratio of densities at this point (along with an adjustment for the proposal density as well). Given that the other half of the 
+transition kernel is the proposal kernel, a natural question is to whether we can design a more sophisticated proposal that helps produce better informed proposals and 
+hence speeds convergence. So far, the proposals have not been very informed; take RWMH for instance: the proposal is just a random draw from some distribution 
+centered at the current state. For those familiar with optimization, we know that leveraging \textit{gradient} information of an objective function is incredibly 
+useful in designing optimization algorithms, the most obvious example being gradient descent. It is thus natural to wonder if we might leverage gradient information 
+of a differentiable target density. We might call such a proposal a \textit{local optimization proposal}. With this in mind, consider a proposal defined by: 
+\[X_{t + 1} := X_{t} + \frac{\sigma}{2} \nabla \log \pi(X_{t - 1}) + \sigma Z\]
+where $Z \sim N(0, I_d)$. Let's break this down. \textbf{TODO: complete}
+
 
 In summary, this section has introduced how to construct a transition kernel that is invariant with respect to the target distribution $\pi$. In doing so we have introduced 
 a variety of algorithms that fall in the Metropolis-Hastings family. However, what we have developed so far is the bare minimum; we essentially have no theoretical guarantees
