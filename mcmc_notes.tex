@@ -254,7 +254,9 @@ Moreover, by the assumed symmetry of $\mu$,
 This symmetry simplifies the acceptance ratio as follows.  
 \[\alpha(x, y) := \min\left\{\frac{h_\pi(y) q(y, x)}{h_\pi(x)q(x, y)}, 1\right\} = \min\left\{\frac{h_\pi(y)}{h_\pi(x)}, 1\right\} \]
 Therefore, the acceptance step only depends on the ratio of the target densities at the current and proposed states. If the proposed state has a higher density then it will 
-always be accepted. Otherwise, it will only be accepted with some probability that depends on the ratio of densities. 
+always be accepted. Otherwise, it will only be accepted with some probability that depends on the ratio of densities. Given this behavior, one concern might be that the 
+chain will ``get trapped'' in high density areas. This certainly could be an issue, and one way to address this is to choose a heavy-tailed proposal to increase the probability
+of ``escaping'' these high density areas. 
 
 \bigskip
 
