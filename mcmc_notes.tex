@@ -256,7 +256,9 @@ This symmetry simplifies the acceptance ratio as follows.
 Therefore, the acceptance step only depends on the ratio of the target densities at the current and proposed states. If the proposed state has a higher density then it will 
 always be accepted. Otherwise, it will only be accepted with some probability that depends on the ratio of densities. Given this behavior, one concern might be that the 
 chain will ``get trapped'' in high density areas. This certainly could be an issue, and one way to address this is to choose a heavy-tailed proposal to increase the probability
-of ``escaping'' these high density areas. 
+of ``escaping'' these high density areas. Another potentially challenging issue is choosing the \textit{scale} of the proposal; that is, how should we set $\sigma$? This is 
+analogous to the question of how to set the step-size parameter in gradient descent. If we choose $\sigma$ too small in the sense that the variance of the proposal is much 
+smaller than the variance of $\pi$, then it may take very large number of iterations in order to explore the support of $\pi$. 
 
 \bigskip
 
