@@ -180,7 +180,7 @@ given in the form of \textit{features} or \textit{predictors}. In this setting w
 in $\{A, B\}$ each time step. Your goal is thus to use this expert advice in order to make the best possible decisions. Note that one's first approach in solving this problem would likely be to develop an 
 algorithm to minimize the number of mistakes: 
 \[\min_{x_t} \sum_{t = 1}^{T} \ell(x_t, y_t)\]
-However, this is not a good baseline to evaluate our algorithms. Indeed, it can be shown that no randomized algorithm can make fewer than $\frac{T}{2}$ in expectation. Moreover, the trivial algorithm 
+However, this is not a good baseline to evaluate our algorithms. Indeed, it can be shown that no randomized algorithm can make fewer than $\frac{T}{2}$ mistakes in expectation. Moreover, the trivial algorithm 
 of simply flipping a coin at each step $x_t \overset{iid}{\sim} \text{Bern}(1/2)$ achieves this lower bound. So this turned out to be very uninteresting: $\frac{T}{2}$ mistakes was both optimal and trivial 
 to obtain. The solution of course is to instead consider the \textit{regret}, which requires choosing a useful benchmark. Recalling the general definition of regret, we therefore must decide on a suitable 
 predictor $u$. In the learning from experts setting, a natural choice is to consider loss with respect to the loss of the \textit{best expert}. We therefore consider
@@ -193,8 +193,8 @@ called \textit{average regret} here. I've just dropped the ``avg'' subscript to 
 \subsubsection{Simple Case of the Infallible Expert}
 To motivate the general algorithm we first consider the simplified case in which we assume that one of the experts is never wrong. A reasonable algorithm for this case is as follows: 
 \begin{itemize}
-\item Take a majority vote of the current pool of experts. Once the true realization is revealed, if your guess was incorrect then discard all of incorrect experts (which by definition of the majority
-vote will be at least half of them). 
+\item Take a majority vote of the current pool of experts. Once the true realization is revealed, discard all of incorrect experts. In the case that your guess $x_t$ was incorrect, then by definition of the majority
+vote at least half of them will be discarded). 
 \item Proceed by taking a majority vote for the remaining pool of experts. 
 \item Terminate either by reaching the final round $T$ or ending with only the single infallible expert (so will incur zero loss beyond this point). 
 \end{itemize}
@@ -206,11 +206,37 @@ Now, suppose $T >> N$. Let's consider the regret. By definition, the regret for 
 In this case the numerator is quite sub-linear; we can bound it with a constant! Under less restrictive assumptions, the results won't be quite as nice. 
 
 \subsubsection{The Iterated Majority Algorithm}
-\textbf{TODO}
+We now drop the assumption that there exists a majority expert, but can still use the previous algorithm as motivation for the general case. A very simple way to generalize the previous algorithm
+is perform the same exact procedure (guess via majority vote, discard incorrect experts), but if you run out of experts just ``reset''; that is, start again with all of the experts. At first glance, this algorithm
+makes intuitive sense but seems to have some weaknesses; each time you reset the learner is essentially forgetting everything they learned, which seems unnecessarily inefficient. Moreover, dropping
+experts after a single mistake seems overly harsh; a quality expert may make a rare mistake, and dropping this expert will hurt subsequent predictions. We will address these concerns with an improved
+algorithm in the next section, but for now let's analyze this algorithm as is. Of course, the baseline for comparison is no longer against a perfect expert that never makes mistakes, but more generally 
+against the best expert. 
+\begin{prop}
+Suppose $m^*_T$ is the number of mistakes made by the best expert after $T$ rounds; that is, $m^*_T := \min_{i = 1, \dots, N} \sum_{t = 1}^{T} \mathbbm{1}\{u^{(i)}_t \neq y_t\}$. 
+Let $m_T = \sum_{t = 1}^{T} \mathbbm{1}\{x_t \neq y_t\}$ be the total number of mistakes made by the learner after $T$ rounds. Then 
+\[m_T \leq (m_T^* + 1)\log_2 N\]
+\end{prop}
+
+\begin{proof}
+Let's call the stage prior to the first reset the first \textit{epoch}. Then once we reset we're in the second epoch, etc. Within an epoch, the number of mistakes is bounded by $\log_2 N$, which follows 
+directly from the previous analysis in the infallible expert case. Now let $\mathcal{E}_T$ be the current epoch at time $T$. Then, 
+\[m_T \leq \mathcal{E}_T \log_2 N\]
+Now how do we bound $\mathcal{E}_T$? The key thing to note here is that in order to reset (i.e. to advance to the next epoch), then every expert must have make a mistake; in particular, the best expert
+made a mistake. For example, if we're in the second epoch then the best expert must have made at least one mistake. Thus, 
+\[m^*_T \geq \mathcal{E}_T - 1\]
+or 
+\[\mathcal{E}_T \leq m^*_T + 1\]
+Putting these bounds together, 
+\[m_T \leq \mathcal{E}_T \log_2 N \leq (m^*_T + 1) \log_2 N\]
+\end{proof}
+
+Note that when $m_T^* = 0$ (that is, there exists an infallible expert) then we recover the result from the above simplified case. 
+
 
 \subsubsection{The Weighted Majority Algorithm}
-We now drop the assumption that there exists a majority expert, but can still use the previous algorithm as motivation for the general case. To start, let's consider a different interpretation for 
-the previous algorithm. We might imagine assigning each expert a weight that encodes our degree of confidence in their advice. In the infallible expert case, we start at round $0$ by assigning each expert
+We now consider an improvement to the previous algorithm. To motivate this, we first give a different perspective on weighted majority algorithm in the case of the infallible expert.
+We might imagine assigning each expert a weight that encodes our degree of confidence in their advice. In the infallible expert case, we start at round $0$ by assigning each expert
 $i$ a weight of $w^{(i)}_0 = 1$ and then when we make a mistake we set any incorrect experts' weights to $0$. This unforgiving approach works because we know there exists an expert who is never wrong and
 thus we need not worry about discarding this expert. In the general case, there might not be an infallible expert but there might be various experts who are correct very often and so it would be unwise 
 to discard them. The natural extension is thus to decrease their weight by a little bit but not all the way to $0$. In particular, we might choose some $\epsilon \in (0, 1)$ and decrement the weights of the incorrect
@@ -248,7 +274,7 @@ Notice that the weights are decremented for the incorrect experts regardless of 
 To analyze this algorithm, we apply similar arguments to the infallible expert case. Clearly we will need some sort of assumption on the quality of expert advice. This was unnecessary in the infallible expert
 case as we could bound the regret entirely based on the existence of the infallible expert; the quality of all of the remaining experts did not factor into that bound. Without that assumption, the experts could 
 be arbitrarily bad, so our bound will be a function of $m_T^{(i)}$, the number of mistakes made by expert $i$ up until time $T$. Moreover, let $m_T$ be the number of mistakes made by the algorithm up until
-time time (i.e. number of times that $x_t \neq y_t$). 
+time $T$ (i.e. number of times that $x_t \neq y_t$). 
 
 \begin{prop}
 For any $i \in \{1, 2, \dots, N\}$, 
@@ -305,6 +331,7 @@ and then rearranging.
 \item Francesco Orabana (Boston University) lecture notes on online optimization
 \item Alina Ene (Boston University) lecture notes from Advanced Optimization Algorithms Spring 2022 course
 \item Aaron Singer (Harvard University) lecture notes from Advanced Optimization
+\item Aaron Roth (UPenn) lecture notes from Algorithmic Game Theory (lectures 4 and 5)
 \end{itemize}
 
 
