@@ -235,7 +235,26 @@ MH algorithms here.
 
 \bigskip
 
-\textbf{Random Walk Monte Carlo.} \textbf{TODO} 
+\textbf{Random Walk Monte Carlo.} RWMH uses a proposal defined by
+\[X_{t + 1} = X_t + \sigma \xi \]
+where $\sigma > 0$ and $\xi \sim \mu$, for some symmetric distribution $\mu$. A common choice for $\mu$ is the standard normal distribution, in which case the next 
+state is simply given by $X_{t + 1} \sim N(X_t, \sigma^2 I_d)$. Therefore, the proposal step acts as a random walk, though note that the Markov chain as a whole does not 
+exhibit this behavior due to the acceptance step. Assuming $\mu$ has a density (and denoting the density by $\mu$ as well) then let's derive the proposal density. 
+First consider
+\begin{align*}
+F_{X_{t + 1}|X_t}(y) = \Prob(X_{t + 1} \leq y|X_t) &= \Prob(x + \sigma \xi \leq y) \\
+									 &= \Prob\left(\xi \leq \frac{y - x}{\sigma}\right) \\
+									 &= F_{\xi}\left(\xi \leq \frac{y - x}{\sigma}\right) \\
+\end{align*}
+Thus the proposal density is given by, 
+\[q(x, y) = F_{\xi}^\prime \left(\xi \leq \frac{y - x}{\sigma}\right) = \mu\left(\frac{y - x}{\sigma}\right)\]
+Moreover, by the assumed symmetry of $\mu$, 
+\[q(x, y) = \mu\left(\frac{y - x}{\sigma}\right) = \mu\left(\frac{x - y}{\sigma}\right) = q(y, x)\]
+
+This symmetry simplifies the acceptance ratio as follows.  
+\[\alpha(x, y) := \min\left\{\frac{h_\pi(y) q(y, x)}{h_\pi(x)q(x, y)}, 1\right\} = \min\left\{\frac{h_\pi(y)}{h_\pi(x)}, 1\right\} \]
+Therefore, the acceptance step only depends on the ratio of the target densities at the current and proposed states. If the proposed state has a higher density then it will 
+always be accepted. Otherwise, it will only be accepted with some probability that depends on the ratio of densities. 
 
 \bigskip
 
