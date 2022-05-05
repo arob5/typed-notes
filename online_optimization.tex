@@ -377,16 +377,37 @@ this experts advice. Everything else is the same, that's the only difference.
 Note that $\text{Cat}(N, (p_1, \dots, p_N))$ denotes the categorical distribution supported on $\{1, \dots, N\}$, where the integers have associated probabilities $p_1, \dots, p_N$. 
 We now show that, on average, this algorithm (when $T >> N$) makes about half the number of mistakes as its deterministic counterpart; that is, the number of mistakes is on par
 with that of the best expert, instead of being about twice as many as the best expert. Note that this is on average though, which is a much weaker statement than the deterministic 
-guarantees proved above. 
+guarantees proved above. But in another sense this is a very powerful result; the expected behavior of the algorithm is superior to the previous algorithms we considered and its 
+randomized nature makes it suitable for adversarial settings. 
 
 \begin{thm}
 For any $i \in \{1, \dots, N\}$, then the expected number of mistakes made my the randomized weighted majority algorithm after $T$ rounds is bounded as follows.
-\[\E[m_T] \leq (1 + \epsilon)m_T^{(i)} + \frac{\log_2 N}{\epsilon}\]
+\[\E[m_T] \leq (1 + \epsilon)m_T^{(i)} + \frac{\log N}{\epsilon}\]
+In particular this bound holds relative to the best expert. 
+\[\E[m_T] \leq (1 + \epsilon)m_T^{*} + \frac{\log N}{\epsilon}\]
 \end{thm}
 
 \begin{proof}
 \textbf{TODO} (both Harvard and UPenn notes have this proof)
 \end{proof}
+
+Recall that the primary objective we seek to minimize in the online learning setting is \textit{regret}. The above bound directly gives us a bound on the regret. 
+\[\text{Regret}_T = \E[m_T] - m_T^* \leq (1 + \epsilon)m_T^{*} + \frac{\log N}{\epsilon} - m_T^* = \epsilon m_T^* + \frac{\log N}{\epsilon}\]
+We haven't yet considered choosing $\epsilon$. Clearly, we want to optimize this parameter to balance the opposing effects of the two terms. Recall that 
+we discussed similar tradeoffs in the deterministic case; the first term increasing in $\epsilon$ could be thought of as the cost of ``over-penalizing'' good experts
+while the second term decreasing in $\epsilon$ was interpreted as quantifying the benefits of increasing $\epsilon$ in that the bad experts may be more 
+readily ignored. In optimizing $\epsilon$ note that we want to make sure the value is not a function of $m_T^*$ as that quantity is unknown to the learner. 
+So while we could simply differentiate the regret with respect to $\epsilon$ (the function is differentiable for fixed $T$) then set to $0$ to optimize, this would lead
+to $\epsilon$ as a function of $m_T^*$ which we don't want. Therefore, we first use the trivial bound $m_T^* \leq T$ and only \textit{then} take the derivative. 
+\[\epsilon m_T^* + \frac{\log N}{\epsilon} \leq \epsilon T + \frac{\log N}{\epsilon}\]
+Taking the derivative with respect to $\epsilon$, setting equal to $0$, and solving for $\epsilon$ we obtain the optimum:
+\[\epsilon = \sqrt{\frac{\log N}{T}}\]
+Plugging this back in to the bound on $\text{Regret}_T$ yields
+\[\text{Regret}_T \leq  \sqrt{\frac{\log N}{T}} m_T^* +  \sqrt{\frac{T}{\log N}}\log N = \sqrt{T \log N} + \sqrt{T \log N} = 2\sqrt{T \log N}\]
+If we think all the way back to the section introducing the concept of regret, we noted that the goal is to have regret grow sub-linearly in $T$, which corresponded 
+to the quality of our guesses improving over time. We see that we have accomplished this goal here! This also implies that the average regret converges to $0$
+at rate $\frac{1}{\sqrt{T}}$. 
+\[\overline{\text{Regret}}_T \leq \frac{1}{T} \cdot 2\sqrt{T \log N} = \frac{2\sqrt{\log N}}{\sqrt{T}}\]
 
 % Section: Online Convex Optimization
 \section{Online Convex Optimization}
