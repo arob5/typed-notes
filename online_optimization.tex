@@ -407,7 +407,15 @@ Plugging this back in to the bound on $\text{Regret}_T$ yields
 If we think all the way back to the section introducing the concept of regret, we noted that the goal is to have regret grow sub-linearly in $T$, which corresponded 
 to the quality of our guesses improving over time. We see that we have accomplished this goal here! This also implies that the average regret converges to $0$
 at rate $\frac{1}{\sqrt{T}}$. 
-\[\overline{\text{Regret}}_T \leq \frac{1}{T} \cdot 2\sqrt{T \log N} = \frac{2\sqrt{\log N}}{\sqrt{T}}\]
+\[\overline{\text{Regret}}_T \leq \frac{1}{T} \cdot 2\sqrt{T \log N} = 2\sqrt{\frac{\log N}{T}}\]
+
+\subsubsection{A lower bound for randomized algorithms}
+Recall that we established a lower bound of $m_T \geq 2m_T^*$ for any deterministic algorithm. In other words, $\overline{\text{Regret}}_T \geq \frac{m_T^*}{T} = O\left(\frac{1}{T}\right)$.
+We just showed that in expectation this can be beaten by 
+a randomized algorithm, which achieved $\overline{\text{Regret}}_T = O\left(\frac{1}{\sqrt{T}}\right)$. The natural question is whether this algorithm is optimal among all randomized 
+algorithms. 
+\texbf{TODO}: from homework problem 
+
 
 % Section: Online Convex Optimization
 \section{Online Convex Optimization}
