@@ -378,7 +378,7 @@ this experts advice. Everything else is the same, that's the only difference.
 			}
 		}
 	}			
-\caption{Weighted Majority Algorithm}
+\caption{Randomized Weighted Majority Algorithm}
 \end{algorithm}
 
 \bigskip
@@ -425,11 +425,16 @@ a randomized algorithm, which achieved $\overline{\text{Regret}}_T = O\left(\fra
 algorithms. 
 \textbf{TODO}: from homework problem 
 
+\subsubsection{Using Randomized Weighted Majority to Prove the Minimax Theorem}
+\textbf{TODO: Lecture 6 or Aaron Roth's notes}
+A constructive version of LP duality. 
+
+
 % Section: Applications of the Randomized Weighted Majority Algorithm
-\section{Applications of the Randomized Weighted Majority Algorithm}
+\section{The Multiplicative Weights Update Algorithm}
 
 
-\subsection{Online Learning and Prediction}
+\subsection{Online Learning and Prediction: Extension of Randomized Weighted Majority Algorithm}
 In the previous section we considered the problem of learning from expert advice. Our goal was to combine the advice from the experts in order to construct a series of choices that would
 minimize our regret. We now consider a slight modification to this setup: instead of combining expert advice, we consider \textit{expert} a single expert each round. In this case, we can think 
 of the experts as \textit{options} or \textit{strategies} that we must choose. This is a very natural setting in game theory; we might imagine we're playing a sequential game against and adversary, 
@@ -439,22 +444,71 @@ distribution. It should not be surprising that we want to consider such a random
 We will also generalize from considering zero-one loss to allowing any real-valued loss in $[0, 1]$. The setup is summarized as follows. \\
 For each round $t = 1, \dots, T$:
 \begin{itemize}
-\item Learner pick a probability distribution $p^{(t)}$ supported on the set of $n$ possible options. 
-\item The costs of \textit{all} options are now revealed. The losses are denoted by $m^{(t)} \in [0, 1]^n$, where $m^{(t)}_i \in [0, 1]$ is the loss for option $i$. 
-\item The loss of the learner for round $t$ is defined as the expected loss: $\E_{i \sim p^{(t)}}[m^{(t)}_i] = \langle p^{(t)}, m^{(t)}\rangle$
+\item Learner pick a probability distribution $p^{(t)}$ supported on the set of $n$ possible options. ``Choosing a probability distribution'' may sound a little weird, but just think of this as 
+assigning weights to each expert as in the algorithms from the previous section. 
+\item The costs of \textit{all} options are now revealed. The losses are denoted by $\ell^{(t)} \in [0, 1]^N$, where $\ell^{(t)}_i \in [0, 1]$ is the loss for option $i$. 
+\item The loss of the learner for round $t$ is defined as the expected loss: $\E_{i \sim p^{(t)}}[\ell^{(t)}_i] = \langle p^{(t)}, \ell^{(t)}\rangle$
 \end{itemize} 
 As usual, we want to minimize the cumulative loss relative to the best decision in hindsight. 
-\[\textit{Regret}_T = \sum_{t = 1}^{T} \langle p^{(t)}, m^{(t)}\rangle - \min_i \sum_{t = 1}^{T} m_i^{(t)}\]
+\[\textit{Regret}_T = \sum_{t = 1}^{T} \langle p^{(t)}, \ell^{(t)}\rangle - \min_i \sum_{t = 1}^{T} \ell_i^{(t)}\]
+Really the only difference from the setup in the previous section is that we're considering losses in $[0, 1]$ instead of $\{0, 1\}$. In the latter case we interpreted the problem as a binary decision-making
+problem using the advice of experts. The interpretation of the current case is that we choose a strategy/option/decision that incurs a loss in $[0, 1]$. The goal will be to generalize the weighted majority 
+algorithm to work in this setting. To this end, first consider that the weight update rule for expert $i$ for that algorithm can be written:
+\[w_i^{(t + 1)} \gets (1 - \eta \ell_i^{(t)})w_i^{(t)}\]
+where $\ell_i^{(t)} \in \{0, 1\}$; $0$ if the expert was correct and $1$ if the expert made a mistake. Thus, the weight was unaffected for correct experts and was decremented by factor $1 - \eta$ for 
+incorrect ones. Thus, a natural extension is to simply keep this same exact formula, but now $ \ell_i^{(t)} \in [0, 1]$. So a strategy that incurs $0$ loss will leave the weight of the expert unaffected, while 
+the maximal loss of $1$ will lead to a $1 - \eta$ multiplicative penalty. The penalty for all losses in between are then linearly interpolated between these extremes. So this can simply be viewed as a 
+``smoothed'' version of the previous algorithm. We can even consider a further generalization if we allow losses in $[-1, 1]$. In this case the update factor assumes values in $[1 - \eta, 1 + \eta]$
+which implies that strategies with negative losses are rewarded by boosting their weights. So in this framework weighted can be incremented as well as decremented. The algorithm described above 
+is known as the \textit{multiplicative weights update algorithm}, which is really the crown jewel of all the algorithms we've presented in the last couple sections. Given that we've built things up 
+very incrementally (majority algorithm when there is an infallible expert, weighted majority algorithm, randomized weighted majority algorithm, multiplicative weights updates algorithm), then this 
+final product should feel quite natural. 
 
-\subsection{Using Randomized Weighted Majority to Prove the Minimax Theorem}
-\textbf{TODO: Lecture 6 or Aaron Roth's notes}
-A constructive version of LP duality. 
+\bigskip
+
+ \begin{algorithm}[H]
+	\SetAlgoLined
+	
+	\textbf{Input}: $0 < \eta < 1$, $T \in \mathbb{N}$, \text{ Strategies } X = \{1, \dots, N\} \\
+	
+	\bigskip
+	
+	Set $w^{(i)} := 1$ \text{ for all } i = 1, \dots, N \\
+	
+	\For{$t = 0, \dots, T$} {
+		Choose probability distribution $p^{(t)}_i := \frac{w_i}{\norm{w}_1}$, $i = 1, \dots, N$ \\
+		$\text{Sample strategy } j \sim \text{Cat}(N, (p_1, \dots, p_N))$ \\
+		Observe losses $\ell^{(t)} \in [-1, 1]^N$ \\
+		
+		\For{$i = 1, \dots, N$} {
+			$w^{(i)} := (1 - \eta \ell_i^{(t)})w^{(i)}$ \\
+		}
+	}			
+\caption{Multiplicative Weights Update Algorithm}
+\end{algorithm}
+
+\bigskip
+
+\textbf{TODO: include analysis/proof for this algorithm}
+
+\subsection{Applications of the Multiplicative Weights Update Algorithm}
+\textbf{TODO}
+
 
 
 % Section: Online Convex Optimization
 \section{Online Convex Optimization}
-
-
+In the spirit of mathematics, let's continue generalizing further. The settings we've considered so far (learning from experts, online prediction) can be viewed 
+in a more general framework, that of online convex optimization. The generalized setting is as follows. \\
+For each round $t = 1, \dots, T$:
+\begin{itemize}
+\item Pick ``action'' $x^{(t)} \in X$, where $X \subset \R^N$ is convex.
+\item Receive a convex loss function $f_t: \R^N \to \R$. 
+\item Suffer loss $f_t(x^{(t)})$
+\end{itemize}
+As before, this generalization shouldn't be too shocking. We're basically considering a continuous version of the previous problem we considered: instead of a finite 
+set of strategies, we consider a continuum and similarly with the losses. Both the feasible set of actions $X$ and the loss functions $f_t$ are assumed to be convex, just 
+as in typical offline convex optimization. The difference here is that we're considering a sequential scenario in which decisions are made and losses observed one at a time. 
 
 
 
