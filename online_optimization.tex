@@ -239,17 +239,16 @@ We now consider an improvement to the previous algorithm. To motivate this, we f
 We might imagine assigning each expert a weight that encodes our degree of confidence in their advice. In the infallible expert case, we start at round $0$ by assigning each expert
 $i$ a weight of $w^{(i)}_0 = 1$ and then when we make a mistake we set any incorrect experts' weights to $0$. This unforgiving approach works because we know there exists an expert who is never wrong and
 thus we need not worry about discarding this expert. In the general case, there might not be an infallible expert but there might be various experts who are correct very often and so it would be unwise 
-to discard them. The natural extension is thus to decrease their weight by a little bit but not all the way to $0$. In particular, we might choose some $\epsilon \in (0, 1)$ and decrement the weights of the incorrect
+to discard them. The natural extension is thus to decrease their weight by a little bit but not all the way to $0$. In particular, we might choose some $\eta \in (0, 1)$ and decrement the weights of the incorrect
 experts by: 
-\[w^{(i)}_{t} \gets (1 - \epsilon) w^{(i)}_{t - 1}\]
-This leads to the following algorithm. Here I continue to use that notation that $u_t^{(i)}$ is the advice from expert $i$ at round $t$, and $y_t$ is the true realization at time $t$. Also, to simplify notation I encode 
-event $A$ as $0$ and $B$ as $1$. 
+\[w^{(i)}_{t} \gets (1 - \eta) w^{(i)}_{t - 1}\]
+This leads to the following algorithm. Here I continue to use that notation that $u_t^{(i)}$ is the advice from expert $i$ at round $t$, and $y_t$ is the true realization at time $t$.
 \bigskip
 
  \begin{algorithm}[H]
 	\SetAlgoLined
 	
-	\textbf{Input}: $0 < \epsilon < 1$, $T \in \mathbb{N}$, \text{ Experts } X = \{1, \dots, N\} \\
+	\textbf{Input}: $0 < \eta < 1$, $T \in \mathbb{N}$, \text{ Experts } X = \{1, \dots, N\} \\
 	
 	\bigskip
 	
@@ -257,11 +256,15 @@ event $A$ as $0$ and $B$ as $1$.
 	
 	\For{$t = 0, \dots, T$} {
 		$\phi := \sum_{i \in X} w^{(i)}$ \\
-		$x_t := \mathbbm{1}\left\{\sum_{i \in X} \frac{w^{(i)}}{\phi} u_t^{(i)} \geq \frac{1}{2} \right\}$ \\
+		\If{$\sum_{i: u_t^{(i)} = A} \frac{w_t^{(i)}}{\phi} \geq \frac{1}{2}$} {
+			$x_t := A$
+		} \Else {
+			$x_t := B$
+		}
 		
 		\For{$i = 1, \dots, N$} {
 			\If{$u_t^{(i)} \neq y_t$} {
-					$w^{(i)} := (1 - \epsilon)w^{(i)}$ \\
+					$w^{(i)} := (1 - \eta)w^{(i)}$ \\
 			}
 		}
 	}			
@@ -277,48 +280,49 @@ be arbitrarily bad, so our bound will be a function of $m_T^{(i)}$, the number o
 time $T$ (i.e. number of times that $x_t \neq y_t$). 
 
 \begin{prop}
-For any $i \in \{1, 2, \dots, N\}$, 
-\[m_T \leq 2(1 + \epsilon)m_T^{(i)} + \frac{\log N}{\epsilon}\]
+For any $i \in \{1, 2, \dots, N\}$ and $\eta \in (0, 1/2)$, 
+\[m_T \leq 2(1 + \eta)m_T^{(i)} + \frac{\log N}{\eta}\]
 In particular, 
-\[m_T \leq 2(1 + \epsilon)m_T^{*} + \frac{\log N}{\epsilon}\]
+\[m_T \leq 2(1 + \eta)m_T^{*} + \frac{\log N}{\eta}\]
 where $m_T^{*} := \argmin_{i} m_T^{(i)}$ is the number of mistakes of the best expert. 
 \end{prop}
 Before diving into the proof it is worth comparing this to the infallible expert result. In that case we found that (for $T >> N$) that $m_T \leq \log_2 N$. We see that the second term in the above 
-bound is the analog of this result, but scaled by $\frac{1}{\epsilon}$. A larger value of $\epsilon$ will punish the incorrect experts more severely and thus serve to reduce the weight of bad experts
-more quickly. However, increasing $\epsilon$ will \textit{increase} the first term, which captures the notion that enacting this stricter punishment will also have the adverse effect of rapidly decreasing the 
-rate of good experts who just happened to be wrong once or twice. Thus the optimal $\epsilon$ will balance these two factors. On a final note, consider that when $T >> N$ then the first term will 
+bound is the analog of this result, but scaled by $\frac{1}{\eta}$. A larger value of $\eta$ will punish the incorrect experts more severely and thus serve to reduce the weight of bad experts
+more quickly. However, increasing $\eta$ will \textit{increase} the first term, which captures the notion that enacting this stricter punishment will also have the adverse effect of rapidly decreasing the 
+rate of good experts who just happened to be wrong once or twice. Thus the optimal $\eta$ will balance these two factors. On a final note, consider that when $T >> N$ then the first term will 
 dominate and thus we conclude for the ``big $T$, small $N$ regime'' that the number of mistakes is bounded by approximately twice the number of mistakes made by the best expert. 
 
 \begin{proof}
 Recall that the proof in the infallible expert case proceeded by bounded how many experts where left (i.e. how many with non-zero weight) as a function of how many mistakes were made.  Since the 
-weights in this case were either $0$ or $1$ then this can be viewed as bounding the sum of the weights of the experts. We proceed with the same strategy here, but it this case the weights can be any 
+weights in this case were either $0$ or $1$ then this can be viewed as bounding the sum of the weights of the experts. We proceed with the same strategy here, but in this case the weights can be any 
 real number in $[0, 1]$. To this end, we define $\phi_t := \sum_{i = 1}^{N} w_t^{(i)}$, the sum of the weights at round $t$. $\phi_t$ can be thought of as a potential function of sorts, although it doesn't 
 fit into the exact form of potential functions described earlier in this document. Recall that in that section the primary goal was to bound $\Phi_{t} - \Phi_{t - 1}$. In this case, instead of this additive bound 
-we will establish a multiplicative bound $\phi_{t} \leq \left(1 - \frac{\epsilon}{2}\right)\phi_{t - 1}$ for all $t$ when a mistake is made. 
+we will establish a multiplicative bound $\phi_{t} \leq \left(1 - \frac{\eta}{2}\right)\phi_{t - 1}$ for all $t$ when a mistake is made. 
 Note that this sharpens the obvious bound $\phi_T \leq \phi_{T - 1}$, which follows from the fact that the weights can only decrease. To this end, suppose a mistake is made at time $t$. This means that 
-the weighted average of the experts predicted incorrectly. Suppose that $x_t = 0$ but $y_t = 1$. Then 
-\[\sum_{i = 1}^{N} \frac{w_t^{(i)}}{\phi_t} \leq \frac{1}{2}\]
-or 
-\[\sum_{i = 1}^{N} w_t^{(i)} \leq \frac{\phi_t}{2}\]
-Then the weights for the incorrect experts are decremented: 
+the greater than $\frac{1}{2}$ of the total weight contributed to a guess that ended up being incorrect. Let $\rho$ denote the proportion of the weight that guessed \textit{correctly}, which implies that 
+$\rho < \frac{1}{2}$. Intuitively, at least half of the total weight will suffer the $1 - \eta$ penalty, so we can upper bound $\phi_{t + 1}$ by considering that the smallest possible amount of this weight 
+was penalized, which would be exactly one-half of it. Formally, 
 \begin{align*}
-\phi_{t + 1} = \sum_{i = 1}^{N} w_t^{(i)} &= \sum_{i = 1}^{N} w_t^{(i)}\mathbbm{1}\{u_t^{(i)} = y_t\} + (1 - \epsilon) \sum_{i = 1}^{N} w_t^{(i)}\mathbbm{1}\{u_t^{(i)} \neq y_t\} \\
-							   &\leq \frac{\phi_t}{2} + (1 - \epsilon)\frac{\phi_t}{2} \\
-							   &= \left(1 - \frac{\epsilon}{2}\right)\phi_t
+\phi_{t + 1} &= \rho \phi_t + (1 - \eta)(1 - \rho) \phi_t \\
+		 &= \phi_t \left(\rho + (1 - \rho)(1 - \eta)\right) \\
+		 &= \phi_t \left(1 - \eta + \eta \rho \right) \\
+		 &\leq \phi_t \left(1 - \eta + \frac{1}{2}\eta \right) && \rho < \frac{1}{2} \\
+		 &= \phi_t \left(1 - \frac{\eta}{2}\right)
 \end{align*}
-The $x_t = 1$, $y_t = 0$ can be argued similarly. Now we recurse using this relation, 
+
+Now we recurse using this relation, 
 \begin{align*}
-\phi_T &\leq \left(1 - \frac{\epsilon}{2}\right)\phi_{T - 1} \\
-	  &\leq \left(1 - \frac{\epsilon}{2}\right)^2\phi_{T - 2} \\
+\phi_T &\leq \left(1 - \frac{\eta}{2}\right)\phi_{T - 1} \\
+	  &\leq \left(1 - \frac{\eta}{2}\right)^2\phi_{T - 2} \\
 	  &\vdots \\
-	  &\leq \left(1 - \frac{\epsilon}{2}\right)^{m_T}\phi_{0} \\
-	  &= \left(1 - \frac{\epsilon}{2}\right)^{m_T} N \\
+	  &\leq \left(1 - \frac{\eta}{2}\right)^{m_T}\phi_{0} \\
+	  &= \left(1 - \frac{\eta}{2}\right)^{m_T} N \\
 \end{align*}
 The final line uses the fact that all weights are initialized to $1$, which implies that the sum of weights is
 just equal to the number of experts, $N$. Next consider
-\[\phi_T = \sum_{i = 1}^{N} w_T^{(i)} > w_T^{(i)} = (1 - \epsilon)^{m_T^{(i)}}\]
-which follows from the fact that the weight for expert $i$ suffers a $1 - \epsilon$ multiplicative penalty for each mistake. Putting these two bounds together, 
-\[(1 - \epsilon)^{m_T^{(i)}} < \phi_T \leq \left(1 - \frac{\epsilon}{2}\right)^{m_T}N\]
+\[\phi_T = \sum_{i = 1}^{N} w_T^{(i)} > w_T^{(i)} = (1 - \eta)^{m_T^{(i)}}\]
+which follows from the fact that the weight for expert $i$ suffers a $1 - \eta$ multiplicative penalty for each mistake. Putting these two bounds together, 
+\[(1 - \eta)^{m_T^{(i)}} < \phi_T \leq \left(1 - \frac{\eta}{2}\right)^{m_T}N\]
 The result then follows by taking logs, applying the approximation 
 \[-x - x^2 < \log(1 - x) < -x \text{ for } x \in \left(0, \frac{1}{2}\right)\]
 and then rearranging. 
@@ -326,7 +330,7 @@ and then rearranging.
 
 \subsubsection{A Lower Bound}
 We've seen three algorithms that seek to minimize regret in this setting, and the results have been pretty nice. For $T >> N$ then in the above bound we derived, the first term will dominate. We thus have 
-something like $\frac{m_T}{m_T^*} \leq 2(1 + \epsilon)$. In other words, the weighted majority algorithm makes a little over twice as many mistakes as the best expert.
+something like $\frac{m_T}{m_T^*} \leq 2(1 + \eta)$. In other words, the weighted majority algorithm makes a little over twice as many mistakes as the best expert.
 The natural question is, can we do better? It turns out that, if we insist on using a deterministic algorithm, then the answer is no. 
 \begin{prop}
 Suppose $m_T^* \leq \frac{T}{2}$. Then in the worst-case, $m_T \geq 2m_T^*$ for any deterministic algorithm. 
@@ -351,7 +355,7 @@ this experts advice. Everything else is the same, that's the only difference.
  \begin{algorithm}[H]
 	\SetAlgoLined
 	
-	\textbf{Input}: $0 < \epsilon < 1$, $T \in \mathbb{N}$, \text{ Experts } X = \{1, \dots, N\} \\
+	\textbf{Input}: $0 < \eta < 1$, $T \in \mathbb{N}$, \text{ Experts } X = \{1, \dots, N\} \\
 	
 	\bigskip
 	
@@ -365,7 +369,7 @@ this experts advice. Everything else is the same, that's the only difference.
 		
 		\For{$i = 1, \dots, N$} {
 			\If{$u_t^{(i)} \neq y_t$} {
-					$w^{(i)} := (1 - \epsilon)w^{(i)}$ \\
+					$w^{(i)} := (1 - \eta)w^{(i)}$ \\
 			}
 		}
 	}			
@@ -382,26 +386,26 @@ randomized nature makes it suitable for adversarial settings.
 
 \begin{thm}
 For any $i \in \{1, \dots, N\}$, then the expected number of mistakes made my the randomized weighted majority algorithm after $T$ rounds is bounded as follows.
-\[\E[m_T] \leq (1 + \epsilon)m_T^{(i)} + \frac{\log N}{\epsilon}\]
+\[\E[m_T] \leq (1 + \eta)m_T^{(i)} + \frac{\log N}{\eta}\]
 In particular this bound holds relative to the best expert. 
-\[\E[m_T] \leq (1 + \epsilon)m_T^{*} + \frac{\log N}{\epsilon}\]
+\[\E[m_T] \leq (1 + \eta)m_T^{*} + \frac{\log N}{\eta}\]
 \end{thm}
 
 \begin{proof}
-\textbf{TODO} (both Harvard and UPenn notes have this proof)
+\textbf{TODO} (both Harvard and UPenn notes and the Arora paper have this proof)
 \end{proof}
 
 Recall that the primary objective we seek to minimize in the online learning setting is \textit{regret}. The above bound directly gives us a bound on the regret. 
-\[\text{Regret}_T = \E[m_T] - m_T^* \leq (1 + \epsilon)m_T^{*} + \frac{\log N}{\epsilon} - m_T^* = \epsilon m_T^* + \frac{\log N}{\epsilon}\]
-We haven't yet considered choosing $\epsilon$. Clearly, we want to optimize this parameter to balance the opposing effects of the two terms. Recall that 
-we discussed similar tradeoffs in the deterministic case; the first term increasing in $\epsilon$ could be thought of as the cost of ``over-penalizing'' good experts
-while the second term decreasing in $\epsilon$ was interpreted as quantifying the benefits of increasing $\epsilon$ in that the bad experts may be more 
+\[\text{Regret}_T = \E[m_T] - m_T^* \leq (1 + \eta)m_T^{*} + \frac{\log N}{\eta} - m_T^* = \eta m_T^* + \frac{\log N}{\eta}\]
+We haven't yet considered choosing $\eta$. Clearly, we want to optimize this parameter to balance the opposing effects of the two terms. Recall that 
+we discussed similar tradeoffs in the deterministic case; the first term increasing in $\eta$ could be thought of as the cost of ``over-penalizing'' good experts
+while the second term decreasing in $\eta$ was interpreted as quantifying the benefits of increasing $\eta$ in that the bad experts may be more 
 readily ignored. In optimizing $\epsilon$ note that we want to make sure the value is not a function of $m_T^*$ as that quantity is unknown to the learner. 
-So while we could simply differentiate the regret with respect to $\epsilon$ (the function is differentiable for fixed $T$) then set to $0$ to optimize, this would lead
-to $\epsilon$ as a function of $m_T^*$ which we don't want. Therefore, we first use the trivial bound $m_T^* \leq T$ and only \textit{then} take the derivative. 
-\[\epsilon m_T^* + \frac{\log N}{\epsilon} \leq \epsilon T + \frac{\log N}{\epsilon}\]
-Taking the derivative with respect to $\epsilon$, setting equal to $0$, and solving for $\epsilon$ we obtain the optimum:
-\[\epsilon = \sqrt{\frac{\log N}{T}}\]
+So while we could simply differentiate the regret with respect to $\eta$ (the function is differentiable for fixed $T$) then set to $0$ to optimize, this would lead
+to $\eta$ as a function of $m_T^*$ which we don't want. Therefore, we first use the trivial bound $m_T^* \leq T$ and only \textit{then} take the derivative. 
+\[\eta m_T^* + \frac{\log N}{\eta} \leq \eta T + \frac{\log N}{\eta}\]
+Taking the derivative with respect to $\eta$, setting equal to $0$, and solving for $\eta$ we obtain the optimum:
+\[\eta = \sqrt{\frac{\log N}{T}}\]
 Plugging this back in to the bound on $\text{Regret}_T$ yields
 \[\text{Regret}_T \leq  \sqrt{\frac{\log N}{T}} m_T^* +  \sqrt{\frac{T}{\log N}}\log N = \sqrt{T \log N} + \sqrt{T \log N} = 2\sqrt{T \log N}\]
 If we think all the way back to the section introducing the concept of regret, we noted that the goal is to have regret grow sub-linearly in $T$, which corresponded 
@@ -425,6 +429,7 @@ algorithms.
 
 \subsection{Using Randomized Weighted Majority to Prove the Minimax Theorem}
 \textbf{TODO: Lecture 6 or Aaron Roth's notes}
+A constructive version of LP duality. 
 
 
 % Section: Online Convex Optimization
@@ -442,6 +447,7 @@ algorithms.
 \item Alina Ene (Boston University) lecture notes from Advanced Optimization Algorithms Spring 2022 course
 \item Aaron Singer (Harvard University) lecture notes from Advanced Optimization
 \item Aaron Roth (UPenn) lecture notes from Algorithmic Game Theory (lectures 4 and 5)
+\item The Multiplicative Weights Update Algorithm: A Meta-Algorithm and Applications (Arora)
 \end{itemize}
 
 
