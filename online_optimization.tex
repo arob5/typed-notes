@@ -171,7 +171,7 @@ considering a potential function, but I find that explicitly defining a potentia
 \subsection{TODO: include example of a potential function proof from the Banal and Gupta paper}
 
 
-
+% Section: Learning From Experts
 \section{Learning from Experts}
 One important online optimization problem is that of learning from expert advice. The problem is typically defined as follows: a decision-maker must make a decision at each of $T$ rounds. Here let's 
 consider a simple set of possible realizations $V = \{A, B\}$ so that this can be thought of as a repeated binary classification problem. We consider the zero-one loss 
@@ -261,7 +261,7 @@ event $A$ as $0$ and $B$ as $1$.
 		
 		\For{$i = 1, \dots, N$} {
 			\If{$u_t^{(i)} \neq y_t$} {
-					$w^{(i)} := \max\left\{0, (1 - \epsilon)w^{(i)}\right\}$ \\
+					$w^{(i)} := (1 - \epsilon)w^{(i)}$ \\
 			}
 		}
 	}			
@@ -365,7 +365,7 @@ this experts advice. Everything else is the same, that's the only difference.
 		
 		\For{$i = 1, \dots, N$} {
 			\If{$u_t^{(i)} \neq y_t$} {
-					$w^{(i)} := \max\left\{0, (1 - \epsilon)w^{(i)}\right\}$ \\
+					$w^{(i)} := (1 - \epsilon)w^{(i)}$ \\
 			}
 		}
 	}			
@@ -379,9 +379,19 @@ We now show that, on average, this algorithm (when $T >> N$) makes about half th
 with that of the best expert, instead of being about twice as many as the best expert. Note that this is on average though, which is a much weaker statement than the deterministic 
 guarantees proved above. 
 
+\begin{thm}
+For any $i \in \{1, \dots, N\}$, then the expected number of mistakes made my the randomized weighted majority algorithm after $T$ rounds is bounded as follows.
+\[\E[m_T] \leq (1 + \epsilon)m_T^{(i)} + \frac{\log_2 N}{\epsilon}\]
+\end{thm}
+
 \begin{proof}
-\textbf{TODO}
+\textbf{TODO} (both Harvard and UPenn notes have this proof)
 \end{proof}
+
+% Section: Online Convex Optimization
+\section{Online Convex Optimization}
+
+
 
 
 
