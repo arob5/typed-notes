@@ -328,6 +328,11 @@ The result then follows by taking logs, applying the approximation
 and then rearranging. 
 \end{proof}
 
+One final note on this result: notice that we have not assumed anything about the sequence of realizations nor about the expert advice. It is this generality that makes this algorithm 
+so useful. In particular, this bound holds for any arbitrary correlation structure the realizations might have. It even holds when the realizations are chosen by adversary, and for this 
+reason this algorithm is quite popular in game theory. 
+
+
 \subsubsection{A Lower Bound}
 We've seen three algorithms that seek to minimize regret in this setting, and the results have been pretty nice. For $T >> N$ then in the above bound we derived, the first term will dominate. We thus have 
 something like $\frac{m_T}{m_T^*} \leq 2(1 + \eta)$. In other words, the weighted majority algorithm makes a little over twice as many mistakes as the best expert.
@@ -425,7 +430,21 @@ algorithms.
 
 
 \subsection{Online Learning and Prediction}
-
+In the previous section we considered the problem of learning from expert advice. Our goal was to combine the advice from the experts in order to construct a series of choices that would
+minimize our regret. We now consider a slight modification to this setup: instead of combining expert advice, we consider \textit{expert} a single expert each round. In this case, we can think 
+of the experts as \textit{options} or \textit{strategies} that we must choose. This is a very natural setting in game theory; we might imagine we're playing a sequential game against and adversary, 
+and we pick a strategy each round to try to minimize our losses in the game. What I've just described is essentially a two-player game with \textit{pure strategies}. We will instead consider the 
+\textit{mixed strategy} setting in which during each round the player picks a probability distribution over the set of strategies, and then the strategy for that round is determined by a random sample from this 
+distribution. It should not be surprising that we want to consider such a randomized setting; recall in the previous section that we were able to improve performance on average by randomizing the algorithm. 
+We will also generalize from considering zero-one loss to allowing any real-valued loss in $[0, 1]$. The setup is summarized as follows. \\
+For each round $t = 1, \dots, T$:
+\begin{itemize}
+\item Learner pick a probability distribution $p^{(t)}$ supported on the set of $n$ possible options. 
+\item The costs of \textit{all} options are now revealed. The losses are denoted by $m^{(t)} \in [0, 1]^n$, where $m^{(t)}_i \in [0, 1]$ is the loss for option $i$. 
+\item The loss of the learner for round $t$ is defined as the expected loss: $\E_{i \sim p^{(t)}}[m^{(t)}_i] = \langle p^{(t)}, m^{(t)}\rangle$
+\end{itemize} 
+As usual, we want to minimize the cumulative loss relative to the best decision in hindsight. 
+\[\textit{Regret}_T = \sum_{t = 1}^{T} \langle p^{(t)}, m^{(t)}\rangle - \min_i \sum_{t = 1}^{T} m_i^{(t)}\]
 
 \subsection{Using Randomized Weighted Majority to Prove the Minimax Theorem}
 \textbf{TODO: Lecture 6 or Aaron Roth's notes}
