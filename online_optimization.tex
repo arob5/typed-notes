@@ -509,6 +509,37 @@ For each round $t = 1, \dots, T$:
 As before, this generalization shouldn't be too shocking. We're basically considering a continuous version of the previous problem we considered: instead of a finite 
 set of strategies, we consider a continuum and similarly with the losses. Both the feasible set of actions $X$ and the loss functions $f_t$ are assumed to be convex, just 
 as in typical offline convex optimization. The difference here is that we're considering a sequential scenario in which decisions are made and losses observed one at a time. 
+As usual our goal will be to minimize regret; that is, how well we compete with the single action with the greatest loss. 
+\[\text{Regret}_T = \sum_{t = 1}^{T} f_t(x^{(t)}) - \min_{x \in X} \sum_{t = 1}^{T} f_t(x)\]
+
+\subsection{Examples}
+
+\subsubsection{Online Linear Regression}
+We consider the typical linear regression problem, but now suppose that the observations arrive one at a time in an online fashion, as well as the realizations of the observed response. 
+In this scenario the feature vector for each observation is like expert advice, and we use it to help choose an ``action'' each round, the action being the linear model itself (i.e. the vector 
+of regression coefficients). 
+For each round $t = 1, \dots, T$:
+\begin{itemize}
+\item Receive feature vector $v^{(t)} \in \R^N$ for current observation.
+\item Choose action (vector of regression coefficients) $x^{(t)}$
+\item Observe true response $y^{(t)}$ and suffer loss $\abs{\langle x^{(t)}, v^{(t)} \rangle - y^{(t)}}$
+\end{itemize}
+Note that the set of actions $X = \R^N$ and loss functions $f_t(x) = \abs{\langle x, v^{(t)} \rangle - y^{(t)}}$ are both convex. 
+
+\subsubsection{Learning from Expert Advice}
+We now re-cast the expert advice setting as an online convex optimization problem. In particular, we consider the randomized setting in which the learner gives weights to the 
+experts and then uses these weights to sample an expert at random (i.e. the learner defines a probability distribution over the set of experts). 
+For each round $t = 1, \dots, T$:
+\begin{itemize}
+\item Learner picks probability distribution $p^{(t)}$ over set of $N$ experts.
+\item Expert is sampled $j \sim \text{Cat}(N, (p_1, \dots, p_N))$.
+\item Loss for each expert is revealed: $\ell^{(t)} \in [-1, 1]^N$. 
+\item Learner suffers loss: $\E_{i \sim p^{(t)}} [\ell^{(t)}_i] = \langle p^{(t)}, \ell^{(t)} \rangle$.
+\end{itemize}
+The set of actions here is $X = \Delta_N$, where $\Delta_N = \{p \in \R^N: p_i \in [0, 1], \norm{p}_1 = 1\}$ is the \textit{probability simplex} over $\{1, \dots, N\}$ (the set of all probability distributions over this set). 
+So while the set $\{1, \dots, N\}$ is certainly not convex, the set $\Delta_N$ can easily be shown to be convex. The loss function $f_t(p) = \langle p, \ell^{(t)} \rangle$ is linear and thus also 
+convex. 
+
 
 
 
