@@ -547,6 +547,69 @@ This follows from the fact that the minimizing probability distribution will be 
 \[ \sum_{t = 1}^{T} \langle p^{(t)}, \ell^{(t)} \rangle - \min_{i = 1, \dots, N} \sum_{t = 1}^{T} \ell_i^{(t)} = \sum_{t = 1}^{T} f_t(p^{(t)}) - \min_{p \in \Delta_N} \sum_{t = 1}^{T} f_t(p)\]
 The righthand side is precisely the general definition we gave for regret in the online convex optimization setup. 
 
+\subsection{Online Linear Optimization}
+Just as linear programming is a special case of (offline) convex optimization, it is natural to consider online linear programming within the online convex optimization framework. In this setup 
+the loss functions are restricted to be linear.
+\[f_t(x) = \langle x, z^{(t)}\rangle\]
+for some vector $z^{(t)} \in \R^N$. It turns out that given a online convex optimization problem we can reduce it to a linear one; so in this sense online linear optimization is the ``hardest'' problem 
+in this setting. The reduction comes from the well-known characterization of convexity that states that a (differentiable) function is convex if and only if the first-order Taylor polynomial at every point
+forms a global lower bound on the function. 
+\begin{prop}
+A differentiable function $f: \R^n \to \R$ is convex if and only if for all $x, y \in \R^n$
+\[f(y) \geq f(x) + \langle \nabla f(x), y - x \rangle\]
+\end{prop}
+
+\subsubsection{Solving Online Convex Optimization using Online Linear Optimization}
+Since our goal is to solve the online convex optimization (OCO) problem, then the idea is to upper bound the OCO regret by the regret of a related online linear optimization (OLO) problem. 
+Suppose $x^{(t)}$ is the action chosen by an OLO algorithm. Then by the above proposition, for any $u \in \R^N$, 
+\[f_t(u) \geq f_t(x^{(t)}) + \langle \nabla f_t(x^{(t)}), u - x^{(t)}\rangle\]
+Rearranging, 
+\[f_t(x^{(t)}) - f_t(u) \leq \langle \nabla f_t(x^{(t)}), x^{(t)}\rangle - \langle \nabla f_t(x^{(t)}), u \rangle\]
+If we define the linear loss $\ell_t(x) := \langle x, \nabla f_t(x^{(t)})\rangle$ then the lefthand side is just the difference of the linear loss function evaluated at $x^{(t)}$ and $u$. Take note of 
+what we're doing here: we're using the gradient of the convex loss function (the loss we're really interested in) to define a linear loss function. This idea would even work if $f$ were not 
+differentiable, we would simply replace the gradient with a sub-gradient. Okay, given this definition we now have
+\[f_t(x^{(t)}) - f_t(u) \leq \ell_t(x^{(t)}) - \ell_t(u)\]
+Recalling our goal to obtain a bound on the OCO regret, let's sum over $t$. 
+\[\sum_{t = 1}^{T} f_t(x^{(t)}) - \sum_{t = 1}^{T} f_t(u) \leq \sum_{t = 1}^{T} \ell_t(x^{(t)}) - \sum_{t = 1}^{T} \ell_t(u)\]
+In particular, this holds for $u := x^* \in \argmin_{x \in X} \sum_{t = 1}^{T} f_t(x)$; that is, we're setting $u$ to be the minimizer of the convex loss.
+\begin{align*} 
+\sum_{t = 1}^{T} f_t(x^{(t)}) - \sum_{t = 1}^{T} f_t(x^*) &\leq \sum_{t = 1}^{T} \ell_t(x^{(t)}) - \sum_{t = 1}^{T} \ell_t(x^*) \\
+									  	&\leq \sum_{t = 1}^{T} \ell_t(x^{(t)}) - \min_{x \in X} \sum_{t = 1}^{T} \ell_t(x)
+\end{align*}
+We have thus found,
+\[\sum_{t = 1}^{T} f_t(x^{(t)}) - \min_{x \in X} \sum_{t = 1}^{T} f_t(x) \leq \sum_{t = 1}^{T} \ell_t(x^{(t)}) - \min_{x \in X} \sum_{t = 1}^{T} \ell_t(x)\]
+That is, 
+\[\text{Regret}_{T, \text{OCO}} \leq \text{Regret}_{T, \text{OLO}}\]
+Thus, solving the OLO problem with linear loss defined using the gradient of the convex loss will yield a solution that is an upper bound on the loss of the convex problem. Of course, if this 
+upper bound is nowhere near tight then this is not too helpful. Let's clearly state the algorithm we've arrived at via the above analysis. 
+For each round $t = 1, \dots, T$:
+\begin{itemize}
+\item Call OLO algorithm and receive action $x^{(t)} \in X$ (note: optimizing with respect to previous loss function $\ell_{t - 1}(x) = \langle x, \nabla f(x^{(t - 1)}) \rangle $). 
+\item Receive new convex loss function $f_t$
+\item Define new linear loss function $\ell_t(x) = \langle x, \nabla f_t(x^{(t)})\rangle$
+\end{itemize}
+
+\subsubsection{Solving Offline Convex Optimization using Online Linear Optimization}
+These online techniques can even be leveraged to solve offline problems! Consider the standard convex optimization setup:
+\[\min_{x \in X} f(x)\]
+where $f$ and $X$ are convex. We consider a procedure that leverages OLO quite similar to the previous example; really the only difference here is that the convex loss function 
+is constant: $f_t \equiv f$. \\
+For each round $t = 1, \dots, T$:
+\begin{itemize}
+\item Call OLO algorithm and receive action $x^{(t)} \in X$ (note: optimizing with respect to previous loss function $f_{t - 1}(x) = \langle x, \nabla f(x^{(t - 1)}) \rangle $). 
+\item Define new loss function $f_t(x) = \langle x, \nabla f(x^{(t)})\rangle$
+\end{itemize}
+At the end we'll now return an average of the guesses $\frac{1}{T}\sum_{t = 1}^{T} x^{(t)}$. The following theorem shows that the resulting approximation to the solution of the convex problem
+is dependent on the quality of the OLO algorithm. 
+\begin{thm}
+\[f\left(\frac{1}{T}\sum_{t = 1}^{T} x^{(t)}\right) - \min_{x \in X} f(x) \leq \frac{\text{Regret}_{T, \text{OLO}}}{T}\]
+\end{thm}
+
+\begin{proof}
+\textbf{TODO} (proof at end of Advanced Optimization Algorithms lecture 24)
+\end{proof}
+
+
 
 
 
