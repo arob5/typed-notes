@@ -538,8 +538,14 @@ For each round $t = 1, \dots, T$:
 \end{itemize}
 The set of actions here is $X = \Delta_N$, where $\Delta_N = \{p \in \R^N: p_i \in [0, 1], \norm{p}_1 = 1\}$ is the \textit{probability simplex} over $\{1, \dots, N\}$ (the set of all probability distributions over this set). 
 So while the set $\{1, \dots, N\}$ is certainly not convex, the set $\Delta_N$ can easily be shown to be convex. The loss function $f_t(p) = \langle p, \ell^{(t)} \rangle$ is linear and thus also 
-convex. 
-
+convex. One thing to consider is that we have previously considered a concept of ``regret'' in the learning from expert advice problem. Did this definition agree with the general definition we give for regret in the
+online convex optimization framework? Let's check. Previously, we defined regret for the expert problem relative to the advice of the best expert: 
+\[\text{Regret}_T = \sum_{t = 1}^{T} \langle p^{(t)}, \ell^{(t)} \rangle - \min_{i = 1, \dots, N} \sum_{t = 1}^{T} \ell_i^{(t)}\]
+As noted above, the summand of the first term is the convex loss function $f_t(p^{(t)}) = \langle p^{(t)}, \ell^{(t)} \rangle$. Moreover, we can re-write the second term as 
+\[\min_{i = 1, \dots, N} \sum_{t = 1}^{T} \ell_i^{(t)} = \min_{p \in \Delta_N} \sum_{t = 1}^{T} \langle p, \ell^{(t)}\rangle =  \min_{p \in \Delta_N} \sum_{t = 1}^{T} f(p)\]
+This follows from the fact that the minimizing probability distribution will be the one that puts all of the mass on the best expert. Therefore, we have shown
+\[ \sum_{t = 1}^{T} \langle p^{(t)}, \ell^{(t)} \rangle - \min_{i = 1, \dots, N} \sum_{t = 1}^{T} \ell_i^{(t)} = \sum_{t = 1}^{T} f_t(p^{(t)}) - \min_{p \in \Delta_N} \sum_{t = 1}^{T} f_t(p)\]
+The righthand side is precisely the general definition we gave for regret in the online convex optimization setup. 
 
 
 
