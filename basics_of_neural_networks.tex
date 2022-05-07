@@ -68,7 +68,7 @@ Andrew Roberts
 The neural network era has expanded many of the ideas from the Generalized Linear Models (GLMs) that preceded it. As the amount and complexity and data has continued 
 to grow, the desire for more ``expressive'' models has also increased; that is, the ability to model more complex relationships with a broader class of functional forms. GLMs are 
 quite flexible and still widely used, but neural networks are able to tackle even more complex problems. In fact, the first major theorem of neural networks is that they are 
-``universal function approximators''; informally, given a large enough neural network one can approximate any function arbitrarily well. I hope to offer a brief introduction to neural 
+``universal function approximators''; informally, a ``wide'' enough neural network can approximate any function arbitrarily well. I hope to offer a brief introduction to neural 
 networks here from the perspective of someone coming from a statistical modeling (linear models, GLMs, etc.) perspective in order to remove some of the mystery of this class 
 of models. Indeed, we will see that neural networks simply re-package and expand many of the core ideas of GLMs. The resulting class of models is certainly more complex, but the 
 core ideas remain largely the same. 
@@ -164,7 +164,7 @@ defined recursively as follows.
 &z^{(1)} = x \qquad z^{(i)} = f_{i - 1}(W^{(i - 1)} z^{(i - 1)}) \ \forall i = 2, \dots, d \qquad h_\theta(x) = z^{(d)}
 \end{align*}
 where $\theta = (W_1, \dots, W_{d - 1})$. Note that this is exactly like the example $h_\theta(x) = f_2(W_2 f_1(W_1 x))$ considered above except we allow for an arbitrary number 
-$d$ of layers ($d = 4$ would look like $f_3(W_3f_2(W_2 f_1(W_1 x)))$, etc.). 
+$d$ of layers ($d = 4$ would look like $f_3(W_3f_2(W_2 f_1(W_1 x)))$, etc.). Also note that we are continuing with the simplifying assumption that the model outputs a scalar value. 
 
 
 \subsection{Loss Functions}
@@ -177,7 +177,10 @@ while in general GLMs minimize the negative log-likelihood, which leads to a var
 \subsubsection{Common Loss Functions}
 \textbf{TODO: go through common loss functions here, starting with 0/1 loss, then hinge, etc.; showing how each is a more smooth version of the last}
 
-\subsubsection{Training a Neural Network}
+\subsection{Activation Functions}
+\textbf{TODO}
+
+\subsection{Training a Neural Network}
 ``Training'' a neural network refers to learning/optimizing the parameters $\theta$ with respect to the loss function and a giving training data set. In particular, the parameters are chosen 
 as those that minimize the average loss over the training data. 
 \[\hat{\theta} := \argmin_{\theta} \frac{1}{N} \sum_{i = 1}^{N} \ell(h_\theta(x_i), y_i)\]
@@ -198,6 +201,22 @@ will feel very familiar. In that case we wanted to apply Newton's method, and th
 here. 
 
 \subsection{Applying the Chain Rule}
+Okay, so our goal is to differentiate $\ell(h_\theta(x), y)$ with respect to $\theta$. We will first consider differentiating one parameter at a time, so consider differentiating with 
+respect to $w^{(t)}_{rq}$; that is, the $(r, q)$ entry of $W^{(t)}$. We're already seeing why notation is the most annoying part of this - a double subscript and superscript is not pretty 
+but it is unavoidable. I find it very helpful to explicitly keep track of dimensions so suppose that $x \in \R^p$ and $W^{(t)} \in \R^{\omega_{t, 1} \times \omega_{t, 2}}$. Thus, we must have 
+$W^{(1)} \in \R^{\omega_{1, 1} \times p}$ and $W^{(d - 1)} \in \R^{1 \times \omega_{d-1, 2}}$. Now we're ready to dive into the calculations. 
+\begin{align*}
+\nabla_{w_{rq}^{(t)}} \ell(h_\theta(x), y) &= \nabla_{w_{rq}^{(t)}} \ell(z^{(d)}, y) && \left(z^{d} = h_\theta(x) \right) \\ 
+							   &= \frac{\partial \ell(z^{(d)}, y)}{\partial z^{(d)}} \frac{\partial h_\theta(x)}{\partial w_{rq}^{(t)}} \\
+							   &= \frac{\partial \ell(z^{(d)}, y)}{\partial z^{(d)}} \frac{\partial z^{(d)}}{\partial z^{(d - 1)}} \frac{\partial z^{(d - 1)}}{\partial z^{(d - 2)}} \cdots \frac{\partial z^{(t + 1)}}{\partial w_{rq}^{(t)}}\\
+\end{align*}
+The final step follows from the recursion
+\[z^{(i)} = f_{i - 1}(W^{(i - 1)}z^{(i - 1)})\]
+which means that the dependence on $w^{(t)}_{rq}$ is only as a function of $z^{(i - 1)})$ until reaching the layer that actually contains $w^{(t)}_{rq}$, in which case the dependence is 
+then a function of $W^{(t)}$. 
+
+\subsection{Stochastic Gradient Descent}
+\textbf{TODO}
 
 
 \section{Connections between Neural Networks and GLMs}
