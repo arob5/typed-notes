@@ -492,7 +492,7 @@ final product should feel quite natural.
 
 \subsection{Applications of the Multiplicative Weights Update Algorithm}
 \subsubsection{The Winnow Algorithm}
-In this section we see one of the many applications of the multiplicative weights update algorithm; namely, its use in learning linear classifiers. We consider a typical classification setup
+In this section we see one of the many applications of the multiplicative weights update (MWU) algorithm; namely, its use in learning linear classifiers. We consider a typical classification setup
 with data
 \[(x_i, y_i), x_i \in X \subset \R^N, y_i \in \{-1, +1\}, i = 1, \dots, m \]
 which we assume to be linearly separable; that is, there exists $a \in \R^n$ s.t. $f(x) = \text{sgn}(\langle a, x\rangle)$ correctly classifies all the points. A correct linear classifier must satisfy
@@ -522,7 +522,40 @@ Since $y_i\langle a, x_i \rangle = \sum_{j = 1}^{N} (y_j x_{ij})a_j$ where $y_j 
 can be written $\sum_{j = 1}^{N} a_j = 1$, a linear equality constraint. So this is just a linear program! It might look weird as there is no explicit objective function, but we can just consider there is 
 an objective $c^T a$, where $c = 0$. Basically, we're just telling the LP to find any $a$ that satisfies the constraints; that is, any linear classifier that separates the data. So we could just plug this thing
 into an LP solver and call it a day. However, LP solvers are relatively slow so if there is structure to be exploited in a specific problem, more tailored algorithms can often lead to faster solvers. This will
-be the case here. 
+be the case here.
+
+To this end, let's see if we can find a faster algorithm. While this problem, as stated, appears to be a standard offline LP, we can actually view it in the online MWU framework. Indeed, let's treat each
+coordinate of $\R^N$ as an ``expert'', in which case $a$ is then a probability distribution over these experts. To find $a$ we will use the typical MWU scheme; the trick will be in how we define the losses 
+of the experts $\ell^{(t)} = (\ell^{(t)}_1, \dots, \ell^{(t)}_N)$ for each round $t$. 
+
+\bigskip
+
+ \begin{algorithm}[H]
+	\SetAlgoLined
+	
+	\textbf{Input}: $0 < \eta < 1$, $T \in \mathbb{N}$ \\
+	
+	\bigskip
+	
+	Set $w_i := 1$ \text{ for all } i = 1, \dots, N \\
+	
+	\For{$t = 0, \dots, T$} {
+		Choose probability distribution $a^{(t)}_i := \frac{w_i}{\norm{w}_1}$, $i = 1, \dots, N$ \\
+		\If{$y_i \langle a^{(t)}, x_i \rangle \geq 0 \ \forall i = 1, \dots, N$} {
+			\Return $a^{(t)}$
+		} \Else {
+			There exists misclassified example k: $y_k \langle a^{(t)}, x_k \rangle < 0$ \\
+			Define losses $\ell^{(t)} := -\frac{y_k}{\rho} x_k$, where $\rho := \max_{1 \leq i \leq m} \norm{y_i x_i}_\infty$
+		}
+		 
+		
+		
+		\For{$i = 1, \dots, N$} {
+			$w_i := (1 - \eta \ell_i^{(t)})w_i$ \\
+		}
+	}			
+\caption{The Winnow Algorithm}
+\end{algorithm}
 
 
 
