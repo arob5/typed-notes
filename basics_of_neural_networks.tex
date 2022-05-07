@@ -71,7 +71,29 @@ networks here from the perspective of someone coming from a statistical modeling
 of models. Indeed, we will see that neural networks simply re-package and expand many of the core ideas of GLMs. The resulting class of models is certainly more complex, but the 
 core ideas remain largely the same. 
 
+\section{The Basic Setup}
+The basic learning-theoretic setup is as follows. We consider an input space $\mathcal{X}$ (features/attributes/predictors) and an output space $\mathcal{Y}$ (responses/labels)
+and we seek to learn a mapping $h: \mathcal{X} \to \mathcal{Y}$. In the statistical setting, the motivation for learning this mapping is often to be able to understand the relationship
+between these spaces, to gain an understanding of how the explanatory variables are related to the response. As we will see, neural networks are a ``black box'' model in the sense 
+that it is very difficult to gain an understanding of the relationships encoded by the model. Thus, the main motivation for neural networks is \textit{prediction}, to predict the value of the 
+response given a feature vector. 
 
+Now, to learn a mapping between these spaces we of course need some data. Therefore, our setup assumes that we have access to training data
+\[\mathcal{D} = \{(x_i, y_i) \in \mathcal{X} \times \mathcal{Y}: i = 1, \dots, n\}\]
+Given this training data, trying to find the ``best'' mapping out of all possible functions is not very helpful. Of course we can simply define a function that correctly predicts every example
+in the training data, but this will be overfitting to the training data and likely not generalize well to other datasets. Therefore, we restrict our attention to a set of possible mappings (i.e. models), 
+which we call the \textit{hypothesis} class. In linear models, the hypothesis class is just the set of all linear functions of the inputs.
+\[h_w(x) = x^T w\]
+which simplifies the estimation step in the sense that all we need to optimize is the vector of regression coefficients $w$.
+GLMs expand this hypothesis class by introducing non-linearities in the form of a link function $g$. 
+\[h_w(x) = g^{-1}(x^T w)\]
+Neural networks take this a step further. At the core will still be the notion of linearity; that is, the idea that the linear combination $x^T w$ acts as a summary of the input data. The leap is in the 
+idea of letting the model find its own features. In the above examples, we feed the model features $x$, then we summarize them via $x^T w$, and in the case of GLMs potentially allow for 
+non-linearity $g^{-1}(x^T w)$. What if we repeated this procedure various times? Ignoring non-linearity for the time being, we might consider something like
+\[h(x) = W_2 W_1 x = W_2 (W_1 x)\]
+We can think of the first layer $z := W_1 x$ as forming linear combinations of the given feature $x$, thus finding \textit{new} features that may be better than the given ones. Then the 
+remaining layer $h(z) = W_2 z$ just looks like a typical linear model as a function of the newly discovered feature vector $z$. Intuitively, if we added more and more layers we would expect 
+the resulting model to be more expressive, and to be able to find complicated features. 
 
 \section{Connections between Neural Networks and GLMs}
 \textbf{TODO}\\
