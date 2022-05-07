@@ -218,17 +218,17 @@ then a function of $W^{(t)}$. The next step is now to calculate the derivatives 
 For the former, we have 
 \begin{align*}
 \frac{\partial z^{(i + 1)}}{\partial z^{(i)}} &= \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} \frac{d}{dz^{(i)}} \left[W^{(i)} z^{(i)} \right]\\
-							 &= \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} W^{(i)}
+							 &= \underset{\omega_{i, 1} \times \omega_{i, 1}}{\text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\}} \underset{\omega_{i, 1} \times \omega_{i, 2}}{W^{(i)}} \in \R^{\omega_{i, 1} \times \omega_{i, 2}}
 \end{align*}
 The first step follows from the fact that the gradient of a scalar function applied element-wise to a vector is the diagonal matrix formed by applying 
-the derivative of the scalar function to each entry of the vector.
+the derivative of the scalar function to each entry of the vector. Now for the other term. 
 
 \begin{align*}
-\frac{\partial z^{(i + 1)}}{\partial z^{(i)}} &= \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} \frac{d}{dw_{rq}^{(t)}} \left[W^{(i)} z^{(i)} \right]\\
-							 &= \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} z_q^{(i)} e_r
+\frac{\partial z^{(t + 1)}}{\partial w_{rq}^{(t)}} &= \text{diag}\left\{f_{t}^\prime(W^{(t)}z^{(t)})\right\} \frac{d}{dw_{rq}^{(t)}} \left[W^{(t)} z^{(t)} \right]\\
+							          &= \text{diag}\left\{f_{t}^\prime(W^{(t)}z^{(t)})\right\} z_q^{(t)} e_r
 \end{align*}
 where $e_p$ is the $p^\text{th}$ standard basis vector. The second step follows from the fact that we're only taking the derivative with respect to $w_{rq}^{(t)}$ and hence the result will have zeros
-is all columns except column $r$, which will have value $z_q^{(i)}$. 
+is all columns except column $r$, which will have value $z_q^{(t)}$.
 
 
 
