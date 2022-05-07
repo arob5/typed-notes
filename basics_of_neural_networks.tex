@@ -82,7 +82,7 @@ response given a feature vector.
 
 \subsection{Hypothesis Class}
 Now, to learn a mapping between these spaces we of course need some data. Therefore, our setup assumes that we have access to training data
-\[\mathcal{D} = \{(x_i, y_i) \in \mathcal{X} \times \mathcal{Y}: i = 1, \dots, n\}\]
+\[\mathcal{D} = \{(x_i, y_i) \in \mathcal{X} \times \mathcal{Y}: i = 1, \dots, N\}\]
 Given this training data, trying to find the ``best'' mapping out of all possible functions is not very helpful. Of course we can simply define a function that correctly predicts every example
 in the training data, but this will be overfitting to the training data and likely not generalize well to other datasets. Therefore, we restrict our attention to a set of possible mappings (i.e. models), 
 which we call the \textit{hypothesis} class. In linear models, the hypothesis class is just the set of all linear functions of the inputs.
@@ -101,7 +101,7 @@ and $W_2$. Throughout these notes we will denote by $\theta$ the vector of all p
 vector $\theta$. To make the above model more flexible, we can introduce non-linearity. To do so we consider functions $f_1, f_2: \R \to \R$ and consider
 \[h_\theta(x) = f_2(W_2 f_1(W_1 x))\]
 where $f_1(W_1 x)$ means that $f$ is applied element-wise to each component of the vector $W_1 x$, and likewise for $f_2$. This is typically visualized as directed acyclic graph. Suppose 
-$x \in \R^d$, $W_1 \in \R^{k \times d}$, $W_2 \in \R^{1 \times k}$. For simplicity, we are assuming that the function outputs a scalar value, which would be suitable for a binary classifier or a regression
+$x \in \R^p$, $W_1 \in \R^{k \times p}$, $W_2 \in \R^{1 \times k}$. For simplicity, we are assuming that the function outputs a scalar value, which would be suitable for a binary classifier or a regression
 problem. To generalize to multi-class problems we could assume that the model outputs a vector. 
 
 
@@ -130,7 +130,7 @@ problem. To generalize to multi-class problems we could assume that the model ou
 \foreach \m [count=\y] in {1}
   \node [every neuron/.try, neuron \m/.try ] (output-\m) at (4,1.5-\y) {};
 
-\foreach \l [count=\i] in {1,2,3,d}
+\foreach \l [count=\i] in {1,2,3,p}
   \draw [<-] (input-\i) -- ++(-1,0)
     node [above, midway] {$x_\l$};
 
@@ -158,10 +158,46 @@ problem. To generalize to multi-class problems we could assume that the model ou
 
 Thus, we can think of each entry in $W_1$, $W_2$ as weighting a particular edge in the above graph, while the non-linearities are introduced by applying the function $f$ at the nodes
 of the graph. In particular, $(W_\ell)_{ij}$ is the weight on the edge coming from the $j^{\text{th}}$ node of the $\ell^{\text{th}}$ layer and connecting to the $i^{\text{th}}$ node of the 
-subsequent layer. 
+subsequent layer. With this basic example as motivation, we now introduce the hypothesis class used by neural networks. Neural networks consider all functions $h_\theta: \R^d \to \R$
+defined recursively as follows. 
+\begin{align*}
+&z^{(1)} = x \qquad z^{(i)} = f_{i - 1}(W^{(i - 1)} z^{(i - 1)}) \ \forall i = 2, \dots, d \qquad h_\theta(x) = z^{(d)}
+\end{align*}
+where $\theta = (W_1, \dots, W_{d - 1})$. Note that this is exactly like the example $h_\theta(x) = f_2(W_2 f_1(W_1 x))$ considered above except we allow for an arbitrary number 
+$d$ of layers ($d = 4$ would look like $f_3(W_3f_2(W_2 f_1(W_1 x)))$, etc.). 
 
 
 \subsection{Loss Functions}
+We've thus far neglected to talk about one key ingredient: the loss function. I've referred to optimizing $\theta$, but optimize with respect to what? In general, we define a loss function
+\[\ell: \mathcal{X} \times \mathcal{Y} \to \R_+\]
+such that $\ell(h_\theta(x), y)$ measures how far the prediction $h_\theta(x)(x)$ is from the true value $y$. Linear regression typically uses the $\ell_2$ squared loss
+\[\ell(h_\theta(x), y) = (x^T w - y)^2\]
+while in general GLMs minimize the negative log-likelihood, which leads to a variety of different loss functions. For neural networks a wide variety of loss functions are used. 
+
+\subsubsection{Common Loss Functions}
+\textbf{TODO: go through common loss functions here, starting with 0/1 loss, then hinge, etc.; showing how each is a more smooth version of the last}
+
+\subsubsection{Training a Neural Network}
+``Training'' a neural network refers to learning/optimizing the parameters $\theta$ with respect to the loss function and a giving training data set. In particular, the parameters are chosen 
+as those that minimize the average loss over the training data. 
+\[\hat{\theta} := \argmin_{\theta} \frac{1}{N} \sum_{i = 1}^{N} \ell(h_\theta(x_i), y_i)\]
+In general, minimizing this function is not easy; this is the subject of the next section. 
+
+% Section: Backpropagation
+\section{Backpropagation}
+If we assume that the loss function is differentiable, then the natural optimization approach is to calculate the gradient, set it equal to $0$, and solve for the parameters. 
+\[\nabla_\theta \frac{1}{N} \sum_{i = 1}^{N} \ell(h_\theta(x_i), y_i) = 0\]
+However, there is no way we're solving this explicitly; this could be a massive system of non-linear equations. The typical approach is thus to approximate the minimum via 
+some iterative method, which typically comes in the form of a gradient descent-type approach. Therefore, the key step in being able to optimize a neural network is being able 
+to calculate the gradient $\nabla_\theta \ell(h_\theta(x), y)$. At first glance, this might seem very difficult; $h_\theta(x)$ is this crazy-looking function defined recursively. However, 
+when you have a composition of functions and want to take the derivative, you should immediately be thinking chain rule. That's pretty much all there is to this; it's just one big
+chain rule calculation, which will yield the gradient that can then be used in gradient descent. Really the most difficult thing here is keeping track of notation. We will also 
+detail some computational tricks that prevent having to calculate the same terms multiple times. The resulting method that is essentially just the chain rule with these computational 
+tricks is called the \textit{backpropagation algorithm}. For those who have had experience with GLMs and Fisher Scoring/Iteratively Re-Weighted Least Squares, the mechanics of this 
+will feel very familiar. In that case we wanted to apply Newton's method, and the bulk of the work was a large chain rule gradient calculation for the log-likelihood. The idea is quite similar
+here. 
+
+\subsection{Applying the Chain Rule}
 
 
 \section{Connections between Neural Networks and GLMs}
