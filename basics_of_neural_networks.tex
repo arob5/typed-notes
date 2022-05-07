@@ -9,6 +9,8 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
 
 % Plotting
 \usepackage{pgfplots}
@@ -78,6 +80,7 @@ between these spaces, to gain an understanding of how the explanatory variables 
 that it is very difficult to gain an understanding of the relationships encoded by the model. Thus, the main motivation for neural networks is \textit{prediction}, to predict the value of the 
 response given a feature vector. 
 
+\subsection{Hypothesis Class}
 Now, to learn a mapping between these spaces we of course need some data. Therefore, our setup assumes that we have access to training data
 \[\mathcal{D} = \{(x_i, y_i) \in \mathcal{X} \times \mathcal{Y}: i = 1, \dots, n\}\]
 Given this training data, trying to find the ``best'' mapping out of all possible functions is not very helpful. Of course we can simply define a function that correctly predicts every example
@@ -93,7 +96,73 @@ non-linearity $g^{-1}(x^T w)$. What if we repeated this procedure various times?
 \[h(x) = W_2 W_1 x = W_2 (W_1 x)\]
 We can think of the first layer $z := W_1 x$ as forming linear combinations of the given feature $x$, thus finding \textit{new} features that may be better than the given ones. Then the 
 remaining layer $h(z) = W_2 z$ just looks like a typical linear model as a function of the newly discovered feature vector $z$. Intuitively, if we added more and more layers we would expect 
-the resulting model to be more expressive, and to be able to find complicated features. 
+the model to be able to find complicated features, and thus to be more expressive. On the downside, we clearly have many more parameters to optimize now: every entry of the matrices $W_1$
+and $W_2$. Throughout these notes we will denote by $\theta$ the vector of all parameters. So in this case $\theta = (W_1, W_2)$, where we can think of the matrices as being flattened into the 
+vector $\theta$. To make the above model more flexible, we can introduce non-linearity. To do so we consider functions $f_1, f_2: \R \to \R$ and consider
+\[h_\theta(x) = f_2(W_2 f_1(W_1 x))\]
+where $f_1(W_1 x)$ means that $f$ is applied element-wise to each component of the vector $W_1 x$, and likewise for $f_2$. This is typically visualized as directed acyclic graph. Suppose 
+$x \in \R^d$, $W_1 \in \R^{k \times d}$, $W_2 \in \R^{1 \times k}$. For simplicity, we are assuming that the function outputs a scalar value, which would be suitable for a binary classifier or a regression
+problem. To generalize to multi-class problems we could assume that the model outputs a vector. 
+
+
+\tikzset{%
+  every neuron/.style={
+    circle,
+    draw,
+    minimum size=1cm
+  },
+  neuron missing/.style={
+    draw=none, 
+    scale=4,
+    text height=0.333cm,
+    execute at begin node=\color{black}$\vdots$
+  },
+}
+
+\begin{tikzpicture}[x=1.5cm, y=1.5cm, >=stealth]
+
+\foreach \m/\l [count=\y] in {1,2,3,missing,4}
+  \node [every neuron/.try, neuron \m/.try] (input-\m) at (0,2.5-\y) {};
+
+\foreach \m [count=\y] in {1,missing,2}
+  \node [every neuron/.try, neuron \m/.try ] (hidden-\m) at (2,2-\y*1.25) {};
+
+\foreach \m [count=\y] in {1}
+  \node [every neuron/.try, neuron \m/.try ] (output-\m) at (4,1.5-\y) {};
+
+\foreach \l [count=\i] in {1,2,3,d}
+  \draw [<-] (input-\i) -- ++(-1,0)
+    node [above, midway] {$x_\l$};
+
+\foreach \l [count=\i] in {1,k}
+  \node [above] at (hidden-\i.north) {$f_1(W_1 x)_\l$};
+
+\foreach \l [count=\i] in {1}
+  \draw [->] (output-\i) -- ++(1,0)
+    node [above, midway] {$h_\theta(x)$};
+
+\foreach \i in {1,...,4}
+  \foreach \j in {1,...,2}
+    \draw [->] (input-\i) -- (hidden-\j);
+
+\foreach \i in {1,...,2}
+  \foreach \j in {1}
+    \draw [->] (hidden-\i) -- (output-\j);
+
+\foreach \l [count=\x from 0] in {Input, Hidden, Ouput}
+  \node [align=center, above] at (\x*2,2) {\l \\ layer};
+
+\end{tikzpicture}
+
+\bigskip
+
+Thus, we can think of each entry in $W_1$, $W_2$ as weighting a particular edge in the above graph, while the non-linearities are introduced by applying the function $f$ at the nodes
+of the graph. In particular, $(W_\ell)_{ij}$ is the weight on the edge coming from the $j^{\text{th}}$ node of the $\ell^{\text{th}}$ layer and connecting to the $i^{\text{th}}$ node of the 
+subsequent layer. 
+
+
+\subsection{Loss Functions}
+
 
 \section{Connections between Neural Networks and GLMs}
 \textbf{TODO}\\
