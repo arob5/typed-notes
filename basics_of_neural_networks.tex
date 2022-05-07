@@ -237,10 +237,24 @@ costly to unnecessarily calculate them over and over again.
 
 \subsection{Computational Tricks}
 In order to calculate the gradient efficiently, we now go through the computational tricks to avoid redundant calculations. These tricks are what make the backpropagation algorithm something more than 
-just applying the chain rule. 
+just applying the chain rule. In the spirit of dynamic programming, we save intermediate calculations to avoid having to re-calculate certain terms. In particular, we will calculate the vectors: 
+\[g^{(i)} := \underset{1 \times 1}{\frac{\partial \ell(z^{(d)}, y)}{\partial z^{(d)}}} \underset{\omega_{d - 1, 1} \times \omega_{d - 1, 2}}{\frac{\partial z^{(d)}}{\partial z^{(d - 1)}}} \cdots \underset{\omega_{i + 1, 1} \times \omega_{i + 1, 2}}{\frac{\partial z^{(i + 2)}}{\partial z^{(i + 1)}}}  \underset{\omega_{i, 1} \times \omega_{i, 2}}{\frac{\partial z^{(i + 1)}}{\partial z^{(i)}}} \in \R^{1 \times \omega_{i, 2}} \]
+Note that the dimensions make sense given the constraints mentioned previously and that $g^{(i)}$ is row vector. We want to compute these vectors for $i = 1, \dots, d$ and we can do so using the following 
+recurrence to avoid duplicate calculations. 
+\begin{align*}
+g^{(d)} &= \frac{\partial \ell(z^{(d)}, y)}{\partial z^{(d)}}^T \\
+g^{(i)} &= g^{(i + 1)} \frac{\partial z^{(i + 1)}}{\partial z^{(i)}} = g^{(i + 1)} \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} W^{(i)}
+\end{align*}
+In the last step we are multiplying a diagonal matrix; when implementing this we don't want to perform the actual matrix multiplication as we know that most of the entries will be $0$. We can instead implement
+this as: 
+\[g^{(i + 1)} \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} W^{(i)} = \left[f_i^\prime(W_i z^{(i)})^T \circ g^{(i + 1)}\right]W^{(i)}\]
+where I use $\circ$ to indicate element-wise multiplication between the two row vectors. Finally, we can compute the gradient with respect to $W^{(i)}$ as the outer product. 
+\[\nabla_{W^{(i)}} \ell(h_\theta(x), y) = \left[f_i^\prime(W_i z^{(i)})^T \circ g^{(i + 1)}\right]^T \left(z^{(i)}\right)^T\]
+Note that this gradient has the same shape as $W^{(i)}$; this is intuitive to interpret but when implementing gradient descent it is convenient to flatten this into a vector. 
 
 
-
+\subsection{Putting it all together}
+\textbf{TODO}
 
 \subsection{Stochastic Gradient Descent}
 \textbf{TODO}
