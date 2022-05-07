@@ -1,0 +1,87 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{notation}{Notation}
+
+\begin{document}
+
+\begin{center}
+\Large
+Basics of Neural Networks 
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+\section{Introduction}
+The neural network era has expanded many of the ideas from the Generalized Linear Models (GLMs) that preceded it. As the amount and complexity and data has continued 
+to grow, the desire for more ``expressive'' models has also increased; that is, the ability to model more complex relationships with a broader class of functional forms. GLMs are 
+quite flexible and still widely used, but neural networks are able to tackle even more complex problems. In fact, the first major theorem of neural networks is that they are 
+``universal function approximators''; informally, given a large enough neural network one can approximate any function arbitrarily well. I hope to offer a brief introduction to neural 
+networks here from the perspective of someone coming from a statistical modeling (linear models, GLMs, etc.) perspective in order to remove some of the mystery of this class 
+of models. Indeed, we will see that neural networks simply re-package and expand many of the core ideas of GLMs. The resulting class of models is certainly more complex, but the 
+core ideas remain largely the same. 
+
+
+
+\section{Connections between Neural Networks and GLMs}
+\textbf{TODO}\\
+See paper: From Generalized Linear Models to Neural Networks, and Back
+
+
+\end{document}
+
+
+
+
+
+
