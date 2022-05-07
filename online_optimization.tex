@@ -433,7 +433,6 @@ A constructive version of LP duality.
 % Section: The Multiplicative Weights Update Algorithm
 \section{The Multiplicative Weights Update Algorithm}
 
-
 \subsection{Online Learning and Prediction: Extension of Randomized Weighted Majority Algorithm}
 In the previous section we considered the problem of learning from expert advice. Our goal was to combine the advice from the experts in order to construct a series of choices that would
 minimize our regret. We now consider a slight modification to this setup: instead of combining expert advice, we consider \textit{expert} a single expert each round. In this case, we can think 
@@ -493,7 +492,37 @@ final product should feel quite natural.
 
 \subsection{Applications of the Multiplicative Weights Update Algorithm}
 \subsubsection{The Winnow Algorithm}
-\textbf{TODO}
+In this section we see one of the many applications of the multiplicative weights update algorithm; namely, its use in learning linear classifiers. We consider a typical classification setup
+with data
+\[(x_i, y_i), x_i \in X \subset \R^N, y_i \in \{-1, +1\}, i = 1, \dots, m \]
+which we assume to be linearly separable; that is, there exists $a \in \R^n$ s.t. $f(x) = \text{sgn}(\langle a, x\rangle)$ correctly classifies all the points. A correct linear classifier must satisfy
+\[y_i \langle a, x\rangle \geq 0 \text{ for all } i = 1, \dots, m\]
+Note that we're not including an intercept term here and thus are implicitly assuming that the data is centered at the origin, but this can easily be generalized. For some context, we note that 
+there are two well-known algorithms that solve this problem: the perceptron algorithm and Support Vector Machines (SVM). These algorithms are not pre-requisites for understanding the Winnow 
+algorithm, but they are useful as a basis for comparison. The perceptron algorithm finds a linear classifier by finding the normal vector $a$ to the separating hyperplane, such that $\norm{a}_2 = 1$. 
+Considering normal vectors of unit Euclidean norm was very natural in this setting; the length of this vector had no affect on the span of the hyperplane and thus did not affect the classifications. 
+The SVM extends this idea by trying to find the ``best'' separating hyperplane in the sense that it minimizes the margin $\min_{i} y_i \langle a, x \rangle$ between the hyperplane and the nearest points. 
+\[\max_a \min_i \langle a, x_i \rangle \text{ s.t. } \langle a, x_i \rangle \geq 0 \ \forall i \text{ and } \norm{a}_2 = 1\]
+So the SVM also focuses on optimizing $a$ such that $\norm{a}_2 = 1$. We now consider a different perspective, viewing $a$ as a 
+\textit{probability distribution} over the coordinates of $\R^N$. Note that the resulting $a$ will still determine the separating hyperplane, but the way we now construct this vector is very different than before. 
+Before diving into the algorithm, let's think about how we might interpret a classifier obtained by optimizing subject to the $1$-norm constraint. The sign of 
+\[\langle a, x\rangle = \sum_{j = 1}^{N} a_j x_j\]
+determines the classification of the point $x$. Since $a$ is a probability distribution then this linear combination can be viewed as an average. In this way we can view the entries of $a$ as indicating the relative
+importance of the coordinates of $\R^N$. This can offer nice interpretations of results, and brings to mind some of the benefits enjoyed by methods such as the non-negative matrix factorization. One final note 
+before proceeding: there is no reason we have to normalize so that the $a_j$ sum to $1$; the important thing is that the entries are non-negative so that they can be considered weights. It's simply convenient 
+to normalize them to form a distribution. 
+
+This leads to the following optimization problem. 
+\begin{align*}
+&y_i\langle a, x_i \rangle \geq 0 \ \forall i = 1, \dots, m\\
+&\; \qquad \norm{a}_1 = 1 \\
+&\; \qquad a_i \geq 0 \ \forall i \\
+\end{align*}
+Since $y_i\langle a, x_i \rangle = \sum_{j = 1}^{N} (y_j x_{ij})a_j$ where $y_j x_{ij}$ is a constant then we see that the first constraint is a linear inequality constraint. Similarly, the second constraint 
+can be written $\sum_{j = 1}^{N} a_j = 1$, a linear equality constraint. So this is just a linear program! It might look weird as there is no explicit objective function, but we can just consider there is 
+an objective $c^T a$, where $c = 0$. Basically, we're just telling the LP to find any $a$ that satisfies the constraints; that is, any linear classifier that separates the data. So we could just plug this thing
+into an LP solver and call it a day. However, LP solvers are relatively slow so if there is structure to be exploited in a specific problem, more tailored algorithms can often lead to faster solvers. This will
+be the case here. 
 
 
 
