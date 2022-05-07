@@ -225,10 +225,19 @@ the derivative of the scalar function to each entry of the vector. Now for the o
 
 \begin{align*}
 \frac{\partial z^{(t + 1)}}{\partial w_{rq}^{(t)}} &= \text{diag}\left\{f_{t}^\prime(W^{(t)}z^{(t)})\right\} \frac{d}{dw_{rq}^{(t)}} \left[W^{(t)} z^{(t)} \right]\\
-							          &= \text{diag}\left\{f_{t}^\prime(W^{(t)}z^{(t)})\right\} z_q^{(t)} e_r
+							          &= \underset{\omega_{t, 1} \times \omega_{t, 1}}{\text{diag}\left\{f_{t}^\prime(W^{(t)}z^{(t)})\right\}}  \underset{\omega_{t, 1} \times 1}{z_q^{(t)} e_r} \in \R^{\omega_{t, 1} \times 1}
 \end{align*}
-where $e_p$ is the $p^\text{th}$ standard basis vector. The second step follows from the fact that we're only taking the derivative with respect to $w_{rq}^{(t)}$ and hence the result will have zeros
-is all columns except column $r$, which will have value $z_q^{(t)}$.
+where $e_p$ is the $p^\text{th}$ standard basis vector of $\R^{\omega_{t, 1}}$. The second step follows from the fact that we're only taking the derivative with respect to $w_{rq}^{(t)}$ and hence the result will have zeros
+is all columns except column $r$, which will have value $z_q^{(t)}$. At this point we've technically accomplished our mission; by plugging these expressions back into the main expression then we 
+have succeeded in differentiating the loss function. Note that the final result is a scalar $\nabla_{w_{rq}^{(t)}} \ell(h_\theta(x), y) \in \R$ as we are differentiating the scalar-valued loss function with respect to 
+a scalar variable. We could perform this calculation for each $w_{rq}^{(t)}$ and then stack all of the derivatives in one big vector to form the gradient. However, this naive approach would be very inefficient. As an 
+example, consider the expression we derived $\frac{\partial z^{(i + 1)}}{\partial z^{(i)}} = \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} W^{(i)}$. Both of the terms $\text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\}$
+and $W^{(i)}$ don't even depend on $q$ and $r$! Thus, any derivative calculation with respect to a weight in $W^{(i)}$ with $i \leq t$ is going to require the calculation of these terms. It would therefore be very 
+costly to unnecessarily calculate them over and over again. 
+
+\subsection{Computational Tricks}
+In order to calculate the gradient efficiently, we now go through the computational tricks to avoid redundant calculations. These tricks are what make the backpropagation algorithm something more than 
+just applying the chain rule. 
 
 
 
