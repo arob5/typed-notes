@@ -204,7 +204,8 @@ here.
 Okay, so our goal is to differentiate $\ell(h_\theta(x), y)$ with respect to $\theta$. We will first consider differentiating one parameter at a time, so consider differentiating with 
 respect to $w^{(t)}_{rq}$; that is, the $(r, q)$ entry of $W^{(t)}$. We're already seeing why notation is the most annoying part of this - a double subscript and superscript is not pretty 
 but it is unavoidable. I find it very helpful to explicitly keep track of dimensions so suppose that $x \in \R^p$ and $W^{(t)} \in \R^{\omega_{t, 1} \times \omega_{t, 2}}$. Thus, we must have 
-$W^{(1)} \in \R^{\omega_{1, 1} \times p}$ and $W^{(d - 1)} \in \R^{1 \times \omega_{d-1, 2}}$. Now we're ready to dive into the calculations. 
+$W^{(1)} \in \R^{\omega_{1, 1} \times p}$ and $W^{(d - 1)} \in \R^{1 \times \omega_{d-1, 2}}$, and the constraint $\omega_{t, 2} = \omega_{t - 1, 1}$ to ensure the dimensions work out. 
+Now we're ready to dive into the calculations. 
 \begin{align*}
 \nabla_{w_{rq}^{(t)}} \ell(h_\theta(x), y) &= \nabla_{w_{rq}^{(t)}} \ell(z^{(d)}, y) && \left(z^{d} = h_\theta(x) \right) \\ 
 							   &= \frac{\partial \ell(z^{(d)}, y)}{\partial z^{(d)}} \frac{\partial h_\theta(x)}{\partial w_{rq}^{(t)}} \\
@@ -213,7 +214,24 @@ $W^{(1)} \in \R^{\omega_{1, 1} \times p}$ and $W^{(d - 1)} \in \R^{1 \times \ome
 The final step follows from the recursion
 \[z^{(i)} = f_{i - 1}(W^{(i - 1)}z^{(i - 1)})\]
 which means that the dependence on $w^{(t)}_{rq}$ is only as a function of $z^{(i - 1)})$ until reaching the layer that actually contains $w^{(t)}_{rq}$, in which case the dependence is 
-then a function of $W^{(t)}$. 
+then a function of $W^{(t)}$. The next step is now to calculate the derivatives of the form $\frac{\partial z^{(i + 1)}}{\partial z^{(i)}}$, as well as the final term $\frac{\partial z^{(t + 1)}}{\partial w_{rq}^{(t)}}$. 
+For the former, we have 
+\begin{align*}
+\frac{\partial z^{(i + 1)}}{\partial z^{(i)}} &= \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} \frac{d}{dz^{(i)}} \left[W^{(i)} z^{(i)} \right]\\
+							 &= \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} W^{(i)}
+\end{align*}
+The first step follows from the fact that the gradient of a scalar function applied element-wise to a vector is the diagonal matrix formed by applying 
+the derivative of the scalar function to each entry of the vector.
+
+\begin{align*}
+\frac{\partial z^{(i + 1)}}{\partial z^{(i)}} &= \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} \frac{d}{dw_{rq}^{(t)}} \left[W^{(i)} z^{(i)} \right]\\
+							 &= \text{diag}\left\{f_{i}^\prime(W^{(i)}z^{(i)})\right\} z_q^{(i)} e_r
+\end{align*}
+where $e_p$ is the $p^\text{th}$ standard basis vector. The second step follows from the fact that we're only taking the derivative with respect to $w_{rq}^{(t)}$ and hence the result will have zeros
+is all columns except column $r$, which will have value $z_q^{(i)}$. 
+
+
+
 
 \subsection{Stochastic Gradient Descent}
 \textbf{TODO}
