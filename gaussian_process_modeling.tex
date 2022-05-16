@@ -1,0 +1,145 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{notation}{Notation}
+
+\begin{document}
+
+\begin{center}
+\Large
+Modeling with Gaussian Processes: Theory and Applications
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+% Section: Background Theory
+\section{Background Theory}
+
+\subsection{The Multivariate Normal}
+% TODO: include the conditioning theorem
+
+\subsection{Stochastic Processes}
+
+\subsection{Gaussian Processes}
+\subsubsection{Covariance Functions and Kernels}
+
+\subsection{Important Distributions}
+\subsubsection{The Inverse Gamma}
+
+\subsubsection{The Normal-Inverse Gamma}
+
+
+% Section: Gaussian Process Emulation for Computer Experiments
+\section{Gaussian Process Emulation for Computer Experiments}
+
+\subsection{Motivation}
+Numerical simulation models are ubiquitous in the physical sciences, and are used to study complex real-world phenomena. We consider 
+deterministic simulators that will always produce the same output $y$ given a fixed input $x$. Under this assumption we can therefore model 
+a simulator as a mathematical function $f$, with the understanding that this function is typically understood only through computer code; that is, 
+$f$ may be incredibly complicated and impossible to write down in an analytical form. The simulator is thus modeled as 
+\[y = f(x), \qquad x \in \mathcal{P}\]
+where $y \in \R^p$ and $\mathcal{P}$ is the ``parameter space''. In general we just need $\mathcal{P}$ to be a metric space, but we will typically 
+consider $\mathcal{P} = \R^d$. Now, in general we don't simply run the simulator on a fixed input $x$ and call it a day. We want to quantify the uncertainty 
+of the analysis which includes measuring the sensitivity of the simulation to the choice of parameter $x$. This would entail running the simulator at many 
+values in the parameter space to see how $y$ varies as a function of $x$; that is, we hope to gain some understanding of the complicated function $f$ by 
+sampling points in $\mathcal{P}$ and feeding them through the function to observe the effect on $y$. The problem is that this can be very computationally costly; 
+a single simulation run can potentially take a long time, and to obtain any sort of useful uncertainty results many simulation runs may be required. 
+
+One approach to tackle this problem is to build a statistical model that predicts the outputs of $f$ (and is much computationally cheaper to run). That is, although $f$ 
+is a deterministic function, we can model the outputs $y$, conditional on the inputs $x$, as if they were random. This is quite natural through a Bayesian lens; the value 
+$f(x)$ is unknown to us until we run a potentially time-consuming simulation. We certainly can't feasibly run this simulation for all $x \in \mathcal{P}$ and therefore many 
+of the true values $f(x)$ will remain unknown to us. So we are \textit{uncertain} about the true output values, and the Bayesian treatment of this outputs as random will
+allow us to encode our degrees of uncertainty. 
+
+The true power of this statistical modeling approach is that it will allow us to interpolate between known about values. That is, we can run the simulator on some set of 
+input points and then observe their true values $f(x)$. We will then constrain the statistical model to match values exactly, and then predict unknown values by interpolating 
+between these observed values, while also keeping track of the uncertainty around each prediction. Therefore, we're \textit{constraining} the statistical model using observed
+data. 
+
+We wrap up this introductory section with some terminology. The statistical model that predicts the outputs of the simulator is called an \textbf{emulator} or a \textbf{surrogate}
+(so the emulator approximates the simulator). The points $x_1, \dots, x_N$ that we run the full simulator on (and then interpolate between) are often called \textbf{design points}. 
+
+\subsection{The Model}
+So the question is: how should we attempt to model such a potentially complicated mapping? Well, the first assumption typically made is that the outputs are a smooth function
+of the inputs, which is a reasonable assumption in many contexts. Given that we want to interpolate between known values, this assumption is quite essential; if $f(x) = y$ is a known 
+true mapping, then for $x^\prime$ close to $x$ we will naturally predict a value $y^\prime$ close to $y$. 
+
+Now, as far as model choice the first idea that may come to mind is a neural network. Neural networks as ``universal function approximators'' and therefore seem to be a natural choice
+given that we're trying to approximate a complicated function $f$. Indeed, neural networks are used extensively for this purpose; however, given the subject matter of these notes we will 
+focus on a second popular option: Gaussian processes. GPs are also quite flexible so also seem like a solid option for this task. Also, recall from the theory section above that there are 
+theoretical guarantees that ensure the realization of a GP is a.s. smooth given some conditions on the covariance function. So we can impose these conditions to encode the smoothness 
+condition. 
+
+We will adopt the following model. 
+\begin{align*}
+&\eta(\cdot) \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \\
+&m_\beta (x) := \phi(x)^T \beta \\
+&v_{\sigma^2}(x, x^\prime) := \sigma^2 c(x, x^\prime)
+\end{align*}
+where $\phi: \mathcal{P} \to \R^q$, $\beta \in \R^q$, $c(\cdot, \cdot)$ is a valid covariance function, and $\sigma^2 > 0$ is a scale parameter. 
+This should look quite familiar to those who have studied linear and generalized linear models (GLMs). The generic GLM framework simply assumes a functional form for the mean function
+(the systematic component) and a distributional assumption on the error terms (the random component). This is essentially what the above formulation describes. If $\phi$ is the identity function
+then $m_\beta (x) := x^T \beta$ is just the typical linear mean function used in linear models. We incorporate the feature map $\phi$ to allow for transformations of $x$ and thus the ability to 
+model more complex functional forms. The error component here is encoded by the GP itself, and in particular $v_{\sigma^2}$. Adjusting the scale $\sigma^2$ will result in more or less 
+variability in the process, while specific choices for the covariance function will impose different assumptions on the errors (e.g. homoskedasticity, etc.). 
+
+
+% Section: Kriging: Gaussian Processes in Geostatistics
+\section{Kriging: Gaussian Processes in Geostatistics}
+
+
+\end{document}
+
+
+
+
