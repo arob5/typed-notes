@@ -133,7 +133,7 @@ then $m_\beta (x) := x^T \beta$ is just the typical linear mean function used in
 model more complex functional forms. The error component here is encoded by the GP itself, and in particular $v_{\sigma^2}$. Adjusting the scale $\sigma^2$ will result in more or less 
 variability in the process, while specific choices for the covariance function will impose different assumptions on the errors (e.g. homoskedasticity, etc.). 
 
-We will also assume that we have observed the true outputs of the simulator $y := (y_1, \dots, y_N)$ when run using design points $x_1, \dots, x_N$.
+We will also assume that we have observed the true outputs of the simulator $y := (y_1, \dots, y_N)$ when run using design points $x := (x_1, \dots, x_N)$.
 
 \subsection{Parameter Estimation}
 The feature map $\phi$ and covariance function $c(\cdot, \cdot)$ are modeling choices that must be made at the beginning of the analysis. On the other hand, $\beta$ and $\sigma^2$ are parameters
@@ -146,10 +146,10 @@ choice of priors will be discussed later. For now, we consider the following hie
 Note that we're conditioning a stochastic process $\eta(\cdot)$ on the random vector $(\beta, \sigma^2)$. 
 
 
-Now, suppose that $\tilde{x}_1, \dots, \tilde{x}_N$ are a set of points in $\mathcal{P}$ and we seek to approximate the values $\tilde{y}_i = f(\tilde{x}_i)$ using the 
+Now, suppose that $\tilde{x} := (\tilde{x}_1, \dots, \tilde{x}_m)$ are a set of points in $\mathcal{P}$ and we seek to approximate the values $\tilde{y}_i = f(\tilde{x}_i)$ using the 
 emulator output $\tilde{Y}_i = \eta(\tilde{x}_i)$ (note that $\tilde{Y}_i$ is random since $\eta$ is a stochastic process; for a point estimate of $\tilde{y}_i$, we would consider some function of $\tilde{Y}_i$; 
-its mean, etc.). Let $\tilde{Y} := (\tilde{Y}_1, \dots, \tilde{Y}_N)$ and similarly $Y := (\eta(x_1), \dots, \eta(x_N))$, the latter being the random vector of emulator outputs run on the design points. We want 
-to consider the \textit{predictive distribution} $\tilde{Y}_1, \dots, \tilde{Y}_N$; that is, of the simulator output at the un-observed parameter values. Thus, we are interested 
+its mean, etc.). Let $\tilde{Y} := (\tilde{Y}_1, \dots, \tilde{Y}_m)$ and similarly $Y := (\eta(x_1), \dots, \eta(x_m))$, the latter being the random vector of emulator outputs run on the design points. We want 
+to consider the \textit{predictive distribution} $\tilde{Y}_1, \dots, \tilde{Y}_m$; that is, of the simulator output at the un-observed parameter values. Thus, we are interested 
 in the distribution 
 \[p(\tilde{Y}, \beta, \sigma^2|Y = y)\]
 We emphasize that we're conditioning on $Y = y$ since we want to use the information about the known function values at the design points and constrain the emulator to agree with the true values 
