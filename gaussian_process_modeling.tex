@@ -227,11 +227,24 @@ for $\tilde{\mu}^*$ and $\tilde{\Sigma}^*$ are a direct application of this resu
 \end{proof}
 
 Now recall that a GP is completely characterized by its set of joint distributions over finite index sets. It therefore seems that we should be able to extend the previous 
-result (which derives the distribution of a particular 
+result (which derives the distribution over an arbitrary finite index set) to conclude that conditioning the GP on data results in another GP. This is indeed the case, as 
+demonstrated in the result below. 
 \begin{prop}
-Suppose 
+Under the running assumption 
 \[\eta(\cdot)|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \]
+it follows that 
+\[\eta(\cdot)|\beta, \sigma^2, y \sim \mathcal{GP}\left(m^*_\beta(\cdot), \sigma^2 c^*(\cdot, \cdot )\right)\] 
+where for any $x^\prime, x^{\prime \prime} \in \mathcal{P}$, 
+\begin{align*}
+m^*_\beta(x^\prime) &= \phi(x^\prime)^T \beta + c(x^\prime, x) \Sigma^{-1} (y - \Phi \beta) \in \R \\ 
+c^*(x^\prime, x^{\prime \prime}) &= c(x^\prime, x^{\prime \prime}) - c(x^\prime, x) \Sigma^{-1} c(x, x^{\prime \prime}) \in \R
+\end{align*}
 \end{prop}
+Note that $x^\prime, x^{\prime \prime}$ are individual vectors in the parameter space, while $x = (x_1, \dots, x_N)^T$ is a \textit{vector} containing the $N$ design 
+points in the parameter space. Thus, $c(x^\prime, x) \in \R^{1 \times N}$ and $c(x^\prime, x^{\prime \prime}) \in \R$. 
+\begin{proof}
+\textbf{TODO}
+\end{proof}
 
 
 
