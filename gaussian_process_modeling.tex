@@ -67,8 +67,26 @@ Andrew Roberts
 % Section: Background Theory
 \section{Background Theory}
 
-\subsection{The Multivariate Normal}
-% TODO: include the conditioning theorem
+\subsection{The Multivariate Normal} \label{mvn_conditioning}
+\begin{prop}
+Let $\tilde{Y} \in \R^k$ and $Y \in \R^n$ be random vectors with joint distribution $\begin{pmatrix} \tilde{Y} \\ Y \end{pmatrix} \sim N_{k + n}\left(\mu, \Sigma \right)$
+where the mean and covariance matrix can be partitioned as 
+\begin{align*}
+&\mu = \begin{pmatrix} \tilde{\mu} \\ \mu \end{pmatrix} && \Sigma = \begin{pmatrix} \Sigma_{\tilde{Y}, \tilde{Y}} & \Sigma_{\tilde{Y}, Y} \\ \Sigma_{Y, \tilde{Y}} & \Sigma_{\tilde{Y}, \tilde{Y}}  \end{pmatrix} 
+\end{align*}
+Then for $a \in \R^n$, $\tilde{Y}|Y = a \sim N_k\left(\tilde{\mu}^\prime, \tilde{\Sigma}^\prime \right)$, where 
+\begin{align*}
+\tilde{\mu}^\prime &= \tilde{\mu} + \Sigma_{\tilde{Y}, Y} \Sigma_{Y, Y}^{-1}(a - \mu) \\
+\tilde{\Sigma}^\prime &= \Sigma_{\tilde{Y}, \tilde{Y}} -  \Sigma_{\tilde{Y}, Y} \Sigma_{Y, Y}^{-1} \Sigma_{Y, \tilde{Y}}
+\end{align*}
+\end{prop}
+
+The above proposition states that conditioning a multivariate normal distribution results in another multivariate normal distribution. Note that 
+the result is quite general in the sense that we can condition on any subset of the components of the random vector and still end up with a 
+Gaussian. Now for the proof. 
+\begin{proof}
+\textbf{TODO}
+\end{proof}
 
 \subsection{Stochastic Processes}
 
@@ -163,7 +181,7 @@ By the definition of $\tilde{Y}$ and the GP assumption we have
 \[\tilde{Y}|\beta, \sigma^2 \overset{d}{=} \eta(\tilde{x})|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\tilde{x}), \sigma^2 c(\tilde{x}, \tilde{x}))\]
 If we define 
 \[
-\Phi(\tilde{x}) := 
+\tilde{\Phi} := 
 \left[
   \begin{array}{ccc}
     \horzbar & \phi(\tilde{x}_1)^T & \horzbar \\
@@ -175,13 +193,36 @@ If we define
 \]
 
 and 
-\[\Sigma := \begin{bmatrix} c(\tilde{x}_1, \tilde{x}_1) & \hdots & c(\tilde{x}_1, \tilde{x}_m) \\
+\[\tilde{\Sigma} := \begin{bmatrix} c(\tilde{x}_1, \tilde{x}_1) & \hdots & c(\tilde{x}_1, \tilde{x}_m) \\
                                          \vdots & \hdots & \vdots \\
                                           c(\tilde{x}_m, \tilde{x}_1) & \hdots & c(\tilde{x}_m, \tilde{x}_m) 
                                           \end{bmatrix} \in \R^{m \times m}\]
 then we can write
-\[\tilde{Y}|\beta, \sigma^2 \sim N_m \left(\Phi \beta, \sigma^2 \Sigma \right)\]
+\[\tilde{Y}|\beta, \sigma^2 \sim N_m \left(\tilde{\Phi} \beta, \sigma^2 \tilde{\Sigma} \right)\]
 This follows directly from the definition of a GP; namely, the joint distribution of any finite collection of random variables of the stochastic process is multivariate normal. 
+We also define $\Phi \in \R^{n \times q}$ and $\Sigma \in \R^{n \times n}$ analogously, but evaluated using the design points $x$ in place of the arbitrary points $\tilde{x}$. 
+I also use the notation $c(x, \tilde{x}) \in \R^{n \times m}$ to denote the matrix with $(i, j)$ element $c(x_i, \tilde{x}_j)$, and $c(\tilde{x}, x) = c(x, \tilde{x})^T$. Note that this implies
+the equality $\Sigma = c(x, x)$ and $\tilde{\Sigma} = c(\tilde{x}, \tilde{x})$. 
+The following proposition
+gives the predictive distribution for $\tilde{Y}$, conditional on the data $Y$. 
+\begin{prop}
+Under the running assumption 
+\[\eta(\cdot)|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \]
+it follows that 
+\[\tilde{Y}|\beta, \sigma^2, Y = y \sim N_m \left(\tilde{\mu}^*, \sigma^2 \tilde{\Sigma}^* \right)\] 
+where 
+\begin{align*}
+\tilde{\mu}^* &= \tilde{\Phi}\beta + c(\tilde{x}, x)\Sigma^{-1}(y - \Phi \beta) \\ 
+\tilde{\Sigma}^* &= \tilde{\Sigma} - c(\tilde{x}, x) \Sigma^{-1} c(x, \tilde{x})
+\end{align*}
+\end{prop}
+
+
+
+\begin{prop}
+Suppose 
+\[\eta(\cdot)|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \]
+\end{prop}
 
 
 
