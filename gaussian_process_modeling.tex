@@ -202,23 +202,32 @@ then we can write
 This follows directly from the definition of a GP; namely, the joint distribution of any finite collection of random variables of the stochastic process is multivariate normal. 
 We also define $\Phi \in \R^{n \times q}$ and $\Sigma \in \R^{n \times n}$ analogously, but evaluated using the design points $x$ in place of the arbitrary points $\tilde{x}$. 
 I also use the notation $c(x, \tilde{x}) \in \R^{n \times m}$ to denote the matrix with $(i, j)$ element $c(x_i, \tilde{x}_j)$, and $c(\tilde{x}, x) = c(x, \tilde{x})^T$. Note that this implies
-the equality $\Sigma = c(x, x)$ and $\tilde{\Sigma} = c(\tilde{x}, \tilde{x})$. 
+the equality $\Sigma = c(x, x)$ and $\tilde{\Sigma} = c(\tilde{x}, \tilde{x})$. As a final notational note, I will write $\tilde{Y}|\beta, \sigma^2, y$ as a shorthand for 
+$\tilde{Y}|(\beta, \sigma^2, Y = y)$. 
 The following proposition
 gives the predictive distribution for $\tilde{Y}$, conditional on the data $Y$. 
 \begin{prop}
 Under the running assumption 
 \[\eta(\cdot)|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \]
 it follows that 
-\[\tilde{Y}|\beta, \sigma^2, Y = y \sim N_m \left(\tilde{\mu}^*, \sigma^2 \tilde{\Sigma}^* \right)\] 
+\[\tilde{Y}|\beta, \sigma^2, y \sim N_m \left(\tilde{\mu}^*, \sigma^2 \tilde{\Sigma}^* \right)\] 
 where 
 \begin{align*}
-\tilde{\mu}^* &= \tilde{\Phi}\beta + c(\tilde{x}, x)\Sigma^{-1}(y - \Phi \beta) \\ 
-\tilde{\Sigma}^* &= \tilde{\Sigma} - c(\tilde{x}, x) \Sigma^{-1} c(x, \tilde{x})
+\tilde{\mu}^* &= \tilde{\Phi}\beta + c(\tilde{x}, x)\Sigma^{-1}(y - \Phi \beta) \in \R^m \\ 
+\tilde{\Sigma}^* &= \tilde{\Sigma} - c(\tilde{x}, x) \Sigma^{-1} c(x, \tilde{x}) \in \R^{m \times m}
 \end{align*}
 \end{prop}
 
+\begin{proof}
+From the definition of a GP we can derive the joint distribution of $(\tilde{Y}, Y)$, conditional on the model parameters. 
+\[\tilde{Y}, Y|\beta, \sigma^2 \overset{d}{=} \eta\left(\begin{bmatrix} \tilde{x} \\ x \end{bmatrix}\right)|\beta, \sigma^2 \sim 
+N_{m + n}\left(\begin{bmatrix} \tilde{\Phi}\beta \\ \Phi \beta \end{bmatrix}, \begin{bmatrix} \tilde{\Sigma} & c(x, \tilde{x}) \\ c(\tilde{x}, x) & \Sigma \end{bmatrix} \right)\]
+Now, the conditional distribution of interest follows directly from an application of the Gaussian conditioning proposition (\ref{mvn_conditioning}). The given formulas
+for $\tilde{\mu}^*$ and $\tilde{\Sigma}^*$ are a direct application of this result. 
+\end{proof}
 
-
+Now recall that a GP is completely characterized by its set of joint distributions over finite index sets. It therefore seems that we should be able to extend the previous 
+result (which derives the distribution of a particular 
 \begin{prop}
 Suppose 
 \[\eta(\cdot)|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \]
