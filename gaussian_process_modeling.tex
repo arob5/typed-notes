@@ -34,6 +34,8 @@
 \def\R{\mathbb{R}}
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\newcommand*{\vertbar}{\rule[-1ex]{0.5pt}{2.5ex}} % For lines in matrix to represent columns
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}} % For lines in matrix to represent rows
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -157,6 +159,29 @@ at these points. In other words, we're ``conditioning the model to observations'
 When faced with multidimensional posteriors of this form, the typical Bayesian approach is to factor the distribution in a 
 useful way using conditional distributions (e.g. Gibbs sampling). 
 
+By the definition of $\tilde{Y}$ and the GP assumption we have 
+\[\tilde{Y}|\beta, \sigma^2 \overset{d}{=} \eta(\tilde{x})|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\tilde{x}), \sigma^2 c(\tilde{x}, \tilde{x}))\]
+If we define 
+\[
+\Phi(\tilde{x}) := 
+\left[
+  \begin{array}{ccc}
+    \horzbar & \phi(\tilde{x}_1)^T & \horzbar \\
+    \horzbar & \phi(\tilde{x}_2)^T & \horzbar \\
+             & \vdots    &          \\
+    \horzbar & \phi(\tilde{x}_m)^T & \horzbar
+  \end{array}
+\right] \in \R^{m \times q}
+\]
+
+and 
+\[\Sigma := \begin{bmatrix} c(\tilde{x}_1, \tilde{x}_1) & \hdots & c(\tilde{x}_1, \tilde{x}_m) \\
+                                         \vdots & \hdots & \vdots \\
+                                          c(\tilde{x}_m, \tilde{x}_1) & \hdots & c(\tilde{x}_m, \tilde{x}_m) 
+                                          \end{bmatrix} \in \R^{m \times m}\]
+then we can write
+\[\tilde{Y}|\beta, \sigma^2 \sim N_m \left(\Phi \beta, \sigma^2 \Sigma \right)\]
+This follows directly from the definition of a GP; namely, the joint distribution of any finite collection of random variables of the stochastic process is multivariate normal. 
 
 
 
