@@ -151,7 +151,9 @@ This should look quite familiar to those who have studied linear and generalized
 (the systematic component) and a distributional assumption on the error terms (the random component). This is essentially what the above formulation describes. If $\phi$ is the identity function
 then $m_\beta (x) := x^T \beta$ is just the typical linear mean function used in linear models. We incorporate the feature map $\phi$ to allow for transformations of $x$ and thus the ability to 
 model more complex functional forms. The error component here is encoded by the GP itself, and in particular $v_{\sigma^2}$. Adjusting the scale $\sigma^2$ will result in more or less 
-variability in the process, while specific choices for the covariance function will impose different assumptions on the errors (e.g. homoskedasticity, etc.). 
+variability in the process, while specific choices for the covariance function will impose different assumptions on the errors (e.g. homoskedasticity, etc.). An important note here is that one of the 
+differentiating characteristics of applying GPs in this computer experiment setting is that the true observations $y$ are \textit{noise-free} since the map $f$ is deterministic. This is different from the 
+typical regression context where we assume the underlying process is random. This is not to be confused with the fact that we're using a random process to model $f$. 
 
 We will also assume that we have observed the true outputs of the simulator $y := (y_1, \dots, y_N)$ when run using design points $x := (x_1, \dots, x_N)$.
 
@@ -250,6 +252,12 @@ points in the parameter space. Thus, $c(x^\prime, x) \in \R^{1 \times N}$ and $c
 
 % Section: Kriging: Gaussian Processes in Geostatistics
 \section{Kriging: Gaussian Processes in Geostatistics}
+
+\section{TODOs}
+\begin{itemize}
+\item Add section comparing Bayesian linear regression with GP regression (with feature map equal to identity)
+\item Compare introducing non-linearity via a feature map vs. a link function 
+\end{itemize}
 
 
 \end{document}
