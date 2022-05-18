@@ -155,9 +155,6 @@ variability in the process, while specific choices for the covariance function w
 differentiating characteristics of applying GPs in this computer experiment setting is that the true observations $y$ are \textit{noise-free} since the map $f$ is deterministic. This is different from the 
 typical regression context where we assume the underlying process is random. This is not to be confused with the fact that we're using a random process to model $f$. 
 
-We will also assume that we have observed the true outputs of the simulator $y := (y_1, \dots, y_N)$ when run using design points $x := (x_1, \dots, x_N)$.
-
-\subsection{Parameter Estimation}
 The feature map $\phi$ and covariance function $c(\cdot, \cdot)$ are modeling choices that must be made at the beginning of the analysis. On the other hand, $\beta$ and $\sigma^2$ are parameters
 that must be estimated, just as in the typical GLM case. Here we will adopt a fully Bayesian approach to parameter estimation and therefore assume prior distributions on these parameters. The specific 
 choice of priors will be discussed later. For now, we consider the following hierarchical model with some prior $\pi_0$ on the parameters. 
@@ -167,6 +164,31 @@ choice of priors will be discussed later. For now, we consider the following hie
 \end{align*}
 Note that we're conditioning a stochastic process $\eta(\cdot)$ on the random vector $(\beta, \sigma^2)$. 
 
+We will also assume that we have observed the true outputs of the simulator $y := (y_1, \dots, y_N)$ when run using design points $x := (x_1, \dots, x_N)$.
+
+\subsection{Roadmap}
+Before diving into the derivations, let's take a step back and think about what the goals are. The first goal will be parameter estimation; that is, we want to estimate the values of 
+the parameters characterizing the GP: $\beta$ and $\sigma^2$. Note that the simulator itself might have a set of parameters that we want to tune by comparing the simulated outputs 
+to real-world data; this is a separate problem that we are not considering here. As far as GP parameter estimation, we are interested in the posterior 
+\[\pi_Y(\beta, \sigma^2) := p(\beta, \sigma^2|Y) \propto p(Y|\beta, \sigma^2)\pi_0(\beta, \sigma^2) = p(\eta(x)|\beta, \sigma^2)\pi_0(\beta, \sigma^2) \overset{d}{=} N_n(\Phi \beta, \sigma^2 \Sigma)\pi_0(\beta, \sigma^2) \]
+The GP model yields a nice Gaussian likelihood, and we leave the prior distribution $\pi_0$ arbitrary for now. Later we will consider choosing a conjugate prior. For non-conjugate priors we can 
+sample from this posterior using MCMC techniques. 
+
+The second goal is interpolation; that is, we're interested in the distribution of the simulator outputs at the locations where the full simulation was not run $\tilde{x}$. We are therefore interested in 
+the predictive distribution: 
+\begin{align*}
+p(\tilde{Y}|y) &= \int p(\tilde{Y}, \beta, \sigma^2|y) d\beta d\sigma^2 \\
+		    &= \int p(\tilde{Y}|\beta, \sigma^2, y)p(\beta, \sigma^2|y) d\beta d\sigma^2 \\
+		    &= \int p(\tilde{Y}|\beta, \sigma^2, y) \pi_y(d\beta, d\sigma^2)
+\end{align*}
+The last step clearly shows that we're integrating with respect to the posterior distribution $\pi_y(\beta, \sigma^2)$. In other words, this is just the expectation of the function
+$p(\tilde{Y}|\beta, \sigma^2, y)$ (viewed as a function of $\beta$ and $\sigma^2$) with respect to the posterior distribution. In the next section (proposition \ref{conditional_dist})
+we show that $p(\tilde{Y}|\beta, \sigma^2, y)$ is just Gaussian and therefore we can approximate this expectation using MCMC, or possible calculate it analytically depending on the 
+choice of $\pi_0$. 
+
+
+
+\subsection{Parameter Estimation}
 
 Now, suppose that $\tilde{x} := (\tilde{x}_1, \dots, \tilde{x}_m)$ are a set of points in $\mathcal{P}$ and we seek to approximate the values $\tilde{y}_i = f(\tilde{x}_i)$ using the 
 emulator output $\tilde{Y}_i = \eta(\tilde{x}_i)$ (note that $\tilde{Y}_i$ is random since $\eta$ is a stochastic process; for a point estimate of $\tilde{y}_i$, we would consider some function of $\tilde{Y}_i$; 
@@ -208,7 +230,7 @@ the equality $\Sigma = c(x, x)$ and $\tilde{\Sigma} = c(\tilde{x}, \tilde{x})$. 
 $\tilde{Y}|(\beta, \sigma^2, Y = y)$. 
 The following proposition
 gives the predictive distribution for $\tilde{Y}$, conditional on the data $Y$. 
-\begin{prop}
+\begin{prop} \label{conditional_dist}
 Under the running assumption 
 \[\eta(\cdot)|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \]
 it follows that 
@@ -257,6 +279,9 @@ points in the parameter space. Thus, $c(x^\prime, x) \in \R^{1 \times N}$ and $c
 \begin{itemize}
 \item Add section comparing Bayesian linear regression with GP regression (with feature map equal to identity)
 \item Compare introducing non-linearity via a feature map vs. a link function 
+\item For GP emulation section I am assuming scalar outputs $y$; make this clear, and provide generalization
+\item Include Dietze method of emulating likelihood and sufficient statistics, rather than the model outputs themselves
+\item Should also mention the goal of making simulator outputs close to observed data
 \end{itemize}
 
 
