@@ -171,7 +171,7 @@ Before diving into the derivations, let's take a step back and think about what 
 the parameters characterizing the GP: $\beta$ and $\sigma^2$. Note that the simulator itself might have a set of parameters that we want to tune by comparing the simulated outputs 
 to real-world data; this is a separate problem that we are not considering here. As far as GP parameter estimation, we are interested in the posterior 
 \[\pi_Y(\beta, \sigma^2) := p(\beta, \sigma^2|Y) \propto p(Y|\beta, \sigma^2)\pi_0(\beta, \sigma^2) = p(\eta(x)|\beta, \sigma^2)\pi_0(\beta, \sigma^2) \overset{d}{=} N_n(\Phi \beta, \sigma^2 \Sigma)\pi_0(\beta, \sigma^2) \]
-The GP model yields a nice Gaussian likelihood, and we leave the prior distribution $\pi_0$ arbitrary for now. Later we will consider choosing a conjugate prior. For non-conjugate priors we can 
+The GP model yields a nice Gaussian likelihood, and we leave the prior distribution $\pi_0$ arbitrary. For non-conjugate priors we can 
 sample from this posterior using MCMC techniques. 
 
 The second goal is interpolation; that is, we're interested in the distribution of the simulator outputs at the locations where the full simulation was not run $\tilde{x}$. We are therefore interested in 
@@ -186,9 +186,11 @@ $p(\tilde{Y}|\beta, \sigma^2, y)$ (viewed as a function of $\beta$ and $\sigma^2
 we show that $p(\tilde{Y}|\beta, \sigma^2, y)$ is just Gaussian and therefore we can approximate this expectation using MCMC, or possible calculate it analytically depending on the 
 choice of $\pi_0$. 
 
+There is a lot more theory that could be developed here. We could choose a particular conjugate prior, and then use this to not only derive a closed form distribution $\tilde{Y}|y$ but even 
+characterize the conditional stochastic process that results from conditioning on observed data: $\eta(\cdot)|y$. This would require lots of messy matrix algebra, and is not all that enlightening 
+so we exclude it here. With computational techniques like MCMC, we are free to choose a broader range of priors and approximate the posterior and predictive distributions as described above. 
 
-
-\subsection{Parameter Estimation}
+\subsection{Predictive Distribution}
 
 Now, suppose that $\tilde{x} := (\tilde{x}_1, \dots, \tilde{x}_m)$ are a set of points in $\mathcal{P}$ and we seek to approximate the values $\tilde{y}_i = f(\tilde{x}_i)$ using the 
 emulator output $\tilde{Y}_i = \eta(\tilde{x}_i)$ (note that $\tilde{Y}_i$ is random since $\eta$ is a stochastic process; for a point estimate of $\tilde{y}_i$, we would consider some function of $\tilde{Y}_i$; 
@@ -270,7 +272,6 @@ points in the parameter space. Thus, $c(x^\prime, x) \in \R^{1 \times N}$ and $c
 \textbf{TODO}
 \end{proof}
 
-\textbf{TODO: } before going into all of this, add a ``roadmap'' at the beginning that lists two goals: deriving posterior on params, and deriving predictive distribution. 
 
 % Section: Kriging: Gaussian Processes in Geostatistics
 \section{Kriging: Gaussian Processes in Geostatistics}
