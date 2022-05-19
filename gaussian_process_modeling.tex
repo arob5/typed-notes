@@ -140,18 +140,23 @@ focus on a second popular option: Gaussian processes. GPs are also quite flexibl
 theoretical guarantees that ensure the realization of a GP is a.s. smooth given some conditions on the covariance function. So we can impose these conditions to encode the smoothness 
 condition. 
 
-We will adopt the following model. 
+We will adopt the following model, in which we will make two simplifying assumptions. First assume that $f$ is a scalar function; that is, $f(x) \in \R$. Next, we will assume homoskedastic 
+errors. Both of these assumptions can be lifted, but we consider them now to keep things simpler.
 \begin{align*}
 &\eta(\cdot) \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \\
 &m_\beta (x) := \phi(x)^T \beta \\
 &v_{\sigma^2}(x, x^\prime) := \sigma^2 c(x, x^\prime)
 \end{align*}
-where $\phi: \mathcal{P} \to \R^q$, $\beta \in \R^q$, $c(\cdot, \cdot)$ is a valid covariance function, and $\sigma^2 > 0$ is a scale parameter. 
+where $\phi: \mathcal{P} \to \R^q$, $\beta \in \R^q$, $c(\cdot, \cdot)$ is a valid correlation function, and $\sigma^2 > 0$ is a scale parameter. The assumption that $c(\cdot, \cdot)$ is a correlation function
+encodes the homoskedasticity assumption, since multiplying through by $\sigma^2$ then yields the covariance function $v_{\sigma^2}(\cdot, \cdot)$. To generalize to less restrictive covariance structures 
+we could write $\mathcal{GP}(m_\beta(\cdot), c(\cdot, \cdot))$; in this case $c(\cdot, \cdot)$ is now a \textit{covariance} (not correlation) function. For now, though, we just consider the homoskedastic case. 
 This should look quite familiar to those who have studied linear and generalized linear models (GLMs). The generic GLM framework simply assumes a functional form for the mean function
 (the systematic component) and a distributional assumption on the error terms (the random component). This is essentially what the above formulation describes. If $\phi$ is the identity function
 then $m_\beta (x) := x^T \beta$ is just the typical linear mean function used in linear models. We incorporate the feature map $\phi$ to allow for transformations of $x$ and thus the ability to 
-model more complex functional forms. The error component here is encoded by the GP itself, and in particular $v_{\sigma^2}$. Adjusting the scale $\sigma^2$ will result in more or less 
-variability in the process, while specific choices for the covariance function will impose different assumptions on the errors (e.g. homoskedasticity, etc.). An important note here is that one of the 
+model more complex functional forms. The error component here is encoded by the GP itself, and in particular $v_{\sigma^2}$. To draw comparisons to linear models we might even write this model as
+\[f(x) = m_\beta(x) + e(x) = \phi(x)^T \beta + e(x), \qquad e(\cdot) \sim \mathcal{GP}(0, \sigma^2 c(\cdot, \cdot))\]
+
+An important note here is that one of the 
 differentiating characteristics of applying GPs in this computer experiment setting is that the true observations $y$ are \textit{noise-free} since the map $f$ is deterministic. This is different from the 
 typical regression context where we assume the underlying process is random. This is not to be confused with the fact that we're using a random process to model $f$. 
 
@@ -272,6 +277,44 @@ points in the parameter space. Thus, $c(x^\prime, x) \in \R^{1 \times N}$ and $c
 \textbf{TODO}
 \end{proof}
 
+\subsection{Fer et al emulator workflow}
+\begin{enumerate} 
+\item Propose $N_\text{knots}$ parameter vectors. \\[.2cm]
+Let $f: \mathcal{P} \to \R$ denote the deterministic computer simulator, where $\mathcal{P}$ is the parameter space and I assume for simplicity that $f$ is scalar-valued. 
+We propose $x_1, \dots, x_N \in \mathcal{P}$ as specific parameters on which we will run the full simulation. 
+
+\item Run the full model with each parameter vector (parallelizable) \\[.2cm]
+Obtain model outputs $y_1, \dots, y_N$ where $y_i := f(x_i)$ is obtained by running the full simulation. 
+
+\item Comparing to real world data/summarizing model error through sufficient statistic. \\[.2cm]
+Suppose we obtain real-world data $\{(x_i, z_i)\}_{i = 1}^N$, where the $z_i$ are the outputs of the actual physical process that $f$ simulates. We assume an error model 
+for the $z_i$, $z_i|x_i \overset{ind}{\sim} N(f(x_i), \tau)$. Then $T_z(x) := \sum_{i = 1}^{N} (z_i - f(x_i))^2$ is a sufficient statistic for $\tau$.
+
+\item Emulate sufficient statistic \\[.2cm]
+Instead of directly emulating $f$ we instead emulate the map $x \mapsto T_z(x)$. We view the sufficient statistic as a function of the parameter $x$, but note that we are conditioning 
+on the observed real-world data $z$. The model looks something like 
+\begin{align*}
+&\eta(\cdot) \sim \mathcal{GP}(m_\beta(\cdot), \sigma^2 c(\cdot, \cdot)) \\
+&m_{\beta}(x) = \phi(x)^T \beta \\
+&c(x, x^\prime) = \text{corr}\left\{T_z(z), T_z(x^\prime)\right\}
+\end{align*}
+
+\item Hierarchical model \\[.2cm]
+\begin{align*}
+&z_i|x_i \overset{ind}{\sim} N(f(x_i), \tau) \\
+&\eta(\cdot)|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta(\cdot), \sigma^2 c(\cdot, \cdot)) \\
+&m_{\beta}(x) = \phi(x)^T \beta \\
+&c(x, x^\prime) = \text{corr}\left\{T_z(z), T_z(x^\prime)\right\} \\
+&\tau \sim \gamma_0 \\
+&(\beta, \sigma^2) \sim \pi_0
+\end{align*}
+
+\item MCMC \\[.2cm]
+
+
+\end{enumerate}
+
+
 
 % Section: Kriging: Gaussian Processes in Geostatistics
 \section{Kriging: Gaussian Processes in Geostatistics}
@@ -283,6 +326,7 @@ points in the parameter space. Thus, $c(x^\prime, x) \in \R^{1 \times N}$ and $c
 \item For GP emulation section I am assuming scalar outputs $y$; make this clear, and provide generalization
 \item Include Dietze method of emulating likelihood and sufficient statistics, rather than the model outputs themselves
 \item Should also mention the goal of making simulator outputs close to observed data
+\item Improve the introduction of GP regression by introducing it in a step-wise fashion: first mention Bayesian interpretation of treating $f$ as a random function, then use of GPs to model random functions, then general mean and covariance functions, then hierarchical models for mean and covariance functions (which then introduces the correlation function and scale parameter)
 \end{itemize}
 
 
