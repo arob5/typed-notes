@@ -83,13 +83,29 @@ complicated correlation structures without having to assume a parametric form fo
 As a motivating example, I consider the analysis of child support enforcement discussed in Gelman and Hill (2009, ch. 11). The outcome of interest here is a binary indicator of whether a father provided child
 support payments (as self-reported by the mother). The sampled families live in a variety of cities, and the main treatment of interest here is a measure of the level of enforcement conducted by the city. I will 
 consider the following additional covariates (the model in Gelman and Hill, 2009 includes additional ones as well): the age of the father (individual-level) and a measure of the benefits provided by the city to 
-the mother (city-level). As I have made very explicit here, this problem has a very natural hierarchical structure; some variables pertain to individuals while others to cities. To begin, let's consider a basic logit 
-model:
+the mother (city-level). As I have made very explicit here, this problem has a very natural hierarchical structure; some variables pertain to individuals while others to cities. 
+
+\subsubsection{Logit model with city indicators}
+To begin, let's consider a basic logit model:
 \[y_i|x_i \overset{ind}{\sim} \text{Bern}(\text{logit}^{-1}(x_i^T \beta)) \]
 where $x_i$ includes the covariates described above as well as city-level indicators. Why might this independence assumption be an issue? Well, the model assumes that the probability of a father providing 
 child support is independent within a fixed city and given father age, a fixed city benefit level, and a fixed city enforcement level. However, there are almost certainly other city-level variation that this model 
 does not account for. Trying to find more data and account for all these potential sources of variation seems infeasible. 
 
+\subsubsection{Two-Stage Regression}
+Let's consider a second modeling approach. I'll partition the covariates as $x_i = (x_i^{\text{indiv}}, x_i^{\text{city}}, \text{city}_i)$, where $x_i^{\text{indiv}}$ contains the individual-level predictors
+(father age), $x_i^{\text{city}}$ contains the city-level predictors (enforcement level, benefit level), and $\text{city}_i$ represents the set of city indicators. Consider the following two-stage estimation
+process. 
+\begin{enumerate}
+\item First estimate the logit model using only the individual predictors and the city indicators. Here, $\beta = (\beta^{\text{indiv}}, \beta^{\text{city}})$ contains the regression coefficients for the individual-level 
+predictors, as well as one coefficient per city, and therefore does not include an intercept term. 
+\[y_i|x_i^{\text{indiv}}, \text{city}_i \overset{ind}{\sim} \text{Bern}(\text{logit}^{-1}([x_i^{\text{indiv}}, \text{city}_i]^T \beta)) \]
+\item Treating the estimated regression city coefficients $\hat{\beta}^{\text{city}}_1, \dots, \hat{\beta}^{\text{city}}_J$ (supposing there are $J$ cities) as the response variable, fit a linear model by regressing on the 
+city-level predictors. 
+\[\hat{\beta}^{\text{city}}_j|x_j^{\text{city}} \overset{ind}{\sim} N([x_j^{\text{city}}]^T \gamma, \sigma^2)\]
+\end{enumerate}
+The first regression can be interpreted as allowing each city to have its own intercept, but ignores any city-level variation beyond these simple indicators. The second regression considers the linear effect of 
+the city-level covariates (city enforcement, city benefits) on the estimated city intercepts (in logit-space). A larger value of $\hat{\beta}^{\text{city}}_j$ indicates that fathers from city $j$ are more likely to provide child support, on average. A larger value of $\hat{\gamma}_{\text{enforcement}}$ indicates that cities with higher enforcement levels tend to have larger estimated city intercepts, on average. 
 
 
 % Resources
