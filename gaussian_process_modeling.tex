@@ -167,7 +167,12 @@ choice of priors will be discussed later. For now, we consider the following hie
 &\eta(\cdot)|\beta, \sigma^2 \sim \mathcal{GP}(m_\beta (\cdot), v_{\sigma^2}(\cdot, \cdot)) \\
 &(\beta, \sigma^2) \sim \pi_0
 \end{align*}
-Note that we're conditioning a stochastic process $\eta(\cdot)$ on the random vector $(\beta, \sigma^2)$. 
+Note that we're conditioning a stochastic process $\eta(\cdot)$ on the random vector $(\beta, \sigma^2)$. One of the benefits of this hierarchical formulation is as follows. Recall that $Y_i = \eta(x_i)$. Then 
+what is the unconditional probability of observing output $Y_i$ for the given parameter value $x_i$? The above hierarchical model tells us only the conditional probability given the parameters 
+and hence we must integrate over the parameters to obtain the marginal probability. 
+\[p(Y_i) = p(\eta(x_i)) = \int p(\eta(x_i)|\beta, \sigma^2)p(\beta, \sigma^2) d\beta d\sigma^2\]
+Thus the probability $p(Y_i)$ can be viewed as a weighted average of the outputs produced by every possible GP emulator $\eta(\cdot)|\beta, \sigma^2$, which allows us to account for the 
+uncertainty in the parameter values when predicting output values. 
 
 We will also assume that we have observed the true outputs of the simulator $y := (y_1, \dots, y_N)$ when run using design points $x := (x_1, \dots, x_N)$.
 
@@ -175,7 +180,7 @@ We will also assume that we have observed the true outputs of the simulator $y :
 Before diving into the derivations, let's take a step back and think about what the goals are. The first goal will be parameter estimation; that is, we want to estimate the values of 
 the parameters characterizing the GP: $\beta$ and $\sigma^2$. Note that the simulator itself might have a set of parameters that we want to tune by comparing the simulated outputs 
 to real-world data; this is a separate problem that we are not considering here. As far as GP parameter estimation, we are interested in the posterior 
-\[\pi_Y(\beta, \sigma^2) := p(\beta, \sigma^2|Y) \propto p(Y|\beta, \sigma^2)\pi_0(\beta, \sigma^2) = p(\eta(x)|\beta, \sigma^2)\pi_0(\beta, \sigma^2) \overset{d}{=} N_n(\Phi \beta, \sigma^2 \Sigma)\pi_0(\beta, \sigma^2) \]
+\[\pi_Y(\beta, \sigma^2) := p(\beta, \sigma^2|Y) \propto p(Y|\beta, \sigma^2)\pi_0(\beta, \sigma^2) = p(\eta(x)|\beta, \sigma^2)\pi_0(\beta, \sigma^2) \overset{d}{=} N_n(\eta(x)|\Phi \beta, \sigma^2 \Sigma)\pi_0(\beta, \sigma^2) \]
 The GP model yields a nice Gaussian likelihood, and we leave the prior distribution $\pi_0$ arbitrary. For non-conjugate priors we can 
 sample from this posterior using MCMC techniques. 
 
@@ -276,6 +281,37 @@ points in the parameter space. Thus, $c(x^\prime, x) \in \R^{1 \times N}$ and $c
 \begin{proof}
 \textbf{TODO}
 \end{proof}
+
+\subsection{Calibrating to Real-World Data}
+So far we have exclusively focused on tuning the GP model to emulate the simulator $f$. However, in practice the simulator outputs are not the ultimate object of interest; presumably, 
+the simulator is modeling some real-world physical process. If we have access to some observations of this real-world process then intuitively we should be using them to \textit{calibrate}
+the simulator. Recall that each $x \in \mathcal{P}$ is a parameter vector for the simulation model; we have so far considered emulating the simulation outputs $f(x)$ given any particular 
+parameter vector $x \in \mathcal{P}$. However, we have not yet considered the notion of tuning these parameters. For example, maybe we want to use this simulator for prediction tasks; 
+in that case we would like to be using the parameter vector that best fits the real-world data. Even better, from a Bayesian perspective we'd like to consider the posterior distribution over all 
+possible parameter vectors given the real-world data. Note that when we say ``parameters'' we must be a little careful to specify what we're talking about. The $x \in \mathcal{P}$ are the 
+\textit{simulation parameters} that we hope to calibrate using real-world data. $\beta$ and $\sigma^2$ are \textit{statistical parameters} that characterize the GP emulator. 
+
+\subsubsection{Error Model}
+Suppose we observe $(x_i, z_i)$, $i = 1, \dots, N$ where the $z_i$ are observations of the outputs of the physical process that the simulator seeks to model. To incorporate this new information
+into the existing probabilistic framework we must assume some error model for these observations. We consider the simple case of a Gaussian error model: 
+\[z_i \overset{ind}{\sim} N(y_i, \tau)\]
+That is, assume that the simulator output gives the average of the true process, with Gaussian noise. 
+
+\subsubsection{Posterior Distribution of Statistical Parameters}
+For now, let's keep things simple and suppose $\tau$ is fixed/known. As before, we will 
+consider the posterior distribution of $(\beta, \sigma^2)$, but this time we not only condition on $Y = y$, but also on $Z$, the observed real-world data. Therefore we obtain, 
+\begin{align*}
+p(\beta, \sigma^2|Y, Z) &\propto p(Y, Z|\beta, \sigma^2)p(\beta, \sigma^2) \\
+				   &= p(Z|\beta, \sigma^2, Y)p(Y|\beta, \sigma^2)\pi_0(\beta, \sigma^2) \\
+				   &= N_N(Z|Y, \tau I_N) \cdot N_N(Y|m_\beta(x), \sigma^2 \Sigma) \cdot \pi_0(\beta, \sigma^2)
+\end{align*}
+These three terms make intuitive sense. The posterior probability of any pair $(\beta, \sigma^2)$ is proportional to a product of three terms (working from right to left):
+\begin{enumerate}
+\item The prior probability of these statistical parameters. 
+\item The likelihood of the GP parameters $\beta, \sigma^2$ given the observed simulation data $y$, thus quantifying the fit of the emulator to the observed simulation outputs $y$. 
+\item The likelihood of the simulated outputs $y$ given the observed real-world data $z$, thus quantifying the fit of the simulator to the observed real-world data. 
+\end{enumerate}
+
 
 \subsection{Fer et al emulator workflow}
 \begin{enumerate} 
