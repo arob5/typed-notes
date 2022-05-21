@@ -1,0 +1,122 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\newcommand*{\vertbar}{\rule[-1ex]{0.5pt}{2.5ex}} % For lines in matrix to represent columns
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}} % For lines in matrix to represent rows
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{notation}{Notation}
+
+\begin{document}
+
+\begin{center}
+\Large
+Bayesian Statistics
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+% Section
+\section{Multivariate Normal Distribution}
+\subsection{Known Covariance Matrix} \label{mvn_mean}
+
+
+
+% Section: Appendix
+\section{Appendix}
+
+\subsection{Matrix Algebra}
+\subsubsection{Completing the Square for Quadratic Forms}
+A matrix generalization of the ``completing the square'' technique from elementary algebra turns out to be very useful when deriving certain posterior distributions. 
+For an example, this comes up when deriving the posterior of a Gaussian mean with Gaussian prior and known covariance matrix (example \ref{mvn_mean}). It will 
+be convenient to have a general result we can apply to these types of problems, rather than deriving the formulas ad-hoc on a case-by-case basis. As motivation, 
+let's recall the univariate case from elementary algebra. The goal is to write a quadratic
+\[ax^2 + bx + c\]
+in the form 
+\[a(x - d)^2 + e\]
+where $a \neq 0$. The task is thus to find the values $d$ and $e$. A straightforward approach is to simply expand this latter expression and compare the terms to the former expression. 
+To this end we have 
+\[a(x + d)^2 + e = ax^2 + ad^2 - 2adx + e\]
+Comparing to the original expression, we see each has a single term with $x$ and thus we set these coefficients to be equal. 
+\[b = -2ad \implies d = -\frac{1}{2}a^{-1}b\]
+Similarly for $e$ we collect all of the terms that don't depend on $x$,
+\[c = ad^2 + e \implies e = c - ad^2 = c - a\left(-\frac{1}{2}a^{-1}b\right)^2 = c - \frac{1}{4}a^{-1}b^2\]
+The problem is solved! Summarizing, we have shown that 
+\[ax^2 + bx + c = a(x - d)^2 + e\]
+where 
+\begin{align*}
+d &= -\frac{1}{2}a^{-1}b \\
+e &= c - \frac{1}{4}a^{-1}b^2 \\
+\end{align*}
+The following proposition shows that a direct generalization applies to the matrix case. The formulas essentially look identical, just with matrices replacing the scalar values. 
+\begin{prop}
+Let $x, b, c \in \R^n$ and $A \in \R^{n \times n}$ be a symmetric, invertible matrix. Then, 
+\[x^T A x + b^T x + c = (x - d)^T A(x - d) + e\]
+where 
+\begin{align*}
+d &= -\frac{1}{2}A^{-1}b \\
+e &= c - \frac{1}{4}b^T A^{-1}b
+\end{align*}
+\end{prop}
+
+\begin{proof}
+We employ the same exact strategy as in the scalar case: just multiply out and compare terms. To this end, 
+\[(x - d)^T A(x - d) + e = x^T A x + d^T Ad - 2d^T A x + e\]
+Notice that I've used the fact that $d^T A x$ is symmetric (it's just a scalar) to combine the cross terms into $- 2d^T A x$. Now set the coefficients on the $x$ term to be equal: 
+\[b^T = - 2d^T A \implies d = -\frac{1}{2}A^{-1}b\]
+using the invertibility of $A$. Now set the constant terms (with respect to $x$) equal: 
+\[c = d^T A d + e \implies e = c - d^T A d = c - \left(-\frac{1}{2}A^{-1}b\right)^T A \left(-\frac{1}{2}A^{-1}b\right) = c - \frac{1}{4}b^T A^{-1}b\]
+This proves the result. 
+\end{proof}
+
+
+\end{document}
+
