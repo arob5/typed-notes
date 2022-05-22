@@ -118,7 +118,8 @@ Now, notice that this is a quadratic in $\mu$, and we can thus complete the squa
 with $A = \Lambda_n^{-1 }$ and $b = - 2(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y})$. This yields
 \[\mu^T \Lambda_n^{-1 }\mu - 2(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y})^T \mu \propto (\mu - \mu_n)^T \Lambda_n^{-1 } (\mu - \mu_n)\]
 where $\mu_n = -\frac{1}{2} \Lambda_n \cdot - 2(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y}) = \Lambda_n(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y})$
-
+Finally, we plug this back into the original expression to obtain, 
+\[p(\mu|y, \Sigma) \propto \exp\left\{-\frac{1}{2}(\mu - \mu_n)^T \Lambda_n^{-1 } (\mu - \mu_n) \right\} \propto N_d(\mu | \mu_n, \Lambda_n)\]
 \end{proof}
 
 % Section: Appendix
