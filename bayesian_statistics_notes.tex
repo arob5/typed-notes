@@ -67,14 +67,59 @@ Andrew Roberts
 % Section
 \section{Multivariate Normal Distribution}
 \subsection{Known Covariance Matrix} \label{mvn_mean}
-Let's assume the model $y_1, \dots, y_n \in \R^d$, $y_i|\mu, \Sigma \overset{iid}{\sim} N(\mu, \Sigma)$. To simplify matters for the time being, we assume 
+Let's assume the model $y_1, \dots, y_n \in \R^d$, $y_i|\mu, \Sigma \overset{iid}{\sim} N_d(\mu, \Sigma)$. To simplify matters for the time being, we assume 
 $\Sigma \in \R^{d \times d}$ a known symmetric, positive-definite matrix. Letting $y := (y_1, \dots, y_n)^T$, the likelihood for this model is: 
 \begin{align*}
-\mathcal{L}(\mu) = p(y|\mu, \Sigma) &= \text{det}(2\pi \Sigma)^{-1/2} \exp\left\{-\frac{1}{2}(y - \mu^T)\Sigma^{-1}(y - \mu)\right\} \\
-			  			       &\propto \exp\left\{-\frac{1}{2}(y - \mu^T)\Sigma^{-1}(y - \mu)\right\}
+\mathcal{L}(\mu) = p(y|\mu, \Sigma) &= \prod_{i = 1}^{m} \text{det}(2\pi \Sigma)^{-1/2} \exp\left\{-\frac{1}{2}(y_i - \mu)^T \Sigma^{-1}(y_i - \mu)\right\} \\
+			  			       &\propto \exp\left\{-\frac{1}{2} \sum_{i = 1}^{n} (y_i - \mu)^T \Sigma^{-1}(y_i - \mu)\right\}
 \end{align*}
-Since we're considering $\Sigma$ to be fixed, then the first term in the likelihood is a constant with respect to the parameter of interest, hence the second line above. 
-When contemplating what prior on $\mu$ might be conjugate to this likelihood we should notice the quadratic form $(y - \mu^T)\Sigma^{-1}(y - \mu)$. 
+Since we're considering $\Sigma$ to be fixed, then the first term in the likelihood is a constant with respect to the parameter, hence the second line above. 
+When contemplating what prior on $\mu$ might be conjugate to this likelihood we should notice the quadratic form $(y - \mu^T)\Sigma^{-1}(y - \mu)$. When the 
+log-likelihood is proportional to a quadratic form of this type, then a multivariate normal prior will provide a conjugate prior. The conjugate relationship 
+is derived in the following proposition. 
+\begin{prop}
+Let $y_1, \dots, y_n \overset{iid}{\sim} N_d(\mu, \Sigma)$, with fixed symmetric, positive definite matrix $\Sigma$ and prior $\mu \sim N_d(\mu_0, \Lambda_0)$.
+Then the posterior distribution is $N_d(\mu_n, \Lambda_n)$
+where 
+\begin{align*}
+\mu_n &= \Lambda_n (\Lambda_0^{-1} \mu_0 + n \Sigma^{-1} \bar{y}) \\
+\Lambda_n^{-1} &= \Lambda_0^{-1} + n \Sigma^{-1}
+\end{align*}
+Here, $\bar{y}$ denotes the mean of $y_1, \dots, y_n$. 
+\end{prop}
+
+\begin{proof}
+The general strategy here is to multiply out terms, drop constants, combine and simplify as much as possible, and then apply the matrix generalization of completing the square
+(proposition \ref{complete_the_square}). We have, 
+\begin{align*}
+p(\mu|y, \Sigma) &\propto p(y|\mu, \Sigma)p(\mu|\Sigma) \\
+			  &\propto \exp\left\{-\frac{1}{2}(y - \mu)^T \Sigma^{-1}(y - \mu)\right\} \exp\left\{-\frac{1}{2}(\mu - \mu_0)^T \Lambda_0^{-1}(\mu - \mu_0)\right\} \\ 
+			  &= \exp\left\{-\frac{1}{2} \left[(\mu - \mu_0)^T \Lambda_0^{-1}(\mu - \mu_0) + \sum_{i = 1}^{n} (y_i - \mu)^T \Sigma^{-1}(y_i - \mu) \right]\right\}
+\end{align*}
+For now I will focus on simplifying the terms in the angled brackets. Expanding the first term we have:
+\begin{align*}
+(\mu - \mu_0)^T \Lambda_0^{-1}(\mu - \mu_0) &= \mu^T \Lambda_0^{-1} \mu + \mu_0^T \Lambda_0^{-1} \mu_0 - 2\mu^T \Lambda_0^{-1} \mu_0 \\
+								       &\propto \mu^T \Lambda_0^{-1} \mu - 2\mu^T \Lambda_0^{-1} \mu_0 \\
+\end{align*}
+And the second term, 
+\begin{align*}
+\sum_{i = 1}^{n} (y_i - \mu)^T \Sigma^{-1}(y_i - \mu) &= \mu^T (n\Sigma^{-1})\mu - 2\mu^T(n\Sigma^{-1})\bar{y} + \sum_{i = 1}^{n} y_i^T \Sigma^{-1} y_i \\
+									       &\propto \mu^T (n\Sigma^{-1})\mu - 2\mu^T(n\Sigma^{-1})\bar{y} 
+\end{align*}
+Putting these together, $(\mu - \mu_0)^T \Lambda_0^{-1}(\mu - \mu_0) + \sum_{i = 1}^{n} (y_i - \mu)^T \Sigma^{-1}(y_i - \mu)$
+\begin{align*}
+ &\propto \mu^T \Lambda_0^{-1} \mu - 2\mu^T \Lambda_0^{-1} \mu_0 + \mu^T (n\Sigma^{-1})\mu - 2\mu^T(n\Sigma^{-1})\bar{y}  \\
+																			 &= \mu^T (\Lambda_0^{-1} + n\Sigma^{-1}) \mu - 2\mu^T(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y}) \\
+																			 &= \mu^T \Lambda_n^{-1 }\mu - 2(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y})^T \mu
+\end{align*}
+where $\Lambda_n^{-1} := \Lambda_0^{-1} + n\Sigma^{-1}$. Note that $\Lambda_0$ and $\Sigma$ are both positive definite and thus their inverses are also positive definite. This implies that 
+$\Lambda_n^{-1}$ is positive definite and therefore invertible, justifying the definition of this matrix as an inverse. 
+Now, notice that this is a quadratic in $\mu$, and we can thus complete the square by applying proposition \ref{complete_the_square}
+with $A = \Lambda_n^{-1 }$ and $b = - 2(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y})$. This yields
+\[\mu^T \Lambda_n^{-1 }\mu - 2(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y})^T \mu \propto (\mu - \mu_n)^T \Lambda_n^{-1 } (\mu - \mu_n)\]
+where $\mu_n = -\frac{1}{2} \Lambda_n \cdot - 2(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y}) = \Lambda_n(\Lambda_0^{-1} \mu_0 + n\Sigma^{-1} \bar{y})$
+
+\end{proof}
 
 % Section: Appendix
 \section{Appendix}
@@ -103,7 +148,7 @@ d &= -\frac{1}{2}a^{-1}b \\
 e &= c - \frac{1}{4}a^{-1}b^2 \\
 \end{align*}
 The following proposition shows that a direct generalization applies to the matrix case. The formulas essentially look identical, just with matrices replacing the scalar values. 
-\begin{prop}
+\begin{prop} \label{complete_the_square}
 Let $x, b, c \in \R^n$ and $A \in \R^{n \times n}$ be a symmetric, invertible matrix. Then, 
 \[x^T A x + b^T x + c = (x - d)^T A(x - d) + e\]
 where 
