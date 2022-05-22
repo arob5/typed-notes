@@ -67,8 +67,14 @@ Andrew Roberts
 % Section
 \section{Multivariate Normal Distribution}
 \subsection{Known Covariance Matrix} \label{mvn_mean}
-
-
+Let's assume the model $y_1, \dots, y_n \in \R^d$, $y_i|\mu, \Sigma \overset{iid}{\sim} N(\mu, \Sigma)$. To simplify matters for the time being, we assume 
+$\Sigma \in \R^{d \times d}$ a known symmetric, positive-definite matrix. Letting $y := (y_1, \dots, y_n)^T$, the likelihood for this model is: 
+\begin{align*}
+\mathcal{L}(\mu) = p(y|\mu, \Sigma) &= \text{det}(2\pi \Sigma)^{-1/2} \exp\left\{-\frac{1}{2}(y - \mu^T)\Sigma^{-1}(y - \mu)\right\} \\
+			  			       &\propto \exp\left\{-\frac{1}{2}(y - \mu^T)\Sigma^{-1}(y - \mu)\right\}
+\end{align*}
+Since we're considering $\Sigma$ to be fixed, then the first term in the likelihood is a constant with respect to the parameter of interest, hence the second line above. 
+When contemplating what prior on $\mu$ might be conjugate to this likelihood we should notice the quadratic form $(y - \mu^T)\Sigma^{-1}(y - \mu)$. 
 
 % Section: Appendix
 \section{Appendix}
