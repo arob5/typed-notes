@@ -53,6 +53,15 @@
 \newtheorem{corollary}{Corollary}
 \newtheorem{notation}{Notation}
 
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+}
+
 \begin{document}
 
 \begin{center}
@@ -77,7 +86,7 @@ Since we're considering $\Sigma$ to be fixed, then the first term in the likelih
 When contemplating what prior on $\mu$ might be conjugate to this likelihood we should notice the quadratic form $(y - \mu^T)\Sigma^{-1}(y - \mu)$. When the 
 log-likelihood is proportional to a quadratic form of this type, then a multivariate normal prior will provide a conjugate prior. The conjugate relationship 
 is derived in the following proposition. 
-\begin{prop}
+\begin{prop} \label{normal_mean_known_variance}
 Let $y_1, \dots, y_n \overset{iid}{\sim} N_d(\mu, \Sigma)$, with fixed symmetric, positive definite matrix $\Sigma$ and prior $\mu \sim N_d(\mu_0, \Lambda_0)$.
 Then the posterior distribution is $N_d(\mu_n, \Lambda_n)$
 where 
@@ -122,8 +131,46 @@ Finally, we plug this back into the original expression to obtain,
 \[p(\mu|y, \Sigma) \propto \exp\left\{-\frac{1}{2}(\mu - \mu_n)^T \Lambda_n^{-1 } (\mu - \mu_n) \right\} \propto N_d(\mu | \mu_n, \Lambda_n)\]
 \end{proof}
 
+Having derived the form of the posterior distribution, we now turn to the posterior predictive distribution. 
+\begin{prop}
+Under the same assumptions as \ref{normal_mean_known_variance}, let $\tilde{y} \sim N_d(\mu, \Sigma)$ be a new observation. Then the posterior predictive distribution is given by
+\[\tilde{y}|y \sim N(\mu_n, \Sigma + \Lambda_n)\]
+\end{prop}
+
+\begin{proof}
+We could try to approach this directly via integration, but it is easier to first verify that $\tilde{y}|y$ has a univariate normal distribution and then just solve for the mean and variance. 
+To this end, first consider the joint posterior distribution
+\begin{align*}
+p(\tilde{y}, \mu|y) &= p(\tilde{y}|\mu, y)p(\mu|y) = p(\tilde{y}|\mu)p(\mu|y)
+\end{align*}
+where the second step follows from the fact that the distribution of $\tilde{y}$ and $y$ are independent, conditional on $\mu$. By assumption $\tilde{y}|\mu$ is multivariate normal, and we have
+just derived that the posterior $\mu|y$ is also multivariate normal. It is not difficult to check that a product of multivariate normal densities results in another multivariate normal density. Hence, 
+$(\tilde{y}, \mu)|y$ is multivariate normal distributed, which implies that the marginal $\tilde{y}|y$ has a univariate normal distribution. It therefore remains to calculate the mean and variance of this
+distribution. For the mean we apply the conditional tower property (\ref{tower_property}): 
+\[\E[\tilde{y}|y] = \E[\E(\tilde{y}|\mu, y)|y] = \E[\E(\tilde{y}|\mu)|y] = \E[\mu|y] = \mu_n\]
+The second equality again uses the fact that $\tilde{y}$ and $y$ are independent, conditional on $\mu$. We derive the variance similarly using \ref{variance_tower_property}: 
+\[\Var(\tilde{y}|y) = \Var[\E(\tilde{y}|\mu, y)|y] + \E[\Var(\tilde{y}|\mu, y)|y] = \Var[\mu|y] + \E[\Sigma|y] = \Lambda_n + \Sigma\]
+The final step uses the derivation of the posterior variance in \ref{normal_mean_known_variance}, as well as the assumption that $\Sigma$ is fixed. 
+\end{proof}
+This result makes intuitive sense. The expectation of the posterior predictive distribution equals the expectation of the posterior distribution, since the parameter of interest here is the mean. 
+The posterior predictive variance is a function of both the variance (assumed known) of the underlying process ($\Sigma$), as well as the uncertainty due to the fact that we're estimating the 
+mean ($\Lambda_n$). 
+
 % Section: Appendix
 \section{Appendix}
+
+\subsection{Probability}
+\subsubsection{The Tower Property}
+The well-known tower property (also called the law of iterated expectations) is typically stated as 
+\[\E[Y] = \E[\E(Y|X)]\]
+We view the inner expectation $\E(Y|X)$ as a function of $X$, and hence the outer expectation is taken with respect to $X$. Therefore, for clarity we might write
+\[\E[Y] = \E_X[\E_Y(Y|X)]\]
+In Bayesian statistics, we will find the following generalization of this result especially useful. 
+\[\E[Y|X] = \E[\E(Y|X, Z)|X]\] \label{tower_property}
+A very nice intuitive explanation of this result is given in \href{https://stats.stackexchange.com/questions/95947/a-generalization-of-the-law-of-iterated-expectations}{this} StackOverflow post. 
+I will refer to this generalized form as the \textit{conditional tower property}. We will also make use of an analogous result for the variance. 
+\[\Var(Y|X) = \Var(\E[Y|X, Z]|X) + \E[\Var(Y|X, Z)|X]\] \label{variance_tower_property}
+which I will refer to as the \textit{conditional law of total variance}. 
 
 \subsection{Matrix Algebra}
 \subsubsection{Completing the Square for Quadratic Forms}
