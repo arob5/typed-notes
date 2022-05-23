@@ -159,6 +159,42 @@ mean ($\Lambda_n$).
 % Section: Appendix
 \section{Appendix}
 
+\subsection{Important Distributions}
+
+\subsubsection{Wishart and Inverse Wishart Distributions}
+The Wishart distribution arises naturally in Bayesian statistics when considering conjugate priors for certain models. The distribution is a multivariate generalization of the Gamma distribution, so 
+let's recall some facts about the Gamma distribution before introducing the Wishart. 
+\begin{enumerate}
+\item Has support $\R_+ = (0, \infty)$ 
+\item Has two parameters. It is typically parameterized in terms of shape and scale parameters or shape and rate (i.e. inverse scale) parameters.
+\item In either parameterization, both parameters are positive real numbers.  
+\end{enumerate}
+The Wishart distribution generalizes these properties as follows. 
+\begin{enumerate}
+\item Has support $S_+^p$, the set of positive-definite $p \times p$ matrices. 
+\item Is parameterized by a scale matrix $V$ and the degrees of freedom $n$. 
+\item $V$ is a positive-definite matrix and $n$ is a positive integer. 
+\end{enumerate}
+
+The Wishart distribution is therefore a distribution over \textit{matrices}, which gives it an important role in random matrix theory and in covariance matrix estimation. 
+The following is one method of formally defining the Wishart distribution. 
+\begin{definition}
+Let $V \in S_+^p$, $n > p- 1$ and suppose $x_1, \dots, x_n \overset{iid}{\sim} N_p(0, V)$. Let $X \in \R^{p \times n}$ be the matrix with columns given by the $x_i$. Then we say that
+the outer product $S := XX^T$ has a Wishart distribution with scale $V$ and $n$ degrees of freedom, written $-$
+\end{definition}
+Note that if a matrix can be written as an outer product, then it is postive-semidefinite, so the support of the distribution is indeed $S_+^p$. Moreover, note that we may also 
+write the inner product as $XX^T = \sum_{i = 1}^{n} x_i x_i^T$, which is nice in that it makes the degrees of freedom clear. Written in this way also demonstrates the connection
+with covariance matrix estimation; the standard covariance matrix estimator is a sum over outer products. It turns out to be convenient to also define the distribution of the inverse 
+of Wishart-distributed matrices. 
+\begin{definition}
+We say that a matrix $Y \in S_+^p$ has inverse-Wishart distribution with scale matrix $\Sigma \in S_+^p$ and degrees of freedom $n > p - 1$, written $Y \sim \text{Inv-Wishart}(\Sigma, n)$, 
+if $Y^{-1} \sim \text{Wishart}(\Sigma^{-1}, n)$. 
+\end{definition}
+
+Note that this definition makes sense because positive definite matrices are invertible and have positive definite inverses. 
+
+
+
 \subsection{Probability}
 \subsubsection{The Tower Property}
 The well-known tower property (also called the law of iterated expectations) is typically stated as 
