@@ -295,7 +295,16 @@ possible parameter vectors given the real-world data. Note that when we say ``pa
 Suppose we observe $(x_i, z_i)$, $i = 1, \dots, N$ where the $z_i$ are observations of the outputs of the physical process that the simulator seeks to model. To incorporate this new information
 into the existing probabilistic framework we must assume some error model for these observations. We consider the simple case of a Gaussian error model: 
 \[z_i \overset{ind}{\sim} N(y_i, \tau)\]
-That is, assume that the simulator output gives the average of the true process, with Gaussian noise. 
+That is, assume that the simulator output gives the average of the true process, with Gaussian noise. Note that for everything we have done so far we have been implicitly assuming that the simulator 
+parameters are fixed; that is, we fix an input $x \in \mathcal{P}$ and then feed it through the simulator to obtain $y = f(x)$, or through the emulator $Y = \eta(x)$. But now we have shifted our focus to 
+calibrating the simulator parameter to real data. To incorporate this into the current framework it is natural to extend the hierarchical model to now view the parameter $x$ as random, with prior distribution
+$p_0$. We then have the hierarchical model: 
+\begin{align*}
+&Z|\eta(\cdot), \beta, \sigma^2, X \sim N_N(\eta(\cdot), \tau I_n) \\
+&\eta(\cdot)|\beta, \sigma^2, X \sim \mathcal{GP}(m_\beta(\cdot), \sigma^2 c(\cdot, \cdot)) \\
+&\beta, \sigma^2|X \sim \pi_0 \\
+&X \sim p_0
+\end{align*}
 
 \subsubsection{Posterior Distribution of Statistical Parameters}
 For now, let's keep things simple and suppose $\tau$ is fixed/known. As before, we will 
