@@ -73,7 +73,46 @@ Bayesian Statistics
 Andrew Roberts
 \end{flushright} 
 
-% Section
+% Section: Basics of Bayesian Inference
+\section{Basics of Bayesian Inference}
+To illustrate the basic ideas of Bayesian inference, we consider the problem of estimating the mean of a normal distribution with known variance. In practice, the variance is almost never known
+but this simplified model will be useful in illustrating the core ideas of Bayesian inference. With this in mind, we consider the following model. 
+\begin{align*}
+&y_1, \dots, y_n \overset{iid}{\sim} N(\theta, \sigma^2) \\
+&\theta \sim \pi_0
+\end{align*}
+where $\pi_0$ is a prior distribution of the mean. We will consider different choices for this prior in the subsequent sections. On a notational note, let $y := (y_1, \dots, y_n)^T$. 
+
+\subsection{Conjugate Prior}
+We begin by considering the prior 
+\[\theta \sim N(\mu_0, \tau_0^2)\]
+As we will see, this prior is conjugate to the normal likelihood, so the posterior distribution is conveniently also Gaussian. We prove this fact below.
+\subsubsection{Posterior Distribution.}
+\begin{align*}
+p(\theta|y) \propto p(y|\theta)p(\theta) &= \left(\prod_{i = 1}^{n} N(y_i|\theta, \sigma^2)\right)N(\theta|\mu_0, \tau_0^2) \\
+							 &\propto \exp\left\{-\frac{1}{2\sigma^2} \sum_{i = 1}^{n} (y_i - \theta)^2 \right\} \exp\left\{-\frac{1}{2\tau_0^2}(\theta - \mu_0)^2 \right\} \\
+							 &= \exp\left\{-\frac{1}{2} \left[\left(\frac{\theta - \mu_0}{\tau_0}\right)^2 + \sum_{i = 1}^{n} \left(\frac{y_i - \theta}{\sigma}\right)^2 \right]  \right\}
+\end{align*}
+We now focus our attention on the term inside the square brackets. As I have already spoiled, the posterior is going to be Gaussian; we therefore, want to manipulate this expression to look something like: 
+\[\frac{1}{\text{posterior variance}}(\theta - \text{posterior mean})^2\]
+where the posterior mean and variance are parameters we will discover by carrying out these algebraic manipulations. Before starting, note that any additive constant in the square bracket expression can be 
+pulled out as a multiplicative constant in the original expression (due to the exponential) and therefore just acts as a proportionality constant to the posterior density. Since we know the posterior density is 
+Gaussian we are simply dropping proportionality constants, which will make the algebra much nicer. Note that we are assuming the variance is known so $\sigma^2$ is considered a constant. 
+Now, to simplify the term in brackets, we multiply out the quadratics and drop constants:  
+\begin{align*}
+\left(\frac{\theta - \mu_0}{\tau_0}\right)^2 &= \frac{\theta^2}{\tau^2} - 2\frac{\theta \mu_0}{\tau^2} + \frac{\mu^2}{\tau^2} \propto \frac{\theta^2}{\tau^2} - 2\frac{\theta \mu_0}{\tau^2} \\
+\sum_{i = 1}^{n} \left(\frac{y_i - \theta}{\sigma}\right)^2 &= \sum_{i = 1}^{n}\frac{y_i^2}{\sigma^2} - 2\sum_{i = 1}^{n} \frac{y_i \theta}{\sigma^2} + \sum_{i = 1}^{n} \frac{\theta^2}{\sigma^2}
+											\propto \frac{n \theta^2}{\sigma^2} - 2 \frac{n \bar{y} \theta}{\sigma^2}
+\end{align*}
+
+\subsubsection{Interpreting the Posterior Density}
+
+
+\subsection{Non-Informative Prior}
+
+
+
+% Section: Multivariate Normal Distribution
 \section{Multivariate Normal Distribution}
 \subsection{Known Covariance Matrix} \label{mvn_mean}
 Let's assume the model $y_1, \dots, y_n \in \R^d$, $y_i|\mu, \Sigma \overset{iid}{\sim} N_d(\mu, \Sigma)$. To simplify matters for the time being, we assume 
