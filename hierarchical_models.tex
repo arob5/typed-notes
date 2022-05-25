@@ -97,13 +97,18 @@ of the city-level predictors will be repeated for all individuals within the sam
 \subsubsection{Basic Pooled Regression}
 We start by considering a basic logit model on this pooled dataset, regressing on just the individual-level predictors. 
 \[y_i|x_i^{\text{indiv}} \overset{ind}{\sim} \text{Bern}(\text{logit}^{-1}(\beta^T x_i^{\text{indiv}})) \]
+This model assumes that the probability of a father providing child support payments is independent across cities given the individual-level covariates; in other words, this model treats all cities as identical. 
+This is probably not a realistic model, as we expect local city laws and policy to influence this probability. If we also included the city-level covariates (but not the city indicators) as independent variables in the above regression, then the city-level variables would essentially just be treated as individual-level predictors that happen to be constant for individuals within a fixed city. 
 
-\subsubsection{Logit model with city indicators}
-To account for city variation, we now consider adding the 
+\subsubsection{Adding City Indicators}
+The classical regression way to account for city variation is to simply add indicator variables for each city. 
 \[y_i|x_i \overset{ind}{\sim} \text{Bern}(\text{logit}^{-1}(x_i^T \beta)) \]
-where $x_i$ includes the covariates described above as well as city-level indicators. Why might this independence assumption be an issue? Well, the model assumes that the probability of a father providing 
+where $x_i$ includes the covariates described above as well as city-level indicators. Another way to describe this model is a set of \textit{parallel regressions}; we can think of estimating a regression 
+separately for each city, where the slope coefficients are constant across cities (hence, parallel) but the intercepts vary by city. 
+
+Why might the regression independence assumption be an issue here? Well, the model assumes that the probability of a father providing 
 child support is independent within a fixed city and given father age, a fixed city benefit level, and a fixed city enforcement level. However, there are almost certainly other city-level variation that this model 
-does not account for. Trying to find more data and account for all these potential sources of variation seems infeasible. 
+does not account for. Trying to find more data and account for all these potential sources of variation seems infeasible. Moreover, this is quite a stringent model in the following sense. By including 
 
 \subsubsection{Two-Stage Regression}
 Let's consider a second modeling approach. Consider the following two-stage estimation process. 
