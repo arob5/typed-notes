@@ -130,10 +130,23 @@ In this form, the posterior mean and variance can be deduced, which we find by p
 \mu_n &:= \frac{b}{a} = \frac{\frac{\mu_0}{\tau_0^2} + \frac{n\bar{y}}{\sigma^2}}{\frac{n}{\sigma^2} + \frac{1}{\tau_0^2}} \\
 \tau_n^2 &:= \frac{1}{a} = \frac{1}{\frac{1}{\tau_0^2} + \frac{n}{\sigma^2}}
 \end{align*}
-where the notation for the posterior parameters $\mu_n$ and $\tau_n^2$ indicates the sample size of the data used to calculate the posterior. 
+where the notation for the posterior parameters $\mu_n$ and $\tau_n^2$ indicates the sample size of the data used to calculate the posterior. The interpretation of this result is 
+deferred to the next section. For now, let's summarize the result we just derived. 
+\begin{prop}
+Suppose 
+\begin{align*}
+&y_1, \dots, y_n \overset{iid}{\sim} N(\theta, \sigma^2) \\
+&\theta \sim N(\mu_0, \tau_0^2)
+\end{align*}
+where $\sigma^2$ is assumed to be known. Then the posterior distribution is given by $\mu|y_1, \dots, y_n \sim N(\mu_n, \tau_n^2)$ where 
+\begin{align*}
+\mu_n &=\frac{\frac{\mu_0}{\tau_0^2} + \frac{n\bar{y}}{\sigma^2}}{\frac{n}{\sigma^2} + \frac{1}{\tau_0^2}} \\
+\tau_n^2 &= \frac{1}{\frac{1}{\tau_0^2} + \frac{n}{\sigma^2}}
+\end{align*}
+\end{prop}
 
-\subsubsection{Interpreting the Posterior Density}
-
+\subsubsection{Interpreting the Posterior Mean and Variance}
+Discuss posterior params as weighted averages, compromise between prior and data
 
 \subsection{Non-Informative Prior}
 
