@@ -100,10 +100,37 @@ pulled out as a multiplicative constant in the original expression (due to the e
 Gaussian we are simply dropping proportionality constants, which will make the algebra much nicer. Note that we are assuming the variance is known so $\sigma^2$ is considered a constant. 
 Now, to simplify the term in brackets, we multiply out the quadratics and drop constants:  
 \begin{align*}
-\left(\frac{\theta - \mu_0}{\tau_0}\right)^2 &= \frac{\theta^2}{\tau^2} - 2\frac{\theta \mu_0}{\tau^2} + \frac{\mu^2}{\tau^2} \propto \frac{\theta^2}{\tau^2} - 2\frac{\theta \mu_0}{\tau^2} \\
+\left(\frac{\theta - \mu_0}{\tau_0}\right)^2 &= \frac{\theta^2}{\tau_0^2} - 2\frac{\theta \mu_0}{\tau_0^2} + \frac{\mu^2}{\tau_0^2} \propto \frac{\theta^2}{\tau^2} - 2\frac{\theta \mu_0}{\tau_0^2} \\
 \sum_{i = 1}^{n} \left(\frac{y_i - \theta}{\sigma}\right)^2 &= \sum_{i = 1}^{n}\frac{y_i^2}{\sigma^2} - 2\sum_{i = 1}^{n} \frac{y_i \theta}{\sigma^2} + \sum_{i = 1}^{n} \frac{\theta^2}{\sigma^2}
 											\propto \frac{n \theta^2}{\sigma^2} - 2 \frac{n \bar{y} \theta}{\sigma^2}
 \end{align*}
+where $\bar{y} = \frac{1}{n} \sum_{i = 1}^{n} y_i$. Putting these together we have
+\begin{align*}
+\left(\frac{\theta - \mu_0}{\tau_0}\right)^2 + \sum_{i = 1}^{n} \left(\frac{y_i - \theta}{\sigma}\right)^2 &\propto \frac{\theta^2}{\tau_0^2} - 2\frac{\theta \mu_0}{\tau_0)^2} + \frac{n \theta^2}{\sigma^2} - 2 \frac{n \bar{y} \theta}{\sigma^2} \\
+&= \left(\frac{1}{\tau_0^2} + \frac{n}{\sigma^2}\right)\theta^2 - 2 \left(\frac{\mu_0}{\tau_0^2} + \frac{n \bar{y}}{\sigma^2}\right)\theta
+\end{align*}
+Now, notice that this is a quadratic function in $\theta$. Indeed, we can write this as 
+\[a\theta^2 - 2b\theta\]
+where 
+\begin{align*}
+a &:= \frac{1}{\tau_0^2} + \frac{n}{\sigma^2} \\
+b &:= \frac{\mu_0}{\tau_0^2} + \frac{n \bar{y}}{\sigma^2}
+\end{align*}
+are independent of $\theta$. Recalling that we are seeking the form of a normal density, the natural next step is to complete the square. We can do so as follows. 
+\begin{align*}
+a\theta^2 - 2b\theta &= a\left(\theta^2 - 2\frac{b}{a} \theta \right) \\
+		 	       &= a\left(\theta^2 - 2\frac{b}{a} \theta + \frac{b^2}{a^2} \right) - \frac{b^2}{a} \\
+			       &\propto a\left(\theta^2 - 2\frac{b}{a} \theta + \frac{b^2}{a^2} \right) \\
+			       &= a\left(\theta - \frac{b}{a}\right)^2
+\end{align*}
+We can drop the term $\frac{b^2}{a}$ as it does not depend on $\theta$. Plugging back into the original expression we obtain: 
+\[p(\theta|y) \propto \exp\left\{-\frac{1}{2a^{-1}} \left(\theta - \frac{b}{a}\right)^2 \right\}\]
+In this form, the posterior mean and variance can be deduced, which we find by plugging back in for $a$ and $b$. 
+\begin{align*}
+\mu_n &:= \frac{b}{a} = \frac{\frac{\mu_0}{\tau_0^2} + \frac{n\bar{y}}{\sigma^2}}{\frac{n}{\sigma^2} + \frac{1}{\tau_0^2}} \\
+\tau_n^2 &:= \frac{1}{a} = \frac{1}{\frac{1}{\tau_0^2} + \frac{n}{\sigma^2}}
+\end{align*}
+where the notation for the posterior parameters $\mu_n$ and $\tau_n^2$ indicates the sample size of the data used to calculate the posterior. 
 
 \subsubsection{Interpreting the Posterior Density}
 
