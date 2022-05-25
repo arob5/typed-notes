@@ -75,27 +75,38 @@ In words, we're assuming that once we fix a value of $x_i$ then we can treat all
 and vary based on the same Gaussian noise structure. For example, if $x_i$ is just an indicator for age then we treat the outcomes of everybody of the same age as independent. This might be inadequate. 
 For example, what if gender has a large effect on $y$, such that the response values tend to cluster together based on gender. In this case, the values $y_i|x_i$ are certainly not independent, so the assumptions
 of the model have been violated. Obviously, the solution here would be to add a second predictor corresponding to gender. However, there are often other sources of variation still not accounted for. It can be very 
-difficult to account for all of these sources of variation, so trying to do so simply by adding more predictors to the linear model is oftentimes infeasible. One method to account for these issues is to explicitly model the 
-correlation structure of the data. However, it is often very difficult to develop a good parametric model for the correlation. Hierarchical models are one approach to accounting for these
-complicated correlation structures without having to assume a parametric form for the correlation. 
+difficult to account for all of these sources of variation, so trying to do so simply by adding more predictors to the linear model is oftentimes infeasible. These sources of variation can arise out of 
+group-like structure in the data, a classic example being that of modeling student grades. In this case we expect individual-level predictors (e.g. student aptitude) to affect grades, but we also 
+expect there to be some sort of school effect (e.g. quality of teachers in a school). This sort of clustering can create correlation structures not accounted for in the basic regression model.  
+
+One method to account for these issues is to explicitly model the 
+correlation structure of the data. However, it is often very difficult to develop a good parametric model for the correlation. Hierarchical models provide an alternative approach. The following section
+offers an introduction to hierarchical models through a specific example. 
 
 \subsection{Example}
 As a motivating example, I consider the analysis of child support enforcement discussed in Gelman and Hill (2009, ch. 11). The outcome of interest here is a binary indicator of whether a father provided child
 support payments (as self-reported by the mother). The sampled families live in a variety of cities, and the main treatment of interest here is a measure of the level of enforcement conducted by the city. I will 
 consider the following additional covariates (the model in Gelman and Hill, 2009 includes additional ones as well): the age of the father (individual-level) and a measure of the benefits provided by the city to 
-the mother (city-level). As I have made very explicit here, this problem has a very natural hierarchical structure; some variables pertain to individuals while others to cities. 
+the mother (city-level). As I have made very explicit here, this problem has a natural hierarchical structure; some variables pertain to individuals while others to cities. To build up to hierarchical models, we will
+consider a sequence of different models, focusing on the assumptions that models make about the correlation structure of the underlying data.
+
+\subsubsection{Notation}
+Let $(y_i, x_i)$, $i = 1, \dots, n$ denote the full pooled dataset, where $y_i \in \{0, 1\}$ is an indicator of whether father $i$ provided the payments. Here $x_i$ is a vector that includes the covariates described above as well as city-level indicators. We will also find it useful to partition these predictors as $x_i = (x_i^{\text{indiv}}, x_i^{\text{city}}, \text{city}_i)$, where $x_i^{\text{indiv}}$ contains the individual-level predictors (father age), $x_i^{\text{city}}$ contains the city-level predictors (enforcement level, benefit level), and $\text{city}_i$ represents the set of city indicators. Note that in this pooled dataset the values
+of the city-level predictors will be repeated for all individuals within the same city. From the standpoint of computer memory, this would be a pretty inefficient way of storing this data. 
+
+\subsubsection{Basic Pooled Regression}
+We start by considering a basic logit model on this pooled dataset, regressing on just the individual-level predictors. 
+\[y_i|x_i^{\text{indiv}} \overset{ind}{\sim} \text{Bern}(\text{logit}^{-1}(\beta^T x_i^{\text{indiv}})) \]
 
 \subsubsection{Logit model with city indicators}
-To begin, let's consider a basic logit model:
+To account for city variation, we now consider adding the 
 \[y_i|x_i \overset{ind}{\sim} \text{Bern}(\text{logit}^{-1}(x_i^T \beta)) \]
 where $x_i$ includes the covariates described above as well as city-level indicators. Why might this independence assumption be an issue? Well, the model assumes that the probability of a father providing 
 child support is independent within a fixed city and given father age, a fixed city benefit level, and a fixed city enforcement level. However, there are almost certainly other city-level variation that this model 
 does not account for. Trying to find more data and account for all these potential sources of variation seems infeasible. 
 
 \subsubsection{Two-Stage Regression}
-Let's consider a second modeling approach. I'll partition the covariates as $x_i = (x_i^{\text{indiv}}, x_i^{\text{city}}, \text{city}_i)$, where $x_i^{\text{indiv}}$ contains the individual-level predictors
-(father age), $x_i^{\text{city}}$ contains the city-level predictors (enforcement level, benefit level), and $\text{city}_i$ represents the set of city indicators. Consider the following two-stage estimation
-process. 
+Let's consider a second modeling approach. Consider the following two-stage estimation process. 
 \begin{enumerate}
 \item First estimate the logit model using only the individual predictors and the city indicators. Here, $\beta = (\beta^{\text{indiv}}, \beta^{\text{city}})$ contains the regression coefficients for the individual-level 
 predictors, as well as one coefficient per city, and therefore does not include an intercept term. 
