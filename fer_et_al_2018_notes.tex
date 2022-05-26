@@ -1,0 +1,103 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\newcommand*{\vertbar}{\rule[-1ex]{0.5pt}{2.5ex}} % For lines in matrix to represent columns
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}} % For lines in matrix to represent rows
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{notation}{Notation}
+
+\begin{document}
+
+\begin{center}
+\Large
+Notes on Bayesian emulation procedure described in Fer et al 2018
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+% Goals
+\section{Goals}
+\begin{itemize}
+\item Calibrate parameters of (deterministic) computer simulator to real-world data
+\item Limited computationally so can only run full simulation at a limited number of points in parameter space; hence also interested in interpolating between the 
+outputs observed outputs at these points and quantifying the interpolation uncertainty
+\end{itemize}
+
+% My Notation
+\section{My Notation}
+Let $\mathcal{P} \subset \R^d$ be the parameter space (meaning the set of possible simulation parameters). Denote the deterministic simulator by the function $f: \mathcal{P} \to \R$, 
+where for simplicity I'm assuming only a single scalar output for now. We assume a prior distribution $\pi_0$ over $\mathcal{P}$; looks like they assume a non-informative prior in the paper. 
+With the goal of parameter calibration in mind, we assume that we observe some real-world data $z$, which depends on some assumed error model that depends on the simulator parameter
+$x$. For concreteness, I'll just consider the following Gaussian noise model. 
+\begin{align*}
+&z_i|x \overset{ind}{\sim} N(z_i^T x, \sigma^2) \\
+&x \sim \pi_0 \\
+&\sigma^2 \sim p_0
+\end{align*}
+I guess I am implicitly assuming here that the simulation parameters $x$ have some sort of real physical meaning, given that I'm modeling the real-world data $z_i$ conditional on $x$. 
+I'm considering something like $x$ including some site-specific property of the soil, for instance. When running the simulation at a specific site, we don't know the correct setting for this soil 
+property, but we observe outputs $z_i$ that give us information about the property, and moreover the simulation $f$ is parameterized by this property.  
+
+
+% Brute-Force Approach
+\section{Brute-Force Approach}
+Fer et al contrast their Bayesian emulation approach with what they call a ``brute-force'' approach.
+\begin{enumerate}
+\item 
+\item 
+\end{enumerate}
+
+
+
+\end{document}
+
+
