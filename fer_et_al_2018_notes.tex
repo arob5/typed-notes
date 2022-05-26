@@ -75,11 +75,12 @@ outputs observed outputs at these points and quantifying the interpolation uncer
 % My Notation
 \section{My Notation}
 Let $\mathcal{P} \subset \R^d$ be the parameter space (meaning the set of possible simulation parameters). Denote the deterministic simulator by the function $f: \mathcal{P} \to \R$, 
-where for simplicity I'm assuming only a single scalar output for now. We assume a prior distribution $\pi_0$ over $\mathcal{P}$; looks like they assume a non-informative prior in the paper. 
-With the goal of parameter calibration in mind, we assume that we observe some real-world data $z$, which depends on some assumed error model that depends on the simulator parameter
+where for simplicity I'm assuming only a single scalar output for now. For a given parameter value $x_i \in \mathcal{P}$ I denote the simulation output by $y_i = f(x_i)$.
+ We assume a prior distribution $\pi_0$ over $\mathcal{P}$; looks like they assume a non-informative prior in the paper. 
+With the goal of parameter calibration in mind, we assume that we observe some real-world data $z$, which is characterized by some assumed error model that depends on the simulator parameter
 $x$. For concreteness, I'll just consider the following Gaussian noise model. 
 \begin{align*}
-&z_i|x \overset{ind}{\sim} N(z_i^T x, \sigma^2) \\
+&z_i|x \overset{ind}{\sim} N(f(x), \sigma^2), \qquad i = 1, \dots, N \\
 &x \sim \pi_0 \\
 &\sigma^2 \sim p_0
 \end{align*}
