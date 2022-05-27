@@ -97,7 +97,10 @@ We now show the second claim, which pretty much follows directly from the joint 
 The third equality uses the equality of the joint distributions proved above. 
 \end{proof}
 This proof is largely overkill; it is probably best just to realize that the result follows trivially from the fact that the joint distribution can be factored as a product
-of a conditional and marginal. 
+of a conditional and marginal. As a final point, we recall that the marginal distribution of $X$ can be obtained by integrating $Y$ out of the joint distribution. 
+\[\pi_X(A) = \int_\mathcal{Y} \pi_{X, Y}(A, y) \pi_Y(dy)\]
+This ``integrating out`` step is analogous to the dropping the samples from $Y$ in the above algorithm to obtain marginal samples from $X$. In other words, 
+ignoring $Y$ is just like averaging over $Y$. 
 
 
 \section{Notion of ``Exploration vs. Exploitation'' in Computational Statistics}
