@@ -61,6 +61,45 @@ Notes on Computational Statistics/Monte Carlo Methods
 Andrew Roberts
 \end{flushright} 
 
+\section{Sampling}
+
+\subsection{Linchpin Sampling}
+Suppose we are interested in sampling from the marginal distribution of a random variable $X$, and we know how to sample from the distributions or $X|Y$ 
+and $Y$, for some other random variable $Y$. We can thus exploit the relationship
+\[p(X, Y) = p(X|Y)p(Y)\]
+to generate samples from the joint distribution of $(X, Y)$. The idea is then to just ``throw away'' the samples from $Y$, leaving us with a random sample from the marginal
+distribution of $X$. Here, $Y$ is called the \textbf{linchpin variable}, given that it is vital in allowing us to sample from the marginal of $X$ even though we aren't interested in 
+$Y$ itself. The algorithm for generating a single sample from the joint distribution is given below. 
+\begin{itemize}
+\item Sample $y \sim \pi_Y$
+\item Sample $x \sim \pi_{X|Y=y}$
+\item Output $(x, y)$
+\end{itemize}
+
+The correctness of this algorithm follows almost by definition of what it means to sample from the joint and marginal distributions. Although perhaps a bit overkill, 
+I will state it a bit more formally below. 
+\begin{prop}
+Suppose $(x, y)$ is constructed as above. Then, 
+\begin{enumerate}
+\item $(x, y) \sim \pi_{X, Y}$
+\item $x \sim X$
+\end{enumerate}
+\end{prop}
+
+\begin{proof}
+We begin by proving the first claim. Note that by definition of the algorithm $y \overset{d}{=} Y$ so that $y$ has distribution $\pi_Y$. Now, with Borel sets 
+$A \in \mathcal{B}(\mathcal{X})$, $B \in \mathcal{B}(\mathcal{Y})$ we have 
+\[\Prob((x, y) \in A \times B) = \Prob(x \in A | y \in B)\Prob(y \in B) = \pi_{X|Y\in B}(A)\pi_Y(B) = \pi_{X, Y}(A, B)\]
+which shows $(x, y) \sim \pi_{X, Y}$. 
+
+We now show the second claim, which pretty much follows directly from the joint distribution result above. 
+\[\pi_X(A) = \Prob(X \in A) = \Prob(X \in A, Y \in \mathcal{Y}) = \Prob(x \in A, y \in \mathcal{Y}) = \Prob(x \in A)\]
+The third equality uses the equality of the joint distributions proved above. 
+\end{proof}
+This proof is largely overkill; it is probably best just to realize that the result follows trivially from the fact that the joint distribution can be factored as a product
+of a conditional and marginal. 
+
+
 \section{Notion of ``Exploration vs. Exploitation'' in Computational Statistics}
 Include stochastic gradient based methods, EM, Gibbs sampling here 
 In particular, compare (cyclic) coordinate descent and Gibbs (these seem very similar) 
