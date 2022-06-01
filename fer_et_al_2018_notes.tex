@@ -82,8 +82,8 @@ I will add in these complexities to these notes once I am certain I fully unders
 outputs observed outputs at these points and quantifying the interpolation uncertainty
 \end{itemize}
 
-% My Notation
-\section{My Notation}
+% Notation and Setup
+\section{Notation and Setup}
 Let $\mathcal{P} \subset \R^d$ be the parameter space (meaning the set of possible simulation parameters). Denote the deterministic simulator by the function $f: \mathcal{P} \to \R$, 
 where for simplicity I'm assuming only a single scalar output for now. Moreover, I assume that the parameter space is composed of two types of parameters: \textit{observation}
 and \textit{calibration} parameters. The former refers to parameters we can observe in the real-world that can also be included in the computer model. The latter refers
@@ -95,21 +95,16 @@ For a given parameter value $(x_i, u_i) \in \mathcal{P}$ I denote the simulation
 The observation parameters $x$ are thought of like covariates in a typical regression model, while $u$ garners our attention as the main parameters of interest. Instead of supposing 
 there is some ``best'' parameter vector $u$, we instead adopt a Bayesian approach and treat $u$ as random. 
  We thus assume a prior distribution $\pi_0$ over $\mathcal{U}$. 
-With the goal of parameter calibration in mind, we assume that we observe some real-world data $z = (z_1, \dots, z_N)$, which is characterized by some assumed error model that depends on the simulator parameter
-$x$. For concreteness, I'll just consider the following Gaussian noise model. 
+With the goal of parameter calibration in mind, we assume that we observe some real-world outputs $z = (z_1, \dots, z_n)$, observed at observation parameter values 
+$x = (x_1, \dots, x_n)$. A simple model might assume that the real-world output data is random, but that the simulated outputs give the mean of the observed data. 
+For concreteness, I'll just consider the following hierarchical Gaussian noise model. 
 \begin{align*}
-&z_i|x, \tau \overset{ind}{\sim} N(f(x), \tau^2), \qquad i = 1, \dots, N \\
-&\tau|x \sim p_0 \\
-&x \sim \pi_0
+&z_i|x_i, u, \tau \overset{ind}{\sim} N(y_i, \tau^2), \qquad i = 1, \dots, n \\
+&\tau|x, u \sim p_0 \\
+&u \sim \pi_0
 \end{align*}
-I guess I am implicitly assuming here that the simulation parameters $x$ have some sort of real physical meaning, given that I'm modeling the real-world data $z_i$ conditional on $x$. 
-I'm considering something like $x$ including some site-specific property of the soil, for instance. When running the simulation at a specific site, we don't know the correct setting for this soil 
-property, but we observe outputs $z$ that give us information about the property, and moreover the simulation $f$ is parameterized by this property. I've seen this type of parameter referred to
-as an \textit{observation} parameter in some papers, meaning that it is accessible both experimentally/observationally and can be varied in the computer model. Perhaps I should be more explicit 
-and partition parameters into those with both physical and computational meaning and those that only exist in the computer model (i.e. they are not directly observable to us in the real world, but they still may have real physical meaning). 
 
-We are ultimately interested in the 
-posterior over both the calibration and statistical parameters $p(x, \tau|z)$. 
+We are ultimately interested in the posterior over both the calibration and statistical parameters $p(u, \tau|\mathcal{D}_z)$, where $\mathcal{D}_z = \{(x_1, z_1), \dots, (x_n, z_n)\}$.  
 
 % Brute-Force Approach
 \section{Brute-Force Approach}
