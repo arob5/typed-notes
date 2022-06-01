@@ -97,11 +97,11 @@ there is some ``best'' parameter vector $u$, we instead adopt a Bayesian approac
  We thus assume a prior distribution $\pi_0$ over $\mathcal{U}$. 
 With the goal of parameter calibration in mind, we assume that we observe some real-world outputs $z = (z_1, \dots, z_n)$, observed at observation parameter values 
 $x = (x_1, \dots, x_n)$. A simple model might assume that the real-world output data is random, but that the simulated outputs give the mean of the observed data. 
-For concreteness, I'll just consider the following hierarchical Gaussian noise model. 
+For concreteness, I'll just consider the following hierarchical Gaussian noise model. Letting $y = (f(x_1, u), \dots, f(x_n, u))$,
 \begin{align*}
-&z_i|x_i, u, \tau \overset{ind}{\sim} N(y_i, \tau^2), \qquad i = 1, \dots, n \\
+&z|x, u, \tau \sim N_n(y, \tau^2 I_n) \\
 &\tau|x, u \sim p_0 \\
-&u \sim \pi_0
+&u|x \sim \pi_0
 \end{align*}
 
 We are ultimately interested in the posterior over both the calibration and statistical parameters $p(u, \tau|\mathcal{D}_z)$, where $\mathcal{D}_z = \{(x_1, z_1), \dots, (x_n, z_n)\}$.  
@@ -109,8 +109,8 @@ We are ultimately interested in the posterior over both the calibration and stat
 % Brute-Force Approach
 \section{Brute-Force Approach}
 Fer et al contrast their Bayesian emulation approach with what they call a ``brute-force'' approach. I believe this is just the straightforward approach of using MCMC to sample from 
-$p(x, \tau|z) \propto p(z|x, \tau)p(x, \tau) = N(z|f(x), \tau^2)p_0(\tau|x)\pi_0(x)$. 
-The key observation is that the likelihood depends on $f(x)$ so at each step of MCMC the full simulation must be run on the current proposed parameter value $x$. This is costly considering this is not parallelizable. This procedure may be appropriate in the case that the simulation model is very cheap to run, but for complex models this is not 
+\[p(u, \tau|\mathcal{D}_z) \propto p(z|x, u, \tau)p(u, \tau) = N_n(z|f(x, u), \tau^2 I_n)p_0(\tau|x, u)\pi_0(u|x)\] 
+The key observation is that the likelihood depends on $f(x, u)$ so at each step $t$ of MCMC the full simulation must be run on the current proposed parameter value $u^{(t)}$. This is costly considering this is not parallelizable. This procedure may be appropriate in the case that the simulation model is very cheap to run, but for complex models this is not 
 feasible. 
 
 % GP Emulator Approach
@@ -118,7 +118,6 @@ feasible.
 To prevent having to perform full simulation runs at each iteration, we consider a GP emulator for $f$. We choose a set of parameter values (i.e. \textit{design points} or \textit{knots}) $x_1, \dots, x_n \in \mathcal{P}$ at which to run the full simulation, yielding the observed simulator outputs $y_1, \dots, y_n$. This step can be done in parallel, 
 thus saving computational time. The idea is now to consider the simulator output as random; even though we could technically run the simulator at any parameter value, the 
 computational burden renders this infeasible and it is therefore reasonable to treat the outputs are unknown and random. 
-
 
 I'll consider a GP of the form 
 \[\eta(\cdot)|\beta, \sigma \sim \mathcal{GP}(m_\beta(\cdot), k_\sigma(\cdot, \cdot))\]
