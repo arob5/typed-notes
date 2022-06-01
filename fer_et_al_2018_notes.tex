@@ -69,7 +69,8 @@ Andrew Roberts
 To simplify the model in order to understand it piece by piece I am currently making the following simplifying assumptions: 
 \begin{enumerate}
 \item Only considering one site, and thus neglecting the hierarchical model across different sites. 
-\item Only considering a single simulator output; that is, supposing the simulator is a scalar-valued function. 
+\item Only considering a single simulator output; that is, supposing the simulator is a scalar-valued function.
+\item Considering direct emulation of the model outputs, rather than the sufficient statistics.  
 \end{enumerate}
 I will add in these complexities to these notes once I am certain I fully understand the simpler model. 
 
@@ -84,8 +85,16 @@ outputs observed outputs at these points and quantifying the interpolation uncer
 % My Notation
 \section{My Notation}
 Let $\mathcal{P} \subset \R^d$ be the parameter space (meaning the set of possible simulation parameters). Denote the deterministic simulator by the function $f: \mathcal{P} \to \R$, 
-where for simplicity I'm assuming only a single scalar output for now. For a given parameter value $x_i \in \mathcal{P}$ I denote the simulation output by $y_i = f(x_i)$.
- We assume a prior distribution $\pi_0$ over $\mathcal{P}$; looks like they assume a non-informative prior in the paper. 
+where for simplicity I'm assuming only a single scalar output for now. Moreover, I assume that the parameter space is composed of two types of parameters: \textit{observation}
+and \textit{calibration} parameters. The former refers to parameters we can observe in the real-world that can also be included in the computer model. The latter refers
+to parameters of the simulator that are not directly observable in the real-world; these may be purely computational tuning parameters, but they can also have physical meaning. 
+We thus assume $\mathcal{P} = \mathcal{X} \times \mathcal{U}$ where $\mathcal{X} \in \R^{d_1}$ and $\mathcal{U} \in \R^{d_2}$ are the spaces of observation and calibration
+parameters, respectively. 
+
+For a given parameter value $(x_i, u_i) \in \mathcal{P}$ I denote the simulation output by $y_i = f(x_i, u_i)$.
+The observation parameters $x$ are thought of like covariates in a typical regression model, while $u$ garners our attention as the main parameters of interest. Instead of supposing 
+there is some ``best'' parameter vector $u$, we instead adopt a Bayesian approach and treat $u$ as random. 
+ We thus assume a prior distribution $\pi_0$ over $\mathcal{U}$. 
 With the goal of parameter calibration in mind, we assume that we observe some real-world data $z = (z_1, \dots, z_N)$, which is characterized by some assumed error model that depends on the simulator parameter
 $x$. For concreteness, I'll just consider the following Gaussian noise model. 
 \begin{align*}
@@ -95,19 +104,28 @@ $x$. For concreteness, I'll just consider the following Gaussian noise model.
 \end{align*}
 I guess I am implicitly assuming here that the simulation parameters $x$ have some sort of real physical meaning, given that I'm modeling the real-world data $z_i$ conditional on $x$. 
 I'm considering something like $x$ including some site-specific property of the soil, for instance. When running the simulation at a specific site, we don't know the correct setting for this soil 
-property, but we observe outputs $z$ that give us information about the property, and moreover the simulation $f$ is parameterized by this property. We are ultimately interested in the 
+property, but we observe outputs $z$ that give us information about the property, and moreover the simulation $f$ is parameterized by this property. I've seen this type of parameter referred to
+as an \textit{observation} parameter in some papers, meaning that it is accessible both experimentally/observationally and can be varied in the computer model. Perhaps I should be more explicit 
+and partition parameters into those with both physical and computational meaning and those that only exist in the computer model (i.e. they are not directly observable to us in the real world, but they still may have real physical meaning). 
+
+We are ultimately interested in the 
 posterior over both the calibration and statistical parameters $p(x, \tau|z)$. 
 
 % Brute-Force Approach
 \section{Brute-Force Approach}
 Fer et al contrast their Bayesian emulation approach with what they call a ``brute-force'' approach. I believe this is just the straightforward approach of using MCMC to sample from 
 $p(x, \tau|z) \propto p(z|x, \tau)p(x, \tau) = N(z|f(x), \tau^2)p_0(\tau|x)\pi_0(x)$. 
-The key observation is that the likelihood depends on $f(x)$ so at each step of MCMC the full simulation must be run on the current proposed parameter value $x$. This is costly considering 
-this is not parallelizable. 
+The key observation is that the likelihood depends on $f(x)$ so at each step of MCMC the full simulation must be run on the current proposed parameter value $x$. This is costly considering this is not parallelizable. This procedure may be appropriate in the case that the simulation model is very cheap to run, but for complex models this is not 
+feasible. 
 
 % GP Emulator Approach
 \section{GP Emulator Approach}
-To prevent having to perform full simulation runs at each iteration, we consider a GP emulator for $f$. We choose a set of parameter values (i.e. \textit{design points} or \textit{knots}) $x_1, \dots, x_n \in \mathcal{P}$ at which to run the full simulation, yielding the observed simulator outputs $y_1, \dots, y_n$. This step can be done in parallel. I'll consider a GP of the form 
+To prevent having to perform full simulation runs at each iteration, we consider a GP emulator for $f$. We choose a set of parameter values (i.e. \textit{design points} or \textit{knots}) $x_1, \dots, x_n \in \mathcal{P}$ at which to run the full simulation, yielding the observed simulator outputs $y_1, \dots, y_n$. This step can be done in parallel, 
+thus saving computational time. The idea is now to consider the simulator output as random; even though we could technically run the simulator at any parameter value, the 
+computational burden renders this infeasible and it is therefore reasonable to treat the outputs are unknown and random. 
+
+
+I'll consider a GP of the form 
 \[\eta(\cdot)|\beta, \sigma \sim \mathcal{GP}(m_\beta(\cdot), k_\sigma(\cdot, \cdot))\]
 with mean function and kernel given by 
 \begin{align*}
