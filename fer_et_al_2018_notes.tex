@@ -100,8 +100,8 @@ $x = (x_1, \dots, x_n)$. A simple model might assume that the real-world output 
 For concreteness, I'll just consider the following hierarchical Gaussian noise model. Letting $y = (f(x_1, u), \dots, f(x_n, u))$,
 \begin{align*}
 &z|x, u, \tau \sim N_n(y, \tau^2 I_n) \\
-&\tau|x, u \sim p_0 \\
-&u|x \sim \pi_0
+&\tau|x, u \sim p_0(\tau) \\
+&u|x \sim \pi_0(u)
 \end{align*}
 
 We are ultimately interested in the posterior over both the calibration and statistical parameters $p(u, \tau|\mathcal{D}_z)$, where $\mathcal{D}_z = \{(x_1, z_1), \dots, (x_n, z_n)\}$.  
@@ -115,18 +115,27 @@ feasible.
 
 % GP Emulator Approach
 \section{GP Emulator Approach}
-To prevent having to perform full simulation runs at each iteration, we consider a GP emulator for $f$. We choose a set of parameter values (i.e. \textit{design points} or \textit{knots}) $x_1, \dots, x_n \in \mathcal{P}$ at which to run the full simulation, yielding the observed simulator outputs $y_1, \dots, y_n$. This step can be done in parallel, 
+To prevent having to perform full simulation runs at each iteration, we consider a GP emulator for $f$. We choose a set of parameter values (i.e. \textit{design points} or \textit{knots}) 
+$(x_1^*, u_1^*), \dots, (x_N^*, u_N^*) \in \mathcal{P}$ at which to run the full simulation, yielding the observed simulator outputs $y_1, \dots, y_N$. The asterisks serve to differentiate 
+these design points from the real-world observed parameters $x_1, \dots, x_n$. Running the full simulation on each of the design points can be done in parallel, 
 thus saving computational time. The idea is now to consider the simulator output as random; even though we could technically run the simulator at any parameter value, the 
-computational burden renders this infeasible and it is therefore reasonable to treat the outputs are unknown and random. 
+computational burden renders this infeasible and it is therefore reasonable to treat the outputs as unknown and random. 
 
-I'll consider a GP of the form 
+I'll consider a GP $\eta: \Omega \times \mathcal{P} \to \R$ of the form 
 \[\eta(\cdot)|\beta, \sigma \sim \mathcal{GP}(m_\beta(\cdot), k_\sigma(\cdot, \cdot))\]
 with mean function and kernel given by 
 \begin{align*}
-m_\beta(x) &= \phi(x)^T \beta \\
-k_{\sigma}(x, x^\prime) &= \sigma^2 c(x, x^\prime)
+m_\beta(x) &= \phi(x, u)^T \beta \\
+k_{\sigma}((x, u), (x^\prime, u^\prime)) &= \sigma^2 c((x, u), (x^\prime, u^\prime))
 \end{align*}
-where $\phi: \mathcal{P} \to \R^q$ is some feature mapping and $c(\cdot, \cdot)$ is a valid correlation function. I'll denote by $Y_i$ the random output of the GP evaluated at the design point $x_i$. 
+where $\phi: \mathcal{P} \to \R^q$ is some feature mapping and $c(\cdot, \cdot)$ is a valid correlation function. Note that we could of course generalize this model. For example, 
+this kernel assumes homoskedastic errors for simplicity, but we could consider alternative correlation structures. 
+
+We now have two datasets to condition on: the real-world observed data $\mathcal{D}_z$ and the simulated outputs at the design points 
+$\mathcal{D}_y := \{(x_1^*, u_1^*, y_1), \dots, (x_N^*, u_N^*, y_N)\}$. 
+The posterior of interest is now: 
+\[p(u, \tau, \beta, \sigma|\mathcal{D}_z, \mathcal{D}_y)\]
+
 
 \end{document}
 
