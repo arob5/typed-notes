@@ -91,7 +91,21 @@ Gaussian. Now for the proof.
 \subsection{Stochastic Processes}
 
 \subsection{Gaussian Processes}
-\subsubsection{Covariance Functions and Kernels}
+\subsubsection{Covariance Functions/Kernels}
+\textit{Covariance functions} (also known as \textit{kernels}, especially in the machine learning literature) are the key ingredient in GP modeling. The flexibility in choosing the covariance 
+function leads to the ability to model a large variety of functions, including behavior such as periodicity and changepoints (Duvenaud, 2014). I will use the common notation 
+$k(\cdot, \cdot): \mathcal{X} \times \mathcal{X} \to \R$ to denote the kernel, where 
+\[k(x, x^\prime) = \Cov\left\{f(x), f(x^\prime)\right\}\] 
+for $x, x^\prime \in \mathcal{X}$. Note that the kernel is defined on the input product space $\mathcal{X} \times \mathcal{X}$, but gives a notion of similarity on the output space. In this case
+the notion of similarity is as a covariance, but kernels in other settings can be defined more generally to capture other notions of similarity. Since the kernel is defined as a covariance function
+here, then it must satisfy the typical requirements of a covariance function. In particular, it must be symmetric \textit{positive definite}: for any finite set $X = \{x_1, \dots, x_N\} \subset \mathcal{X}$, the 
+kernel must satisfy
+\[k(x_i, x_j) = k(x_j, x_i) \qquad \forall i, j \in [N]\]
+and
+\[\sum_{i, j = 1}^N x_i x_j k(x_i, x_j) > 0\]
+Equivalently, the covariance matrix $k(X, X)$ defined by $\{k(X, X)\}_{ij} := k(x_i, x_j)$ must be positive definite. 
+
+
 
 \subsection{Important Distributions}
 \subsubsection{The Inverse Gamma}
