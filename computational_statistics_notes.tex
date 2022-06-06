@@ -102,6 +102,32 @@ of a conditional and marginal. As a final point, we recall that the marginal dis
 This ``integrating out`` step is analogous to the dropping the samples from $Y$ in the above algorithm to obtain marginal samples from $X$. In other words, 
 ignoring $Y$ is just like averaging over $Y$. 
 
+\subsection{Space-Filling Sampling Algorithms}
+The purpose of this section is to introduce various sampling algorithms that are often used in the fields of experimental design and computer experiments. I will introduce the 
+basic setup in the latter field as the primary motivation here. The setting is as follows: suppose we seek to model a complex process by running a deterministic computer simulation. 
+Mathematically, we represent the computer code as a function $f: \mathcal{X} \to \mathcal{Y}$, where $\mathcal{X}$ is a set of valid inputs to the computer program and 
+$\mathcal{Y}$ is the set of outputs resulting from running the simulation on a given input value. There are a variety of tasks one might seek to accomplish with such a simulation, with a 
+straightforward example being finding an input $x \in \mathcal{X}$, or set of inputs, that produces the ``best'' output $f(x)$. More commonly, we would like to conduct a full \textit{uncertainty analysis}
+to gain a sufficient understanding of the variability in the outputs due to the variability in the inputs. We might even want to go a step further and conduct a \textit{sensitivity analysis}, which 
+attributes the variability in the outputs to the variability to specific input dimensions. 
+
+ If the set $\mathcal{X}$ is a small, finite set and $f$ does not 
+take long to run then we can obviously just try out every input. In practice, thought, this is rarely the case. It is common that $\mathcal{X} = \R^d$ for some large $d$ and moreover 
+running the simulation on a single input $x$ (that is, calculating the value $f(x)$) might take hours or days. The task is thus to choose a set of input values $\mathbb{X} = (x_1, \dots, x_N) \subset \mathcal{X}$
+at which to run the simulation in such a way that this small number of runs gives us as much information as possible about the behavior of the simulation $f$. With a computational costly simulation, one
+must be very careful about choosing the set of points $\mathbb{X}$. The algorithms described in this section highlight just a few ways of approaching this problem. I emphasize that the optimal algorithm for selecting
+$X$ may be highly dependent on the specific question at hand. 
+
+
+\subsection{Two Approaches}
+\subsubsection{Probabilistic Analysis: The Monte Carlo Approach}
+As currently described, this problem is completely deterministic. However, in practice we often have some notion as to the quality of certain input variables. We can capture this prior knowledge via a prior 
+distribution $\pi_0$ over $\mathcal{X}$. If nothing is known about the inputs a priori then $\pi_0$ may just be the uniform distribution. Assuming a distribution over the input space then induces a distribution 
+over the output space; that is, the simulation is now some unknown transformation of the random inputs $f(X)$, where $X \sim \pi_0$. 
+
+\subsubsection{Response Surface Methodology and Surrogate Models}
+
+
 
 \section{Notion of ``Exploration vs. Exploitation'' in Computational Statistics}
 Include stochastic gradient based methods, EM, Gibbs sampling here 
