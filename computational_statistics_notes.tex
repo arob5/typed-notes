@@ -120,7 +120,8 @@ distribution function, or we may be content with estimating the mean and varianc
 The simplest approach to the uncertainty analysis problem described above 
 is simply to draw samples $x_1, \dots, x_n \overset{iid}{\sim} \pi$ and then feed them through the simulator to produce the outputs 
 $f(x_1), \dots, f(x_n)$. We can then use this set of outputs to calculate sample statistics of interest; for example, the sample mean
-\[\bar{y} := \frac{1}{n} \sum_{i = 1}^{n} f(x_i)\]
+\[\bar{y} := \frac{1}{n} \sum_{i = 1}^{n} y_i\]
+where we denote $y_i := f(x_i)$. 
 We might also entertain alternative sampling schemes other than the simple random sample considered above that may lead to more efficient estimators. 
 However, the high-dimensionality of $\mathcal{X}$ and/or the costly computation time of computing $f(x)$ may render this Monte Carlo approach infeasible, 
 even with more clever sampling schemes. It simply might take too much time to run the required number of simulations to achieve reasonable estimates of 
@@ -129,7 +130,7 @@ the quantities of interest. The following section addresses these concerns with 
 \subsubsection{Response Surface Methodology and Surrogate Models}
 If the Monte Carlo approach is infeasible, then an alternative is to run the full simulation at a smaller number of so-called \textit{design points}
 $x_1, \dots, x_N \in \mathcal{X}$ (where $N$ is much smaller than the $n$ Monte Carlo samples that would be required for estimating the 
-quantities of interest). Obtaining the outputs $f(x_1), \dots, f(x_N)$ we now have a few options. A classical approach is to use local optimization 
+quantities of interest). Obtaining the outputs $y_1, \dots, y_n$, we now have a few options. A classical approach is to use local optimization 
 methods to construct a \textit{response surface} passing through the design points. This surface acts as an approximation to the true mapping $f$. 
 A more modern approach uses Gaussian process regression as a statistical \textit{surrogate} which approximates $f$. Once we have a fitted 
 response surface or surrogate model, then (assuming the approximation is adequate and that the surrogate model is fast to run) 
@@ -137,14 +138,55 @@ we can use the Monte Carlo approach on the approximation rather than $f$ itself.
 1.) choosing the $N$ design points and 2.) sampling the $n$ Monte Carlo samples to feed through the approximate model. I should emphasize that when 
 $f$ is very computationally expensive, then one must be very careful choosing the design points; we want to choose them to maximize the amount of 
 information we can get out of a small number of full simulation runs. We would typically not want to simply sample the design points from $\pi$ as we 
-are doing for the Monte Carlo samples. This motivates some of the sampling algorithms described below, which emphasize efficiently filling filling 
-the input space $\mathcal{X}$. 
+are doing for the Monte Carlo samples. The design points are therefore often not drawn directly from $\pi$, but instead chosen using alternative algorithms
+that seek to satisfy some useful criteria for what make a set of design points ``good''. 
 
-\subsection{Two Sampling Approaches}
-We now consider two sampling algorithms to address the computer experiment problems introduced in the previous sections. Note that these algorithms
-are also used in many other contexts as well. 
+\subsection{Three Sampling Approaches}
+We now consider three sampling algorithms to address the computer experiment problems introduced in the previous sections. Note that these algorithms
+are also used in many other contexts as well. Before introducing these new algorithms let's review the basic properties of the random sampling approach, 
+and some of its drawbacks in using random sampling for design point selection. A random sample is given by 
+\[x_1, \dots, x_n \sim \pi\]
+meaning that the $x_i$ are independently sampled from $\pi$. Assuming we know how to sample from $\pi$, this procedure has the benefit of being 
+very easy to implement. Moreover, noting that the sample mean, variance, and empirical distribution function can all be written in the form
+\[\sum_{i = 1}^{n} \phi(y_i)\]
+for some function $\phi$, then the Law of Large Numbers and Central Limit Theorem conveniently apply to these estimators. However, with regard to 
+sampling the design points, the random sampling scheme will tend to produce design points that ``clump together'', leaving significant regions 
+of $\mathcal{X}$ unexplored. This notion is explored in detail in the following section. A second, related downside is that there may be certain 
+regions we'd like to explore, and random sampling gives no guarantee that a design point will be in any given subset of $\mathcal{X}$. 
+Assume $\mathcal{X}$ has dimension $d$. Then throughout this section it will be convenient to stack the $d$-dimensional design points in the rows 
+of a matrix. We call the resulting matrix $D \in \R^{n \times d}$ the \textit{design matrix}. 
+
+\subsubsection{Choosing Design Points Uniformly at Random}
+With the goal of ``spreading points out'' in $\mathcal{X}$, a reasonable first algorithm may simply be to sample $x_1, \dots, x_N$
+uniformly at random. However, as mentioned above this approach suffers from ``clumping''. \\[.2cm]
+\textbf{TODO: finish this section by proving some clumping results}
 
 \subsubsection{Stratified Sampling}
+Stratified sampling is essentially a direct way to address the random sampling and uniform sampling concerns mentioned above. Suppose the input space can be 
+partitioned as 
+\[\mathcal{X} = P_1 \cup P_2 \cup \cdots \cup P_k\]
+where the subsets composing the partition are by definition disjoint. The general stratified sampling algorithm is quite straightforward. 
+\begin{itemize}
+\item For $j = 1, \dots, k$: 
+\item $\qquad$ Take random sample $\{x_{ij}\}_{1 \leq i \leq N_j} \overset{iid}{\sim} \mathcal{U}(P_j)$
+\item Return $\{x_{ij}\}_{1 \leq i \leq N_j, 1 \leq j \leq k}$
+\end{itemize}
+Here I use $\mathcal{U}(P_j)$ to denote the uniform distribution over $P_j$. I have left the algorithm quite general for the time being by allowing an 
+arbitrary number of samples $N_j$ from each set $P_j$. Of course, given that the goal is choosing $N$ design points then we require 
+$N = \sum_{j = 1}^{k} N_j$. Evidently, the resulting sample $\{x_{ij}\}_{1 \leq i \leq N_j, 1 \leq j \leq k}$ will not be drawn from $\mathcal{U}(\mathcal{X})$
+if the $N_j$ are not proportional to the respective probabilities of the $P_j$. For example, consider choosing a large number of samples from a very small
+subset of $\mathcal{X}$; the resulting samples will then clearly not be uniformly distribution over $\mathcal{X}$. However, note that setting $k := 1$
+and $N_1 := N$ recovers the uniform sampling scheme discussed in the previous section. 
+
+An immediate benefit of this approach is that we can pick $P_j$ that are of especial interest, thus guaranteeing samples from these regions of interest. 
+Since a random sample is taken from each subset, then we can use the typical estimators to estimate quantities of interest for the sub-regions, if this 
+is of interest to the practitioner. 
+The ability to specify sub-regions of interest is a double-edged sword though, as designing a suitable partition of $\mathcal{X}$ may be very difficult and time-consuming. 
+How about estimating the mean, variance, distribution function, etc. of $f(X)$? The key here is to properly weight the summands in the estimator. To illustrate this we consider
+the sample mean below. The same weights may be used to adapt the estimators for the other quantities as well. 
+
+
+
 
 
 \section{Notion of ``Exploration vs. Exploitation'' in Computational Statistics}
@@ -154,6 +196,11 @@ In particular, compare (cyclic) coordinate descent and Gibbs (these seem very si
 Interesting application of EM algorithm: reinforcement learning: 
 http://www.cs.toronto.edu/~fritz/absps/dh97.pdf
 
+\section{Resources}
+\begin{itemize}
+\item A Comparison of Three Methods for Selecting Values of Input Variables in the Analysis of Output from a Computer Code 
+\item Latin Hypercube Sampling and the Propagation of Uncertainty in Analyses of Complex Systems (Helton and Davis)
+\end{itemize}
 
 
 
