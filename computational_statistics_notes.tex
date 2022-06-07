@@ -111,22 +111,40 @@ straightforward example being finding an input $x \in \mathcal{X}$, or set of in
 to gain a sufficient understanding of the variability in the outputs due to the variability in the inputs. We might even want to go a step further and conduct a \textit{sensitivity analysis}, which 
 attributes the variability in the outputs to the variability to specific input dimensions. 
 
- If the set $\mathcal{X}$ is a small, finite set and $f$ does not 
-take long to run then we can obviously just try out every input. In practice, thought, this is rarely the case. It is common that $\mathcal{X} = \R^d$ for some large $d$ and moreover 
-running the simulation on a single input $x$ (that is, calculating the value $f(x)$) might take hours or days. The task is thus to choose a set of input values $\mathbb{X} = (x_1, \dots, x_N) \subset \mathcal{X}$
-at which to run the simulation in such a way that this small number of runs gives us as much information as possible about the behavior of the simulation $f$. With a computational costly simulation, one
-must be very careful about choosing the set of points $\mathbb{X}$. The algorithms described in this section highlight just a few ways of approaching this problem. I emphasize that the optimal algorithm for selecting
-$X$ may be highly dependent on the specific question at hand. 
+As currently described, this problem is completely deterministic. However, in practice we often have some notion as to the quality of certain input variables. We can capture this prior knowledge via a probability distribution $\pi$ over $\mathcal{X}$. If nothing is known about the inputs a priori then $\pi$ may just be the uniform distribution. Assuming a distribution over the input space then induces a distribution over the output space; that is, the simulation is now some unknown transformation of the random inputs $f(X)$, where $X \sim \pi$. Therefore, the
+goal of propagating uncertainty as mentioned above is achieved by gaining an understanding of the induced distribution over the outputs. This may come in the form of estimation of the 
+distribution function, or we may be content with estimating the mean and variance of $f(X)$.  
 
-
-\subsection{Two Approaches}
-\subsubsection{Probabilistic Analysis: The Monte Carlo Approach}
-As currently described, this problem is completely deterministic. However, in practice we often have some notion as to the quality of certain input variables. We can capture this prior knowledge via a prior 
-distribution $\pi_0$ over $\mathcal{X}$. If nothing is known about the inputs a priori then $\pi_0$ may just be the uniform distribution. Assuming a distribution over the input space then induces a distribution 
-over the output space; that is, the simulation is now some unknown transformation of the random inputs $f(X)$, where $X \sim \pi_0$. 
+\subsection{Two Approaches to Uncertainty Analysis}
+\subsubsection{Direct Monte Carlo Approach}
+The simplest approach to the uncertainty analysis problem described above 
+is simply to draw samples $x_1, \dots, x_n \overset{iid}{\sim} \pi$ and then feed them through the simulator to produce the outputs 
+$f(x_1), \dots, f(x_n)$. We can then use this set of outputs to calculate sample statistics of interest; for example, the sample mean
+\[\bar{y} := \frac{1}{n} \sum_{i = 1}^{n} f(x_i)\]
+We might also entertain alternative sampling schemes other than the simple random sample considered above that may lead to more efficient estimators. 
+However, the high-dimensionality of $\mathcal{X}$ and/or the costly computation time of computing $f(x)$ may render this Monte Carlo approach infeasible, 
+even with more clever sampling schemes. It simply might take too much time to run the required number of simulations to achieve reasonable estimates of 
+the quantities of interest. The following section addresses these concerns with a new approach. 
 
 \subsubsection{Response Surface Methodology and Surrogate Models}
+If the Monte Carlo approach is infeasible, then an alternative is to run the full simulation at a smaller number of so-called \textit{design points}
+$x_1, \dots, x_N \in \mathcal{X}$ (where $N$ is much smaller than the $n$ Monte Carlo samples that would be required for estimating the 
+quantities of interest). Obtaining the outputs $f(x_1), \dots, f(x_N)$ we now have a few options. A classical approach is to use local optimization 
+methods to construct a \textit{response surface} passing through the design points. This surface acts as an approximation to the true mapping $f$. 
+A more modern approach uses Gaussian process regression as a statistical \textit{surrogate} which approximates $f$. Once we have a fitted 
+response surface or surrogate model, then (assuming the approximation is adequate and that the surrogate model is fast to run) 
+we can use the Monte Carlo approach on the approximation rather than $f$ itself. Note that sampling might play two separate roles in this framework: 
+1.) choosing the $N$ design points and 2.) sampling the $n$ Monte Carlo samples to feed through the approximate model. I should emphasize that when 
+$f$ is very computationally expensive, then one must be very careful choosing the design points; we want to choose them to maximize the amount of 
+information we can get out of a small number of full simulation runs. We would typically not want to simply sample the design points from $\pi$ as we 
+are doing for the Monte Carlo samples. This motivates some of the sampling algorithms described below, which emphasize efficiently filling filling 
+the input space $\mathcal{X}$. 
 
+\subsection{Two Sampling Approaches}
+We now consider two sampling algorithms to address the computer experiment problems introduced in the previous sections. Note that these algorithms
+are also used in many other contexts as well. 
+
+\subsubsection{Stratified Sampling}
 
 
 \section{Notion of ``Exploration vs. Exploitation'' in Computational Statistics}
