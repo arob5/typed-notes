@@ -176,7 +176,8 @@ arbitrary number of samples $N_j$ from each set $P_j$. Of course, given that the
 $N = \sum_{j = 1}^{k} N_j$. Evidently, the resulting sample $\{x_{ij}\}_{1 \leq i \leq N_j, 1 \leq j \leq k}$ will not be drawn from $\mathcal{U}(\mathcal{X})$
 if the $N_j$ are not proportional to the respective probabilities of the $P_j$. For example, consider choosing a large number of samples from a very small
 subset of $\mathcal{X}$; the resulting samples will then clearly not be uniformly distribution over $\mathcal{X}$. However, note that setting $k := 1$
-and $N_1 := N$ recovers the uniform sampling scheme discussed in the previous section. 
+and $N_1 := N$ recovers the uniform sampling scheme discussed in the previous section. In the typical case, $N_j = 1$ for all $j$ so that the algorithm samples
+a single point from each subset in the partition. 
 
 An immediate benefit of this approach is that we can pick $P_j$ that are of especial interest, thus guaranteeing samples from these regions of interest. 
 Since a random sample is taken from each subset, then we can use the typical estimators to estimate quantities of interest for the sub-regions, if this 
