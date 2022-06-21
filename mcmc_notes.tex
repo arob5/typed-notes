@@ -265,6 +265,15 @@ smaller than the variance of $\pi$, then it may take very large number of iterat
 \textbf{The Gibbs Sampler.} \textbf{TODO} 
 Excellent StackOverflow \href{https://stats.stackexchange.com/questions/118442/does-the-gibbs-sampling-algorithm-guarantee-detailed-balance#:~:text=You\%20tried\%20to\%20show\%20detailed,detailed\%20balance\%20is\%20not\%20satisfied.}{post} that clarifies the specific sense in which Gibbs is a special case of MH, and the sense in which Gibbs satisfies detailed balance. 
 
+Gibbs sampling is a technique that is motivated by a simple idea that pops up in many places across computational statistics and optimization: tackle a multivariate problem one dimension
+at a time. In the case of sampling, this means alternating sampling from the various conditional distributions of the target distribution, thus generating new samples one component (or 
+more generally one subset of components) at a time. This straightforward idea immediately raises some questions, the most important being: does this even work? In other words, 
+if we iterate the procedure of sampling one component at a time from the conditional distributions, will the resulting samples tend towards an invariant distribution equal to the target 
+distribution? As we will see below, the answer is not always yes, but under some basic assumptions this will hold. Secondly, is this even useful? The answer to this question is very 
+application-dependent, but in general, yes. Gibbs sampling is only helpful if we know how to sample from the conditional distributions. It turns out that there are quite a few problems
+of interest where the target distribution is quite complicated, but the conditional distributions can be explicitly calculated and sampled from. This situation shows up often in Bayesian 
+hierarchical models, in which we often set up the hierarchical model by defining the conditional distributions of interest. 
+
 
 
 \bigskip
