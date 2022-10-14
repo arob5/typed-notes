@@ -564,35 +564,63 @@ of which component is being updated. Now, to the proof. Given that we know MH ke
 case of MH it must also satisfy detailed balance. 
 
 \begin{prop}
-The systematic scan Gibbs sampler with rotating transition kernels $P_j$ is $\pi$-invariant. 
+The systematic scan Gibbs sampler with rotating transition kernels $P_j$, $j = 1, \dots, d$ is $\pi$-invariant. 
 \end{prop}
 
 \begin{proof}
 Per the discussion above, it suffices to show the result for arbitrary $j$. Without loss of generality and to simplify notation, I will just take $j = 1$. I will also suppress the transition kernel subscript 
 and just write $P \equiv P_1$. 
 First consider the trivial case that $x_{-1} \neq y_{-1}$. Then by definition of $P$ we have $P(x, y) = P(y, x) = 0$, which implies
-\[h_{\pi}(x)P(x, y) = h_{\pi}(y)P(y, x) = 0\]
+\[\pi(x)P(x, y) = \pi(y)P(y, x) = 0\]
 so detailed balance holds in this specific case. Now suppose $x_{-1} = y_{-1}$. We now have 
 \begin{align*}
-h_{\pi}(x)P(x, y) &= h_{\pi}(x)P(x, y)\pi_{X_1|X_{-1}}(y_1|x_2, \dots, x_d) \\
-			 &= h_{\pi}(x)P(x, y) \frac{\pi(y_1, x_2, \dots, x_d)}{\pi(x_2, \dots, x_d)} \\
+\pi(x)P(x, y) &= \pi(x)\pi_{X_1|X_{-1}}(y_1|x_2, \dots, x_d) \\
+			 &= \pi(x_1, \dots, x_d) \frac{\pi(y_1, x_2, \dots, x_d)}{\pi_{X_{-1}}(x_2, \dots, x_d)} \\
+			 &= \pi(y_1, x_2, \dots, x_d) \frac{\pi(x_1, \dots, x_d)}{\pi_{X_{-1}}(x_2, \dots, x_d)} \\
+			 &= \pi(y_1, \dots, y_d) \frac{\pi(x_1, y_2, \dots, y_d)}{\pi_{X_{-1}}(y_2, \dots, y_d)} && x_{-1} = y_{-1}\\
+			 &= \pi(y) \pi(x_1|y_2, \dots, y_d) \\
+			 &= \pi(y) P(y, x)
 \end{align*}
-
 \end{proof}
+
+\textbf{``Full sweep'' kernel}. Let's now consider the 
 
 
 
 % Langevin Monte Carlo
 \subsection{Langevin Monte Carlo} 
-Our goal is to construct a Markov chain that will converge as quickly as possible to the stationary distribution. In the above proposals, the 
-accept-reject mechanism ($\alpha$) seems to be carrying most of the load as to ensuring ``smart'' decisions as to where to transition next. Though this mechanism does 
-only use two points of information about the target density in making the decision: the density at the current state and the density at the proposed state. The accept-reject 
-mechanism accepts or rejects based on the ratio of densities at this point (along with an adjustment for the proposal density as well). Given that the other half of the 
-transition kernel is the proposal kernel, a natural question is to whether we can design a more sophisticated proposal that helps produce better informed proposals and 
+A natural question is to whether we can design a more sophisticated proposal that helps produce better informed proposals and 
 hence speeds convergence. So far, the proposals have not been very informed; take RWMH for instance: the proposal is just a random draw from some distribution 
 centered at the current state. For those familiar with optimization, we know that leveraging \textit{gradient} information of an objective function is incredibly 
-useful in designing optimization algorithms, the most obvious example being gradient descent. It is thus natural to wonder if we might leverage gradient information 
-of a differentiable target density. We might call such a proposal a \textit{local optimization proposal}. With this in mind, consider a proposal defined by: 
+useful in designing optimization algorithms, the most obvious example being gradient descent. If the target density $\pi(x)$ is differentiable, it is thus natural to wonder if we 
+might leverage its gradient information $\nabla \pi(x)$ in order to generate better informed proposals. Indeed we can, and the resulting algorithm is often called the
+\textit{Metropolis-Adjusted Langevin Algorithm} (MALA) or simply \textit{Langevin Monte Carlo}. I motivate the algorithm here from a more intuitive perspective by drawing
+parallels between Gradient descent and MALA, but it should be noted that this algorithm can be rigorously derived as the discretization of a diffusion equation from
+Langevin dynamics. 
+
+\subsubsection{Introduction and Motivation}
+Recall that RWMH generated proposals as 
+\[X_{t + 1} = X_t + Z, \text{ where } Z \sim N_d(0, \sigma^2 I_d)\]
+Notice that this proposal mechanism does not take into account the target density $\pi$ at all! It only depends on the current value in the Markov chain. If $\pi$ is differentiable, 
+then it would seem that we're leaving important information on the table that could potentially be taken advantage of in generating proposals. Indeed, we know that the gradient
+$\nabla \pi(x)$ gives ``local'' information about $\pi$ around the point $x$; in particular, $\nabla \pi(x)$ is a vector that points in the direction of steepest ascent at $x$ and whose 
+magnitude indicates the rate of ascent. Gradient ascent uses this information in a ``hill-climbing'' fashion to maximize a function. Indeed, if we simply wanted to maximize $\pi$
+instead of sample from it, we might just employ the gradient ascent update step until convergence is reached
+\[x_{t + 1} = x_t + \gamma \nabla \pi(x_t)\]
+where $\gamma$ is a step-size that controls how far of a step is taken in the direction of the gradient. Given that our task is sampling, not optimizing, we of course do not 
+want to exclusively move towards the mode of the distribution. However, since most of the probability mass is generally around the mode it seems that we'd like to move
+towards the mode more often than away from it. This motivates the idea of running Gradient ascent with some random noise added to the mix; that is, take steps on average 
+in the direction of the gradient but also introduce random perturbations that allows steps towards lower density regions. Our first attempt at implementing this might be directly
+inspired by Gradient ascent update rule.
+\begin{align*}
+\text{Gradient Ascent: } &X_{t + 1} = X_t + \gamma \nabla \pi(X_t) \\
+\text{Gradient Ascent Inspired Sampling Algorithm: } &X_{t + 1} = X_t + \gamma \nabla \pi(X_t) + Z
+\end{align*}
+where $Z \sim N_d(0, \sigma^2 I_d)$ as in RWMH. So this is just a random walk plus a nudge in the direction of the gradient, meaning the proposal now depends both on the current
+value $X_t$ and on the target density $\picl$. 
+
+
+We might call such a proposal a \textit{local optimization proposal}. With this in mind, consider a proposal defined by: 
 \[X_{t + 1} := X_{t} + \frac{\sigma}{2} \nabla \log \pi(X_{t - 1}) + \sigma Z\]
 where $Z \sim N(0, I_d)$. Let's break this down. \textbf{TODO: complete}
 
