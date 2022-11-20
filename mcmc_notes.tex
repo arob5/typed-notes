@@ -617,13 +617,81 @@ inspired by Gradient ascent update rule.
 \text{Gradient Ascent Inspired Sampling Algorithm: } &X_{t + 1} = X_t + \gamma \nabla \pi(X_t) + Z
 \end{align*}
 where $Z \sim N_d(0, \sigma^2 I_d)$ as in RWMH. So this is just a random walk plus a nudge in the direction of the gradient, meaning the proposal now depends both on the current
-value $X_t$ and on the target density $\picl$. 
+value $X_t$ and on the target density. 
 
 
 We might call such a proposal a \textit{local optimization proposal}. With this in mind, consider a proposal defined by: 
 \[X_{t + 1} := X_{t} + \frac{\sigma}{2} \nabla \log \pi(X_{t - 1}) + \sigma Z\]
 where $Z \sim N(0, I_d)$. Let's break this down. \textbf{TODO: complete}
 
+
+% Section: Markov Chains
+\section{Re-Parameterizations and Change of Variables}
+
+TODO: add motivation - posterior geometry, etc. This topic can be a bit confusing given that similar language is often used to describe different concepts. As an example, I consider two 
+ways to sample from the inverse Gamma distribution. Before proceeding, we require the following result. 
+
+\begin{prop}
+Let $p_X: \R \to [0, 1]$ be a probability density and $T: \R \to \R$ an invertible map. Define random variables $X \sim p_X$ and 
+$Y := T(X) = T \circ X$. Then, 
+\[p_Y(y) = p_X(T^{-1}(y)) \abs{\frac{d}{dy} T^{-1}(y)}\] 
+where $p_Y$ is the density of $Y$. 
+\end{prop}
+
+\begin{proof}
+To begin, assume that $T$ is increasing on the range of $X$. Then $T^{-1}: \R \to \R$ is also increasing. In this case the distribution function of $Y$ is given by 
+\begin{align*}
+F_Y(y) &= \Prob(Y \leq y) = \Prob(T(X) \leq y) = \Prob(X \leq T^{-1}(y)) = F_X(T^{-1}(y))
+\end{align*}
+We then have by the chain rule
+\begin{align*}
+p_Y(y) &=  \frac{d}{dy} F_Y(y) = \frac{d}{dy} F_X(T^{-1}(y)) = \frac{d}{dy} T^{-1}(y) \cdot p_X(T^{-1}(y)) \\
+\end{align*}
+If $T$ is decreasing on the range of $X$, then 
+\begin{align*}
+F_Y(y) &= \Prob(Y \leq y) = \Prob(T(X) \leq y) = \Prob(X \geq T^{-1}(y)) = 1 - F_X(T^{-1}(y))
+\end{align*}
+and
+\begin{align*}
+p_Y(y) &=  \frac{d}{dy} F_Y(y) = \frac{d}{dy} [1 - F_X(T^{-1}(y))] = -\frac{d}{dy} T^{-1}(y) \cdot p_X(T^{-1}(y)) \\
+\end{align*}
+Note that $T^{-1}$ is decreasing in this case and thus $\frac{d}{dy} T^{-1}(y) < 0$, meaning that $p_Y(y) > 0$. 
+
+Combining these cases, 
+\[p_Y(y) = p_X(T^{-1}(y)) \abs{\frac{d}{dy} T^{-1}(y)}  \]
+
+\end{proof}
+
+\noindent
+\textbf{Direct Sampling via Transformation}
+The obvious solution here (and the one that would actually be used in practice) is to apply a direct, independent sampling method that directly uses the fact that 
+\[X \sim IG(a, b) \iff Y := X^{-1} \sim G(a, b) \]
+Note that $b$ is a rate (not shape)  parameter for the Gamma distribution of $Y$. In other words we have equality in distribution: $X \overset{d}{=} Y$. So to sample 
+from $X$, we can simply draw independent samples from $Y$ (which we know how to do given that $Y$ is Gamma-distributed) and then invert them to get 
+samples from $X$. 
+\begin{enumerate}
+\item Sample $y \sim G(a, b)$
+\item Return $\frac{1}{y}$
+\end{enumerate} 
+This is a very simple procedure that yields independent samples from $X$. 
+
+\bigskip
+\noindent
+\textbf{Change of Variables in MCMC}
+While the above approach is definitely preferred, we discuss an alternative method here just to illustrate the concept of change of variables in MCMC. Later on, we will address 
+cases where change of variables is actually required in practice. The same basic idea applies here: we use our knowledge of the Gamma distribution and its connection to the IG
+ to indirectly generate IG samples. However, the big difference here is that we are not directly drawing Gamma samples as in the previous case. In MCMC, samples are drawn from a 
+ separate proposal distribution and then the target distribution only comes into play in the accept-reject step. Therefore, we must consider the relationship between the Gamma and IG
+ \textit{densities}, as the target density is ultimately what will be evaluated in MCMC. Put differently, our target parameter in MCMC is $X \sim IG(a, b)$ but pretend that we only know 
+ the Gamma density $\pi_Y$ as well as the relationship in distribution $X \overset{d}{=} Y$. What can we do? We will use the above proposition to relate the densities $\pi_X$ and $\pi_Y$. 
+ First, note that we have the bijective map $T: \R \to \R$ given by $T(y) = \frac{1}{y}$ which we will think of as mapping from $Y$ to $X$. Applying the above proposition yields an expression for 
+ the IG density
+ \[\pi_X(x) = \pi_Y(T^{-1}(x))\abs{\frac{d}{dx} T^{-1}(x)}\]
+ In this case, $\abs{\frac{d}{dx} T^{-1}(x)} = \abs{\frac{d}{dx} \frac{1}{x}} = \abs{-x^{-2}} = \frac{1}{x^2}$. This is the Jacobian adjustment term. The log target density we would use in a MCMC sampler
+ would be 
+\begin{align*}
+\log \pi_Y(T^{-1}(\theta)) - 2\log \theta = \log \pi_Y(\theta^{-1}) - 2\log \theta
+\end{align*}
 
 
 
