@@ -687,11 +687,128 @@ cases where change of variables is actually required in practice. The same basic
  First, note that we have the bijective map $T: \R \to \R$ given by $T(y) = \frac{1}{y}$ which we will think of as mapping from $Y$ to $X$. Applying the above proposition yields an expression for 
  the IG density
  \[\pi_X(x) = \pi_Y(T^{-1}(x))\abs{\frac{d}{dx} T^{-1}(x)}\]
- In this case, $\abs{\frac{d}{dx} T^{-1}(x)} = \abs{\frac{d}{dx} \frac{1}{x}} = \abs{-x^{-2}} = \frac{1}{x^2}$. This is the Jacobian adjustment term. The log target density we would use in a MCMC sampler
+ In this case, $\abs{\frac{d}{dx} T^{-1}(x)} = \abs{\frac{d}{dx} \frac{1}{x}} = \abs{-x^{-2}} = \frac{1}{x^2}$. This is the Jacobian adjustment term. The unnormalized log target density we would use in a MCMC sampler
  would be 
 \begin{align*}
-\log \pi_Y(T^{-1}(\theta)) - 2\log \theta = \log \pi_Y(\theta^{-1}) - 2\log \theta
+\log \tilde{\pi}(\theta) := \log \tilde{\pi}_Y(T^{-1}(\theta)) - 2\log \theta &= \log \pi_Y(\theta^{-1}) - 2\log \theta \\
+												       &= -(a - 1)\log \theta - \frac{b}{\theta} - 2\log \theta \\
+												       &= (a + 1) \log \frac{1}{\theta} - \frac{b}{\theta}
 \end{align*}
+where the second line is just applying the density of the Gamma distribution and dropping the normalizing constant. We have been pretending that we don't know the density of $X \sim IG(a, b)$
+but in reality we know that it is given by 
+\[\log \tilde{\pi}(x) = (a + 1)\log \frac{1}{x} - \frac{b}{x}\]
+We see this is equal to the expression above derived using the change of variables formula, as expected. If we wanted, we could just code up an MCMC sampler directly using the known 
+density of IG(a, b). It is very important to realize that this sampler is different from the one using the change of variables formula above, even though the resulting densities are the same. This is a bit
+subtle, so I will explicitly write this out. 
+
+\bigskip
+\noindent
+\textbf{Direct Implementation using IG density:}
+\begin{itemize}
+\item Sample proposal $x \sim q(x_{t - 1}, \cdot)$
+\item Perform rejection step using target density $\log \tilde{\pi}(x) = (a + 1)\log \frac{1}{x} - \frac{b}{x}$
+\end{itemize}
+
+\bigskip
+\noindent
+\textbf{Change of Variables Implementation:}
+\begin{itemize}
+\item Sample proposal $\theta \sim q(x_{t - 1}, \cdot)$
+\item Perform rejection step using target density $\log \tilde{\pi}(\theta) = (a + 1) \log \frac{1}{\theta} - \frac{b}{\theta}$
+\end{itemize}
+
+\subsection{Parameter Transformations in MCMC}
+In this section, I derive a formula for re-parameterizing the target variables of interest in MCMC. Such re-parameterizations are often performed for convenience
+or, more importantly, to achieve a posterior geometry that leads to more efficient sampling. As motivation, consider the example model
+\begin{align*}
+&y \sim N_d(\theta, \Sigma) \\
+&\theta \sim \text{LN}(\mu, C)
+\end{align*} 
+where $\text{LN}(\mu, C)$ denotes the multivariate log-normal distribution (meaning $X \sim \text{LN}(a, C)$ implies $\log X \sim N(a, C)$). The noise 
+covariance $\Sigma$ is considered fixed here, so the target parameters of interest are $\theta \in \R^d$; that is, we seek to summarize the posterior 
+\begin{align*}
+\pi(\theta|y) &\propto \pi_0(\theta) p(y|\theta) \\
+		  &= \text{LN}(\theta| \mu, C) N_d(y|\theta, \Sigma)
+\end{align*}
+We could proceed directly and use this posterior in an MCMC scheme. However, correlations in the posterior can result in inefficient interest, and we notice that 
+the correlations in the prior $\text{LN}(\mu, C)$ will likely induce correlations in the posterior. We can induce a nicer posterior geometry by re-parameterizing the prior
+in such a way that eliminates the prior correlations. If we define $\alpha \sim N(0, I_d)$, then $\theta \overset{d}{=} e^{\mu + L\alpha}$ where $L \in \R^{d \times d}$ is 
+the Cholesky factor of $C$ satisfying $C = L L^T$. Seeing that the prior on $\alpha$ is now uncorrelated, it is advantageous to re-write the model as
+\begin{align*}
+&y \sim N_d(e^{\mu + L\alpha}, \Sigma) \\
+&\alpha \sim N(0, I_d)
+\end{align*}
+In this case, this has the added benefit of changing the log-normal prior to a more familiar Gaussian prior.  
+However, the parameters of interest are still $\theta$, not $\alpha$. The goal is thus to perform inference using the densities defined by the above 
+model (with respect to $\alpha$) and then transform them to access ensure with are correctly sampling from $\theta|y$. Since MCMC
+requires evaluation of the posterior density (up to a normalizing constant), this simply requires re-writing the posterior density 
+$\pi(\theta|y)$ in terms of $\alpha$. We have defined a bijective map $T(\alpha) = e^{\mu + L\alpha} = \theta$. The question becomes: what is the 
+density $\pi(T(\alpha)|y)$. Below I derive this result for an arbitrary density and then apply result to the specific example considered above. 
+
+\begin{prop}
+Let $p_X: \R \to [0, 1]$ be a probability density and $T: \R \to \R$ an invertible and differentiable map. Define random variables $X \sim p_X$ and 
+$Y := T(X) = T \circ X$. Then, 
+\[p_Y(y) = p_X(T^{-1}(y)) \abs{\frac{d}{dy} T^{-1}(y)}\] 
+where $p_Y$ is the density of $Y$. 
+\end{prop}
+
+\begin{proof}
+To begin, assume that $T$ is increasing on the range of $X$. Then $T^{-1}: \R \to \R$ is also increasing. In this case the distribution function of $Y$ is given by 
+\begin{align*}
+F_Y(y) &= \Prob(Y \leq y) = \Prob(T(X) \leq y) = \Prob(X \leq T^{-1}(y)) = F_X(T^{-1}(y))
+\end{align*}
+We then have by the chain rule
+\begin{align*}
+p_Y(y) &=  \frac{d}{dy} F_Y(y) = \frac{d}{dy} F_X(T^{-1}(y)) = \frac{d}{dy} T^{-1}(y) \cdot p_X(T^{-1}(y)) \\
+\end{align*}
+If $T$ is decreasing on the range of $X$, then 
+\begin{align*}
+F_Y(y) &= \Prob(Y \leq y) = \Prob(T(X) \leq y) = \Prob(X \geq T^{-1}(y)) = 1 - F_X(T^{-1}(y))
+\end{align*}
+and
+\begin{align*}
+p_Y(y) &=  \frac{d}{dy} F_Y(y) = \frac{d}{dy} [1 - F_X(T^{-1}(y))] = -\frac{d}{dy} T^{-1}(y) \cdot p_X(T^{-1}(y)) \\
+\end{align*}
+Note that $T^{-1}$ is decreasing in this case and thus $\frac{d}{dy} T^{-1}(y) < 0$, meaning that $p_Y(y) > 0$. 
+
+Combining these cases, 
+\[p_Y(y) = p_X(T^{-1}(y)) \abs{\frac{d}{dy} T^{-1}(y)}  \]
+\end{proof}
+
+This can be generalized to multivariate functions as well. 
+\begin{prop} \label{change_of_variables}
+Let $p_X: \R^d \to [0, 1]$ be a probability density and $T: \R^d \to \R^d$ an invertible, continuously differentiable map. Define random variables $X \sim p_X$ 
+and $Y := T(X) = T \circ X$. Then, 
+\[p_Y(y) = p_X(T^{-1}(y)) \abs{\det\left(DT^{-1}(y)\right)}\] 
+where $p_Y$ is the density of $Y$, and $DT^{-1}(y) \in \R^{d \times d}$ is the derivative (i.e. the Jacobian matrix) of $T^{-1}$ evaluated at $y$. 
+\end{prop}
+
+\begin{proof}
+The general proof of this is more involved and can be derived as a special case of the change of variables theorem for integration over measure 
+spaces. I will attempt to provide some semblance of justification here under simplifying assumptions, but note that the result holds more generally. 
+I will only show the case where $T$ is an increasing function in each dimension, and hence so is $T^{-1}$. I will also assume that 
+$T$ is of the form $T(X) = T(X_1, \dots, X_d) = (T_1(X_1), \dots, T_d(X_d))$; that is, $T$ applies a univariate transformation to each dimension $j$ that 
+only depends on the value of the $j^{\text{th}}$ dimension. Using the first assumption, we have 
+\[F_Y(y) = \Prob(Y_1 \leq y_1, \dots, Y_d \leq y_d) = \Prob(Y \leq y) = \Prob(T(X) \leq y) = \Prob(X \leq T^{-1}(y)) = F_X(T^{-1}(y))\]
+Note that this relies on the property 
+\[y \geq y^\prime \iff T^{-1}(y) \geq T^{-1}(y^\prime)\]
+where the inequalities are interpreted elementwise. To find the density $p_Y$ I first note that a multivariate density (assuming the density exists) can be recovered 
+from a multivariate PDF by applying the sequence of partial derivative operators with respect to each dimension:
+\[p_Y(y) = \frac{\partial F_Y(y)}{\partial y_1, \dots, \partial y_d}\]
+Using this, we have that
+\begin{align*}
+p_Y(y) &= \frac{\partial F_Y(y)}{\partial y_1, \dots, \partial y_d} \\
+	   &= \frac{\partial F_X(T^{-1}(y))}{\partial y_1, \dots, \partial y_d} \\
+	   &= \frac{\partial T_1^{-1}(y)}{\partial y_1} \cdots \frac{\partial T_d^{-1}(y)}{\partial y_d} p_X(T^{-1}(y))
+\end{align*}
+Note that $T^{-1}$ is differentiable by assumption. Thus, the derivative $D T^{-1}(y) \in \R^{d \times d}$ exists. By the simplifying assumption of the form of $T$, then 
+$D T^{-1}(y)$ is a diagonal matrix and thus has determinant
+\[\det\left(D T^{-1}(y)\right) = \frac{\partial T_1^{-1}(y)}{\partial y_1} \cdots \frac{\partial T_d^{-1}(y)}{\partial y_d} \]
+Thus, 
+\[p_Y(y) = p_X(T^{-1}(y)) \det\left(D T^{-1}(y)\right) \]
+When we consider the case that $T$ is increasing in each dimension we find a similar result as in the univariate case. Combining the two cases yields 
+\[p_Y(y) = p_X(T^{-1}(y)) \abs{\det\left(D T^{-1}(y)\right)} \]
+\end{proof}
 
 
 
