@@ -1,0 +1,134 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Probability Theory Review: Main Concepts}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% Convergence of Random Variables
+\section{Convergence of Random Variables}
+A random variable is simply a measurable function $X: \Omega \to \R$, where $(\Omega, \mathcal{F}, \mathbb{P})$ is a measure space. Therefore, convergence of random variables
+really just boils down to convergence of functions. What differentiates such convergence from that studied in real analysis is that the input space $\Omega$ of the function is \textit{weighted}, 
+whereas in classical real analysis there is no weighting scheme that gives more emphasis to certain input values $\omega \in \Omega$ and less to others. Ignoring the weights implied by the 
+probability measure, we could simply consider the standard notion of \textit{pointwise convergence} of a sequence of random variables $\{X_n\}$ to some limiting random variable $X$:
+\begin{align}
+\lim_{n \to \infty} X_n(\omega) = X(\omega), \text{ for all } \omega \in \Omega \label{Pointwise_Convergence}
+\end{align}
+However, as we already discussed, this completely ignores $\mathbb{P}$. Convergence of random variables should naturally incorporate knowledge of this measure, which intuitively tells us 
+how much emphasis should be placed on particular $\omega$. The notion of pointwise convergence [\ref{Pointwise_Convergence}] treats all $\omega$ equally. There are many different reasonable
+ways that we might incorporate $\mathcal{P}$ into the definition of a limit, yielding different notions of convergence, each of which have strengths and weaknesses with respect to particular applications. 
+We consider the most popular notions of convergence below. 
+
+\subsection{Almost Sure Convergence}
+Almost sure convergence incorporates knowledge of $\mathcal{P}$ in the simplest manner possible--it simply ignores the set of $\omega$ with zero probability. This is a quite natural slight adjustment 
+of pointwise convergence; if $\mathcal{P}$ assigns zero probability to a set $A \in \mathcal{F}$, then requiring $\{X_n\}$ to converge on this set seems to be overly restrictive. Almost sure convergence 
+simply removes this restriction. However, beyond this adjustment it still does not consider any sort of weighting for the set of positive measure. It just partitions the set of positive measure from that of zero 
+measure, and ignores the latter. 
+
+\begin{definition}
+A sequence of random variables $\{X_n\}$ is said to converge almost surely (a.s.) to a random variable $X$ provided that 
+\[\mathbb{P}\left(\lim_{n \to \infty} X_n(\omega) = X(\omega)\right) = 1\]
+As shorthand, we write $X_n \overset{a.s.}{\to} X$.
+\end{definition}  
+To be more explicit, we might write out the definition as 
+\[\mathbb{P}\left(\left\{\omega \in \Omega: \lim_{n \to \infty} X_n(\omega) = X(\omega)\right\} \right) = 1\]
+or equivalently, 
+\[\mathbb{P}\left(\left\{\omega \in \Omega: \lim_{n \to \infty} X_n(\omega) \neq X(\omega)\right\} \right) = 0\]
+Convergence in probability says that by going far enough along in the sequence we can make $X_n(\omega)$ and $X(\omega)$ arbitrarily close for almost all $\omega$.
+
+\subsection{Convergence in Probability}
+Another reasonable way to define convergence that takes the probability measure into account is to consider the probability that $X_n$ is ``far from'' $X$ as a function function of $n$, and require that this 
+probability converge to $0$ as $n \to \infty$. 
+\begin{definition}
+A sequence of random variables $\{X_n\}$ is said to converge in probability to a random variable $X$ provided that for any $\epsilon > 0$,
+\[\lim_{n \to \infty} \Prob\left(\abs{X_n(\omega) - X(\omega)} \geq \epsilon \right) = 0\]
+As shorthand, we write $X_n \overset{p}{\to} X$.
+\end{definition}
+This is quite different than almost sure convergence, where the probability under consideration was not itself a function of $n$. Plugging in the standard definition of a limit, we obtain the equivalent 
+definition that for any $\epsilon > 0$,
+\[\forall \epsilon^\prime > 0, \text{ there exists } N \in \mathbb{N} \text{ s.t. for all } n \geq N, \ \Prob\left(\abs{X_n(\omega) - X(\omega)} \geq \epsilon \right) < \epsilon^\prime \]
+Almost sure convergence required that $X_n(\omega)$ and $X(\omega)$ become arbitrarily close as $n$ grows large for almost all $\omega$. On the other hand, convergence in probability requires that 
+the set $\{\omega \in \Omega: \abs{X_n(\omega) - X(\omega)} \geq \epsilon\}$ becomes arbitrarily ``small'' (according to $\Prob$) as $n$ grows large. Therefore, convergence in probability replaces the pointwise
+notion underlying almost sure convergence with more of an ``ensemble'' requirement. Convergence in probability is a weaker definition; $X_n \overset{p}{\to} X$ can still hold even if there is a set of positive 
+measure on which $X_n$ does not converge pointwise to $X$. 
+
+
+\subsection{Convergence in Distribution}
+
+\subsection{$L_p$ Convergence (Convergence in Mean)}
+
+\subsection{Relationships between Notions of Convergence}
+
+% Inequalities
+\section{Inequalities}
+
+\subsection{Chebyshev}
+The Chebyshev inequality essentially gives the fattest possible tails a probability distribution can have subject to the constraint of finite variance. Slowest possible decay looks like $\frac{1}{\abs{x}^{3 + \epsilon}}$.
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
