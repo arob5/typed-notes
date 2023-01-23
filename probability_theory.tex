@@ -92,21 +92,42 @@ or equivalently,
 \[\mathbb{P}\left(\left\{\omega \in \Omega: \lim_{n \to \infty} X_n(\omega) \neq X(\omega)\right\} \right) = 0\]
 Convergence in probability says that by going far enough along in the sequence we can make $X_n(\omega)$ and $X(\omega)$ arbitrarily close for almost all $\omega$.
 
+To dig into this a bit deeper, we recall the definition of the standard pointwise limit $\lim_{n \to \infty} X_n(\omega) = X(\omega)$ from real analysis: 
+\begin{align*}
+\forall \epsilon > 0, \ \exists N_{\epsilon, \omega} \in \mathbb{N} \text{ s.t. } \forall n \geq N_{\epsilon, \omega}, \ \abs{X_n(\omega) - X(\omega)} < \epsilon 
+\end{align*} 
+where I utilize the subscripts $N_{\epsilon, \omega}$ to emphasize that $N$ depends on both $\epsilon$ and $\omega$. Almost sure convergence says that existence of such an $N$ for 
+every $\epsilon > 0$ holds for almost all $\omega \in \Omega$. It can be shown that this implies for any $\epsilon > 0$ the existence of an $N \in \mathbb{N}$ satisfying 
+\[\Prob(\abs{X_n(\omega) - X(\omega)} < \epsilon) = 1, \text{ for all } n \geq N\]
+I find this statement to provide the best interpretation of almost sure convergence. Let's call the event $\{X_n(\omega) \text{ is outside of an } \epsilon\text{-ball of } X(\omega)\}$ an \textit{unusual event} 
+(where the radius $\epsilon$ is a measure of how unusual). Then $X_n(\omega) \overset{a.s.}{\to} X(\omega)$ means that if we go far enough along in the sequence we can drive the probability of 
+an unusual event to \textit{zero}. This is a powerful statement, though it gives no sense of how far along in the sequence one must go to achieve this. This interpretation of almost sure convergence is also 
+quite helpful when trying to understand its difference from convergence in probability, which is discussed below. 
+
 \subsection{Convergence in Probability}
 Another reasonable way to define convergence that takes the probability measure into account is to consider the probability that $X_n$ is ``far from'' $X$ as a function function of $n$, and require that this 
-probability converge to $0$ as $n \to \infty$. 
+probability converge to $0$ as $n \to \infty$.  
 \begin{definition}
 A sequence of random variables $\{X_n\}$ is said to converge in probability to a random variable $X$ provided that for any $\epsilon > 0$,
 \[\lim_{n \to \infty} \Prob\left(\abs{X_n(\omega) - X(\omega)} \geq \epsilon \right) = 0\]
 As shorthand, we write $X_n \overset{p}{\to} X$.
 \end{definition}
-This is quite different than almost sure convergence, where the probability under consideration was not itself a function of $n$. Plugging in the standard definition of a limit, we obtain the equivalent 
+This is certainly related almost sure convergence, and I find it quite easy to accidentally conflate the two. Note that in the definition of almost sure convergence the probability measure appears outside of the limit, 
+while here it appears inside of the limit. To better understand the difference, we consider manipulating the above definition. 
+Plugging in the standard definition of a limit, we obtain the equivalent 
 definition that for any $\epsilon > 0$,
 \[\forall \epsilon^\prime > 0, \text{ there exists } N \in \mathbb{N} \text{ s.t. for all } n \geq N, \ \Prob\left(\abs{X_n(\omega) - X(\omega)} \geq \epsilon \right) < \epsilon^\prime \]
-Almost sure convergence required that $X_n(\omega)$ and $X(\omega)$ become arbitrarily close as $n$ grows large for almost all $\omega$. On the other hand, convergence in probability requires that 
-the set $\{\omega \in \Omega: \abs{X_n(\omega) - X(\omega)} \geq \epsilon\}$ becomes arbitrarily ``small'' (according to $\Prob$) as $n$ grows large. Therefore, convergence in probability replaces the pointwise
-notion underlying almost sure convergence with more of an ``ensemble'' requirement. Convergence in probability is a weaker definition; $X_n \overset{p}{\to} X$ can still hold even if there is a set of positive 
-measure on which $X_n$ does not converge pointwise to $X$. 
+Now we're in a nice position to compare to almost sure convergence. For $\epsilon > 0$, we found that almost sure convergence guaranteed the existence of an $N \in \mathbb{N}$
+satisfying 
+\[\Prob(\abs{X_n(\omega) - X(\omega)} \geq \epsilon) = 0, \text{ for all } n \geq N\]
+while convergence in probability guarantees the existence of an $N$ satisfying 
+\[\Prob(\abs{X_n(\omega) - X(\omega)} \geq \epsilon) < \epsilon^\prime, \text{ for all } n \geq N, \text{ for any } \epsilon^\prime > 0\]
+That is, almost sure convergence guarantees a finite number of unusual events--by choosing $N$ large enough the probability of an unusual event may be driven to zero. Convergence in 
+probability gives a weaker guarantee; the probability of an unusual event my be driven to be arbitrarily small, but is not guaranteed to ever reach zero. To better understand this distinction, 
+we consider a specific example. 
+
+\subsubsection{Example: A sequence that converges in probability but not almost surely}
+TODO
 
 
 \subsection{Convergence in Distribution}
