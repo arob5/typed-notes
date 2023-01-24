@@ -9,6 +9,7 @@
 \usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
 \usepackage{algorithmic}
 \usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
 
 % Plotting
 \usepackage{pgfplots}
@@ -138,6 +139,34 @@ TODO
 
 % Inequalities
 \section{Inequalities}
+
+\subsection{Markov and Chebyshev}
+The Markov inequality is the most basic tail inequality, and underlies many more sophisticated inequalities. 
+\begin{thm}
+Let $X$ be a non-negative random variable. Then for all $\alpha > 0$, 
+\[\Prob(X \geq \alpha) \leq \frac{\E X}{\alpha}\]
+\end{thm}
+This is illustrated nicely by drawing a picture with $\omega$ on the x-axis and $X(\omega)$ on the y-axis, where $\E X$ and $\Prob(X \geq \alpha)$ can then be compared by the areas they represent on 
+the graph. It is not surprising that tail probabilities (for non-negative random variables) are upper bounded by their (scaled) expectation. The Markov inequality is quite easy to prove. 
+\begin{proof} 
+Define the random variable $Z(\omega) := \alpha \mathbbm{1}[X(\omega) \geq \alpha]$. Since $X$ is non-negative then $Z \leq X$ so by monotonicity of expectation $\E Z \leq \E X$. Moreover, $Z$ is a simple 
+random variable (finitely many values), so its expectation is given by $\E Z = \alpha \Prob(X \geq \alpha)$. Putting this together, we have
+\[\Prob(X \geq \alpha) = \frac{\E Z}{\alpha} \leq \frac{\E X}{\alpha} \]
+\end{proof}
+It is similarly unsurprising that the probability that a random variable is farther than $\alpha$ away from its mean should be bounded by some expression proportional to its variance. Indeed, such a bound follows 
+by applying Markov's inequality to the random variable $(X - \E X)^2$ and is known as Chebyshev's inequality. 
+\begin{thm}
+Let $X$ be a random variable with finite mean and variance. Then for all $\alpha > 0$
+\[\Prob(\abs{X - \E X} \geq \alpha) \leq \frac{\Var(X)}{\alpha^2}\]
+\end{thm}
+
+\begin{proof}
+Since $(X - \E X)^2$ is a non-negative random variable and $\alpha^2$ a positive constant, we may apply Markov's inequality to yield
+\[\Prob((X - \E X)^2 \geq \alpha^2) \leq \frac{\E\left[\abs{X - \E X}^2\right]}{\alpha^2} = \frac{\Var(X)}{\alpha^2}\]
+Since $\Prob((X - \E X)^2 \geq \alpha^2) = \Prob(\abs{X - \E X} \geq \alpha)$, this completes the proof. 
+\end{proof}
+
+\subsection{Holder and Cauchy-Schwarz}
 
 \subsection{Chebyshev}
 The Chebyshev inequality essentially gives the fattest possible tails a probability distribution can have subject to the constraint of finite variance. Slowest possible decay looks like $\frac{1}{\abs{x}^{3 + \epsilon}}$.
