@@ -53,7 +53,7 @@
 \newtheorem{corollary}{Corollary}
 
 % Title and author
-\title{Probability Theory Review: Main Concepts}
+\title{Laws of Large Numbers and Central Limit Theorems}
 \author{Andrew Roberts}
 
 \begin{document}
@@ -62,8 +62,13 @@
 \tableofcontents
 \newpage
 
-% Convergence of Random Variables
-\section{Convergence of Random Variables}
+
+% Introduction
+\section{Introduction}
+In this writeup I banish all but the simplest proofs to the appendix, in an effort to focus the main body of the text on big picture concepts and intuition. 
+
+% Notions of Convergence
+\section{Notions of Convergence}
 A random variable is simply a measurable function $X: \Omega \to \R$, where $(\Omega, \mathcal{F}, \mathbb{P})$ is a measure space. Therefore, convergence of random variables
 really just boils down to convergence of functions. What differentiates such convergence from that studied in real analysis is that the input space $\Omega$ of the function is \textit{weighted}, 
 whereas in classical real analysis there is no weighting scheme that gives more emphasis to certain input values $\omega \in \Omega$ and less to others. Ignoring the weights implied by the 
@@ -130,62 +135,71 @@ we consider a specific example.
 \subsubsection{Example: A sequence that converges in probability but not almost surely}
 TODO
 
+% WLLN
+\section{Weak Laws of Large Numbers}
+This section details a variety of weak laws of large numbers (WLLNs), which concern the convergence of sums of random variables in probability. Recall from the previous section that intuitively we can think 
+of these theorems as guaranteeing that the ``error rate'' or probability of an ``unusual event'' becomes arbitrarily small as $N$ increases, but they are weak in the sense that the error probability is never guaranteed 
+to reach zero. There are many WLLNs that make different assumptions and conclusions, but they are all generally concerned with the convergence in probability of sums or empirical means of random variables. 
 
-\subsection{Convergence in Distribution}
-
-\subsection{$L_p$ Convergence (Convergence in Mean)}
-
-\subsection{Relationships between Notions of Convergence}
-
-% Inequalities
-\section{Inequalities}
-
-\subsection{Markov and Chebyshev}
-The Markov inequality is the most basic tail inequality, and underlies many more sophisticated inequalities. 
-\begin{thm}
-Let $X$ be a non-negative random variable. Then for all $\alpha > 0$, 
-\[\Prob(X \geq \alpha) \leq \frac{\E X}{\alpha}\]
-\end{thm}
-This is illustrated nicely by drawing a picture with $\omega$ on the x-axis and $X(\omega)$ on the y-axis, where $\E X$ and $\Prob(X \geq \alpha)$ can then be compared by the areas they represent on 
-the graph. It is not surprising that tail probabilities (for non-negative random variables) are upper bounded by their (scaled) expectation. The Markov inequality is quite easy to prove. 
-\begin{proof} 
-Define the random variable $Z(\omega) := \alpha \mathbbm{1}[X(\omega) \geq \alpha]$. Since $X$ is non-negative then $Z \leq X$ so by monotonicity of expectation $\E Z \leq \E X$. Moreover, $Z$ is a simple 
-random variable (finitely many values), so its expectation is given by $\E Z = \alpha \Prob(X \geq \alpha)$. Putting this together, we have
-\[\Prob(X \geq \alpha) = \frac{\E Z}{\alpha} \leq \frac{\E X}{\alpha} \]
-\end{proof}
-It is similarly unsurprising that the probability that a random variable is farther than $\alpha$ away from its mean should be bounded by some expression proportional to its variance. Indeed, such a bound follows 
-by applying Markov's inequality to the random variable $(X - \E X)^2$ and is known as Chebyshev's inequality. 
-\begin{thm}
-Let $X$ be a random variable with finite mean and variance. Then for all $\alpha > 0$
-\[\Prob(\abs{X - \E X} \geq \alpha) \leq \frac{\Var(X)}{\alpha^2}\]
+\subsection{Simplest Case: Finite Variance}
+We begin with the most basic WLLN, which assumes the random variables are iid with finite variance. The finite variance assumption guarantees that the probability distribution is not too ``spread out'', which implies 
+that taking empirical means will reduce the randomness in the distribution and tend toward a single value. With this assumption, the WLLN is quite easy to prove, following from a simple application of Chebyshev's 
+inequality. 
+\begin{thm} 
+Let $\{X_k\}_{k = 1}^{\infty}$ be a sequence of iid random variables with finite mean $\mu := \E X_1 < \infty$ and variance $\sigma^2 := \Var(X_1) < \infty$. Define the partial sum $S_N := \sum_{k = 1}^{N} X_k$. Then 
+\[\frac{S_N}{N} \overset{p}{\to} \mu\]
 \end{thm}
 
 \begin{proof}
-Since $(X - \E X)^2$ is a non-negative random variable and $\alpha^2$ a positive constant, we may apply Markov's inequality to yield
-\[\Prob((X - \E X)^2 \geq \alpha^2) \leq \frac{\E\left[\abs{X - \E X}^2\right]}{\alpha^2} = \frac{\Var(X)}{\alpha^2}\]
-Since $\Prob((X - \E X)^2 \geq \alpha^2) = \Prob(\abs{X - \E X} \geq \alpha)$, this completes the proof. 
+Let $\epsilon > 0$. We must show that 
+\[\lim_{N \to \infty} \Prob\left(\abs{\frac{S_N}{N} - \mu} > \epsilon \right) = 0\]
+To apply Chebyshev, we will require the variance $\Var(S_N)$. This is easily calculated using the iid assumption and finite variance assumption:
+\[\Var(S_N) = \Var\left(\sum_{k = 1}^{N} X_k \right) = \sum_{k = 1}^{N} \Var(X_k) =  \sum_{k = 1}^{N} \sigma^2 = N\sigma^2 \]
+By Chebyshev, 
+\begin{align*}
+\Prob\left(\abs{\frac{S_N}{N} - \mu} > \epsilon \right) &\leq \frac{\Var\left(\frac{S_N}{N}\right)}{\epsilon^2} \\
+									       &= \frac{\sigma^2}{N\epsilon^2} \to 0 \text{ as } N \to \infty 
+\end{align*}
 \end{proof}
-Chebyshev's inequality is also often presented by setting $\alpha := k\sigma_X := k\sqrt{\Var(X)}$, which yields
-\[\Prob(\abs{X - \E X} \geq k\sigma_X) \leq \frac{\sigma_X^2}{k^2 \sigma_X^2} = \frac{1}{k^2}\]
-That is, the probability that $X$ is at least $k$ standard deviations from its mean is upper bounded by $\frac{1}{k^2}$. Since $\frac{1}{k^2}$ decays quickly as $k$ increases, this inequality states that it is 
-very unlikely for a random variable to assume a value more than a few standard deviations from its mean. Chebyshev's inequality also gives the bound on the heaviest possible tail a probability distribution can 
-have, subject to the constraint of finite variance. The following example demonstrates this for absolutely continuous distributions. 
 
-\bigskip
-\textbf{Example.} Let's try to find absolutely continuous distributions (i.e. distributions with densities) that have the heaviest possible tails; that is, that make the Chebyshev inequality tight. For simplicity, assume 
-$\E X = 0$ and $\Var(X) = 1$ (we can always re-scale). Then the Chebysev inequality is tight when 
-\[\Prob(\abs{X} > k) = k^{-2}\]
-or equivalently, $\Prob(\abs{X} \leq k) = 1 - k^{-2}$. We can treat the positive and negative cases separately to find the density that must be implied by this CDF. For example, if we consider the positive part $X > 0$ 
-then we simply differentiate $1 - k^{-1}$ to obtain the density $2k^{-3}$. We find the same for the negative part. Note that there is a discontinuity at the origin; we can complete the definition on the real line by assigning 
- a density of 0 here. However, this distribution does not satisfy the finite variance constraint. Indeed, 
- \[\Var(X) = \int x^2 \cdot \frac{2}{x^3} dx = 2 \int \frac{1}{x} dx\]
-which is not Lebesgue integrable. Let's instead consider ``lightening the tails'' by an arbitrarily small amount $\epsilon > 0$. That is, instead of $\Prob(\abs{X} > k) = k^{-2}$ let's consider 
-$\Prob(\abs{X} > k) = k^{-(2 + \epsilon)}$ so that the distribution is arbitrarily close to making Chebyshev tight. Going through the same exercise as before, we now find 
+\subsection{What happens when variance is infinite?}
+Speaking very loosely, we described the finite variance assumption as a guarantee that the distribution of the $X_k$ is not too spread out, allowing the distribution of the partial sum $S_N$ to collapse as $N$ is increased. 
+It turns out that this assumption is actually not necessary at all--we can conclude the same exact result without the finite variance assumption. However, the finite mean assumption is still required, which plays a similar role by 
+bounding how spread out the distribution can be. The proof of this more general result is longer, but still not too bad. It is included below, as the ``truncated Chebyshev'' technique that is employed is a very common strategy to 
+deal with cases of infinite variance. This technique is fairly intuitive: modify $X_k$ (which has infinite variance) by chopping off its values outside of a specified interval, leading to a modified random variable with finite support and 
+hence finite variance. We can then apply Chebyshev to this truncated random variable. As we extend the truncation interval, the truncated variables approach the original ones, and we hope that in the limit the partial sums of these 
+two respective sequences will have the same limit. A shorter proof using characteristic functions is given in the appendix, but the truncation technique is presented here as it will sometimes be applicable when the 
+characteristic function technique is not. 
 
-\subsection{Holder and Cauchy-Schwarz}
+\begin{thm}
+Let $\{X_k\}_{k = 1}^{\infty}$ be a sequence of iid random variables with finite mean $\mu := \E X_1 < \infty$. Define the partial sum $S_N := \sum_{k = 1}^{N} X_k$. Then 
+\[\frac{S_N}{N} \overset{p}{\to} \mu\]
+\end{thm}
 
-\subsection{Chebyshev}
-The Chebyshev inequality essentially gives the fattest possible tails a probability distribution can have subject to the constraint of finite variance. Slowest possible decay looks like $\frac{1}{\abs{x}^{3 + \epsilon}}$.
+\begin{proof}
+Let $\epsilon > 0$. 
+We must show that 
+\[\lim_{N \to \infty} \Prob\left(\abs{\frac{S_N}{N} - \mu} > \epsilon \right) = 0\]
+Define the truncated random variables 
+\[Y_{N,k} := X_k \mathbbm{1}\{\abs{X_k} \leq N \epsilon^3\}\]
+The $\epsilon^3$ is chosen precisely because it makes the bound come out correctly, as we will see. Therefore, $Y_{N,k}$ agrees with $X_k$ on the set
+ $\{\omega \in \Omega: \abs{X(\omega)} \leq N\epsilon^3\}$, and outside of this set $Y_{N, k}$ is set to $0$. Therefore, in absolute value $\abs{Y_{N,k}} \leq \abs{X_{N,k}}$. Let $S_N^\prime := \sum_{k = 1}^{N} Y_{N,k}$
+ denote the partial sums of the sequence $\{Y_{N, k}\}$. Note also that, as functions of independent random variables the sequence $\{Y_N\}_{k = 1}^{\infty}$ is independent, for each $N$. 
+ 
+ The strategy here is to apply the triangle inequality 
+ \begin{align*}
+ \Prob\left(\abs{\frac{S_N}{N} - \mu} > \epsilon \right) &\leq \Prob\left(\abs{\frac{S_N}{N} - \frac{\E S^\prime_N}{N} } + \abs{\frac{\E S^\prime_N}{N}  - \mu} > \epsilon \right) \\
+ 										&\leq \Prob\left(\left\{\abs{\frac{S_N}{N} - \frac{\E S^\prime_N}{N} } > \frac{\epsilon}{2} \right\} + \left\{\abs{\frac{\E S^\prime_N}{N}  - \mu} > \frac{\epsilon}{2}\right\} \right) \\
+										&\leq \Prob\left(\abs{\frac{S_N}{N} - \frac{\E S^\prime_N}{N} } > \frac{\epsilon}{2}\right) + \Prob\left(\abs{\frac{\E S^\prime_N}{N}  - \mu} > \frac{\epsilon}{2}\right)
+ \end{align*}
+ If we show that 
+ \begin{enumerate}
+ \item $\frac{\E S_N^\prime}{N} \overset{p}{\to} \mu$
+ \item $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$
+ \end{enumerate}
+ then we can drive each of the terms to $0$ to prove the result. 
+ 
+\end{proof}
 
 
 \end{document}
