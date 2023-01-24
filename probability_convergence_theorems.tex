@@ -184,7 +184,7 @@ Define the truncated random variables
 \[Y_{N,k} := X_k \mathbbm{1}\{\abs{X_k} \leq N \epsilon^3\}\]
 The $\epsilon^3$ is chosen precisely because it makes the bound come out correctly, as we will see. Therefore, $Y_{N,k}$ agrees with $X_k$ on the set
  $\{\omega \in \Omega: \abs{X(\omega)} \leq N\epsilon^3\}$, and outside of this set $Y_{N, k}$ is set to $0$. Therefore, in absolute value $\abs{Y_{N,k}} \leq \abs{X_{N,k}}$. Let $S_N^\prime := \sum_{k = 1}^{N} Y_{N,k}$
- denote the partial sums of the sequence $\{Y_{N, k}\}$. Note also that, as functions of independent random variables the sequence $\{Y_N\}_{k = 1}^{\infty}$ is independent, for each $N$. 
+ denote the partial sums of the sequence $\{Y_{N, k}\}$. Note also that, for a fixed $N$, then each $Y_{N, k}$ is a fixed function of the iid random variables $X_k$ and hence are themselves iid.
  
  The strategy here is to apply the triangle inequality 
  \begin{align*}
@@ -194,10 +194,27 @@ The $\epsilon^3$ is chosen precisely because it makes the bound come out correct
  \end{align*}
  If we show that 
  \begin{enumerate}
- \item $\frac{\E S_N^\prime}{N} \overset{p}{\to} \mu$
+ \item $\frac{\E S_N^\prime}{N} \to \mu$ (typical convergence for deterministic sequences)
  \item $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$
  \end{enumerate}
- then we can drive each of the terms to $0$ to prove the result. 
+ then we can drive each of the terms to $0$ to prove the result. Let's begin with the first item, which is the easier of the two. \\
+ 
+ \bigskip
+ \noindent
+ \textbf{1. Showing $\frac{\E S_N^\prime}{N} \to \mu$.} \\
+ Since $\{Y_{N,k}\}_{k = 1}^{\infty}$ form a sequence of iid random variables, then the expectation of $S_N^\prime$ simplifies to 
+ \begin{align*}
+ \E S_N^\prime &= N \cdot \E\left[X_1 \mathbbm{1}\{\abs{X_1} \leq N\epsilon^3\} \right]
+ \end{align*}
+ Therefore, 
+ \[\frac{\E S_N^\prime}{N} = \E\left[X_1 \mathbbm{1}\{\abs{X_1} \leq N\epsilon^3\}\right]\]
+ which I claim converges in probability to $\mu$ by the dominated convergence theorem. Indeed, we have 
+ \[X_1 \mathbbm{1}\{\abs{X_1} \leq N\epsilon^3\} \leq \abs{X_1}\]
+ and 
+ \[X_1 \mathbbm{1}\{\abs{X_1} \leq N\epsilon^3\} \overset{a.s.}{\to} X_1 \]
+ The dominated convergence theorem therefore allows interchanging the limit and expectation, which yields
+ \[\frac{\E S_N^\prime}{N} = \E\left[X_1 \mathbbm{1}\{\abs{X_1} \leq N\epsilon^3\}\right] \to \E X_1 = \mu \]
+ as desired. 
  
 \end{proof}
 
