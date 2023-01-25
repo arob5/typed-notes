@@ -189,7 +189,7 @@ The $\epsilon^3$ is chosen precisely because it makes the bound come out correct
  The strategy here is to apply the triangle inequality 
  \begin{align*}
  \Prob\left(\abs{\frac{S_N}{N} - \mu} > \epsilon \right) &\leq \Prob\left(\abs{\frac{S_N}{N} - \frac{\E S^\prime_N}{N} } + \abs{\frac{\E S^\prime_N}{N}  - \mu} > \epsilon \right) \\
- 										&\leq \Prob\left(\left\{\abs{\frac{S_N}{N} - \frac{\E S^\prime_N}{N} } > \frac{\epsilon}{2} \right\} + \left\{\abs{\frac{\E S^\prime_N}{N}  - \mu} > \frac{\epsilon}{2}\right\} \right) \\
+ 										&\leq \Prob\left(\left\{\abs{\frac{S_N}{N} - \frac{\E S^\prime_N}{N} } > \frac{\epsilon}{2} \right\} \bigcup \left\{\abs{\frac{\E S^\prime_N}{N}  - \mu} > \frac{\epsilon}{2}\right\} \right) \\
 										&\leq \Prob\left(\abs{\frac{S_N}{N} - \frac{\E S^\prime_N}{N} } > \frac{\epsilon}{2}\right) + \Prob\left(\abs{\frac{\E S^\prime_N}{N}  - \mu} > \frac{\epsilon}{2}\right)
  \end{align*}
  If we show that 
@@ -216,7 +216,26 @@ The $\epsilon^3$ is chosen precisely because it makes the bound come out correct
  \[\frac{\E S_N^\prime}{N} = \E\left[X_1 \mathbbm{1}\{\abs{X_1} \leq N\epsilon^3\}\right] \to \E X_1 = \mu \]
  as desired. 
  
+ \bigskip
+ \noindent
+ \textbf{1. Showing $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$.} \\
+ Note that we cannot immediately apply Chebyshev to bound $\Prob\left(\abs{\frac{S_N}{N} - \frac{\E S_N^\prime}{N}} > \epsilon\right) = \Prob\left(\abs{S_N - \E S_N^\prime} > N\epsilon\right)$ since 
+ $S_N$ may have infinite variance. We therefore first utilize a crude bound to write the expression in terms of $S_N^\prime$, which does have finite variance. 
+ \begin{align*}
+ \Prob\left(\abs{S_N - \E S_N^\prime} > N\epsilon\right) &= \Prob\left(\left[\abs{S_N - \E S_N^\prime} > N\epsilon\right] \cap \left[S_N = S_N^\prime\right] \right) +  \Prob\left(\left[\abs{S_N - \E S_N^\prime} > N\epsilon\right] \cap \left[S_N \neq S_N^\prime\right] \right) \\
+ 										    &\leq \Prob\left(\abs{S^\prime_N - \E S_N^\prime} > N\epsilon \right) + \Prob(S_N \neq S_N^\prime) \\
+										    &= \Prob\left(\abs{S^\prime_N - \E S_N^\prime} > N\epsilon \right) + \Prob\left(\sum_{k = 1}^{N} (X_k - Y_{N,k}) \neq 0\right) \\
+										    &\leq \frac{\Var(S_N^\prime)}{N^2 \epsilon^2} + \Prob\left(\bigcup_{k = 1}^{N} \{X_k \neq Y_{N,k}\} \right) \\
+										    &\leq \frac{\Var(S_N^\prime)}{N^2 \epsilon^2} + \sum_{k = 1}^{N} \Prob(X_k \neq Y_{N,k}) \\
+										    &= \frac{\Var(S_N^\prime)}{N^2 \epsilon^2} + \sum_{k = 1}^{N} \Prob(\abs{X_k} > N\epsilon^3) \\
+										    &= \frac{\Var(S_N^\prime)}{N^2 \epsilon^2} + N \cdot \Prob(\abs{X_1} > N\epsilon^3)
+ \end{align*}
+ The second inequality follows from Chebyshev (left term) and the fact that $\left\{\sum_{k = 1}^{N} (X_k - Y_{N,k}) \neq 0\right\} \subset \bigcup_{k = 1}^{N} \{X_k \neq Y_{N,k}\}$ (right term). The latter says that for the sum to 
+ be non-zero, at least one of the terms needs to be non-zero. 
+ 
+ 
 \end{proof}
+Notice that in this proof we were able to replace the random variable $S_N^\prime$ with the deterministic value $\E S_N^\prime$, a common strategy in these types of proofs.  
 
 
 \end{document}
