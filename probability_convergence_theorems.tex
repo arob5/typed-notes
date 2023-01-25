@@ -231,7 +231,20 @@ The $\epsilon^3$ is chosen precisely because it makes the bound come out correct
 										    &= \frac{\Var(S_N^\prime)}{N^2 \epsilon^2} + N \cdot \Prob(\abs{X_1} > N\epsilon^3)
  \end{align*}
  The second inequality follows from Chebyshev (left term) and the fact that $\left\{\sum_{k = 1}^{N} (X_k - Y_{N,k}) \neq 0\right\} \subset \bigcup_{k = 1}^{N} \{X_k \neq Y_{N,k}\}$ (right term). The latter says that for the sum to 
- be non-zero, at least one of the terms needs to be non-zero. 
+ be non-zero, at least one of the terms needs to be non-zero. We continue by bounding the first term $\frac{\Var(S_N^\prime)}{N^2 \epsilon^2}$. 
+ \begin{align*}
+ \frac{\Var(S_N^\prime)}{N^2 \epsilon^2} &= \frac{N \cdot \Var(Y_{N,1})}{N^2 \epsilon^2} \\
+ 							      &=  \frac{\Var(Y_{N,1})}{N \epsilon^2} \\
+							      &= \frac{\E[Y_{N,1}^2] - \E[Y_{N,1}]^2}{N\epsilon^2} \\
+							      &\leq  \frac{\E[Y_{N,1}^2]}{N\epsilon^2} \\
+							      &\leq \frac{1}{N\epsilon^2} \int_{\{\abs{X_1} \leq N\epsilon^3\}} X_1^2(\omega) d\Prob(\omega) \\
+							      &= \frac{1}{N\epsilon^2} \int_{\{\abs{X_1} \leq N\epsilon^3\}} \abs{X_1(\omega)}\abs{X_1(\omega)} d\Prob(\omega) \\
+							      &\leq \frac{1}{N\epsilon^2} \int_{\{\abs{X_1} \leq N\epsilon^3\}} \abs{X_1(\omega)} \cdot N\epsilon^3 d\Prob(\omega) \\
+							      &= \epsilon \cdot \E\left[\abs{X_1}\mathbbm{1}\{\abs{X_1} \leq N\epsilon^3\} \right] \\ 
+							      &\leq \epsilon \cdot \E\abs{X_1}
+ \end{align*}
+ Note that for the penultimate inequality, we broke $X_1^2$ into two terms and bounded one of the terms by the maximum value the function can assume on the domain of integration. This achieves a tighter bound 
+ than if we had bounded both terms. 
  
  
 \end{proof}
