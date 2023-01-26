@@ -272,6 +272,34 @@ The $\epsilon^3$ is chosen precisely because it makes the bound come out correct
 \end{proof}
 Notice that in this proof we were able to replace the random variable $S_N^\prime$ with the deterministic value $\E S_N^\prime$, a common strategy in these types of proofs.  
 
+\subsection{What happens when the mean is infinite?}
+In the previous section we showed that even without the finite variance assumption, the tails of the $X_k$ decayed sufficiently fast to still conclude the WLLN. The natural next question is whether the finite mean assumption 
+is necessary for this to hold, or if this assumption is also unnecessary? It turns out that the finite mean assumption is indeed necessary to prove the WLLN in general, but that there are examples where the WLLN holds despite 
+the mean being infinite. To better understand the implications of infinite mean, we explore to examples: 1.) an example where the mean is infinite and the WLLN is not even close to holding, and 2.) an example where the mean is 
+infinite but the WLLN still holds. 
+
+\subsubsection{Example: WLLN Fails with Infinite Mean}
+Unsurprisingly, for this example we consider the classic pathological fat-tailed distribution, the Cauchy distribution, which has infinite mean and variance.
+ In particular, suppose $X_k \overset{iid}{\sim} \text{Cauchy}(0, 1)$ so that the $X_k$ have characteristic functions
+\[\varphi_{X_k}(t) = e^{-\abs{t}}\]
+As usual, let $S_N := \sum_{k = 1}^{N} X_k$ denote the partial sums. We will utilize the characteristic function $\phi_{\frac{S_N}{N}}$ to analyze the convergence behavior of the sequence of empirical means $\frac{S_N}{N}$. We can 
+find the characteristic function of $\phi_{\frac{S_N}{N}}$ by exploiting the fact that the $X_k$ are iid: 
+\begin{align*}
+\phi_{\frac{S_N}{N}} &= \E e^{it \frac{S_N}{N}} \\
+			       &= \E \exp\left\{i\frac{t}{N} \sum_{k = 1}^{N} X_k \right\} \\
+			       &= \E \prod_{k = 1}^{N} \exp\left\{i \frac{t}{N} X_k \right\} \\
+			       &= \prod_{k = 1}^{N} \E \exp\left\{i \frac{t}{N} X_k \right\} && \text{Independence} \\
+			       &=  \prod_{k = 1}^{N} \varphi_{X_k}(t/N) \\
+			       &= \prod_{k = 1}^{N} e^{-\abs{\frac{t}{N}}} \\
+			       &= \left[ e^{-\abs{\frac{t}{N}}} \right]^N && \text{Identically distributed} \\
+			       &= e^{-\abs{t}}
+\end{align*} 
+So the characteristic function of the empirical mean is the same as that of the individual $X_k$! Intuitively, the Cauchy distribution is so ``spread out'' that taking empirical means doesn't reduct the randomness at all. Not only does 
+$\frac{S_N}{N}$ not converge to $\E X_1$, but it has the same exact distribution for any $N$.  
+
+\subsubsection{Example: WLLN Holds with Infinite Mean}
+
+
 
 \end{document}
 
