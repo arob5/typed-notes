@@ -268,6 +268,8 @@ The $\epsilon^3$ is chosen precisely because it makes the bound come out correct
  \[\frac{\abs{X_1}}{\epsilon^3} \mathbbm{1}\{\abs{X_1} > N\epsilon^3\} \overset{a.s.}{\to} 0\]
  Therefore, 
  \[\E\left[\frac{\abs{X_1}}{\epsilon^3} \mathbbm{1}\{\abs{X_1} > N\epsilon^3\} \right] \to \E[0] = 0\]
+Note that in each of the dominated convergence theorem applications in this proof, we used the dominating function $\abs{X_1}$ which requires the assumption that $\abs{X_1}$ is integrable. Hence, we are using the finite 
+mean assumption here. 
  This verifies that $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$ and thus completes the proof. 
 \end{proof}
 Notice that in this proof we were able to replace the random variable $S_N^\prime$ with the deterministic value $\E S_N^\prime$, a common strategy in these types of proofs.  
@@ -307,6 +309,23 @@ first. However, we're getting ahead of ourselves here. First let's verify that t
 and then applying symmetry for the negative half. However, it can be verified that 
 \[\E\abs{X} = 2C \int_{e}^{\infty} \frac{1}{x\log x} dx = \infty\]
 so the mean is indeed infinite. It remains to show that the WLLN still holds. 
+
+We will use a truncated Chebyshev approach very similar to that used to prove the WLLN with finite mean. As in that proof, define the truncated random variables $Y_{N,k} := X_k \mathbbm{1}\{\abs{X_k} \leq N\}$ and 
+$S_N^\prime := \sum_{k = 1}^{N} Y_{N, k}$. The WLLN with finite mean proof used this strategy, but relied on the fact that $\E\abs{X_1} < \infty$. Therefore, we will need to leverage the additional information at our disposal 
+in this specific example in order to draw the same conclusion. We have quite a bit of information in the form of the density function of the $X_k$. Indeed, we see that the $X_k$ are symmetric and hence the $Y_{N, k}$ are 
+also symmetric, so that $\E[Y_{N, k}]$ = 0. Now, recall that the triangle inequality argument in the WLLN with finite mean proof required verifying two facts: 
+ \begin{enumerate}
+ \item $\frac{\E S_N^\prime}{N} \to \mu$ (typical convergence for deterministic sequences)
+ \item $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$
+ \end{enumerate}
+ The symmetry in this example makes the first item trivial! Indeed, $\frac{\E S_N^\prime}{N} = \frac{N \mu}{N} = \mu$. To establish the second, we once again apply the truncated Chebyshev inequality. 
+ \begin{align*}
+ \Prob(\abs{S_N - \E S_N^\prime} > N\epsilon) &= \Prob(\abs{S_N} > N\epsilon) && \text{Symmetry} \\
+ 								      &\leq \frac{\Var(S_N^\prime)}{N^2 \epsilon^2} + N \cdot \Prob(\abs{X_1} > N)
+ \end{align*}
+ To verify the second line, review the analogous steps in the proof of the WLLN with finite mean; the conclusion (which is the truncated Chebyshev inequality) did not rely on the finite mean assumption. I claim that the limit 
+ of both terms is $0$, in which case the claim is established. 
+
 
 We can interpret this example as an ``edge case'', in which the tails do not converge quite fast enough to yield a finite mean, yet still fast enough such that taking empirical means reduces the randomness in the distribution. 
 
