@@ -168,7 +168,10 @@ It turns out that this assumption is actually not necessary at all--we can concl
 bounding how spread out the distribution can be. The proof of this more general result is longer, but still not too bad. It is included below, as the ``truncated Chebyshev'' technique that is employed is a very common strategy to 
 deal with cases of infinite variance. This technique is fairly intuitive: modify $X_k$ (which has infinite variance) by chopping off its values outside of a specified interval, leading to a modified random variable with finite support and 
 hence finite variance. We can then apply Chebyshev to this truncated random variable. As we extend the truncation interval, the truncated variables approach the original ones, and we hope that in the limit the partial sums of these 
-two respective sequences will have the same limit. A shorter proof using characteristic functions is given in the appendix, but the truncation technique is presented here as it will sometimes be applicable when the 
+two respective sequences will have the same limit. In order for the truncated Chebyshev argument to work, intuitively the key will be making sure the tails of the $X_k$ decay sufficiently fast. The finite variance assumption guaranteed
+this, but we will show below that the finite mean assumption is actually sufficient as well. 
+
+A shorter proof using characteristic functions is given in the appendix, but the truncation technique is presented here as it will sometimes be applicable when the 
 characteristic function technique is not. 
 
 \begin{thm}
@@ -218,7 +221,7 @@ The $\epsilon^3$ is chosen precisely because it makes the bound come out correct
  
  \bigskip
  \noindent
- \textbf{1. Showing $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$.} \\
+ \textbf{2. Showing $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$.} \\
  Note that we cannot immediately apply Chebyshev to bound $\Prob\left(\abs{\frac{S_N}{N} - \frac{\E S_N^\prime}{N}} > \epsilon\right) = \Prob\left(\abs{S_N - \E S_N^\prime} > N\epsilon\right)$ since 
  $S_N$ may have infinite variance. We therefore first utilize a crude bound to write the expression in terms of $S_N^\prime$, which does have finite variance. 
  \begin{align*}
@@ -244,9 +247,28 @@ The $\epsilon^3$ is chosen precisely because it makes the bound come out correct
 							      &\leq \epsilon \cdot \E\abs{X_1}
  \end{align*}
  Note that for the penultimate inequality, we broke $X_1^2$ into two terms and bounded one of the terms by the maximum value the function can assume on the domain of integration. This achieves a tighter bound 
- than if we had bounded both terms. 
+ then if we had bounded both terms. 
  
- 
+ To finish the proof we show that 
+ \[\lim \sup_{N \to \infty}  \Prob\left(\abs{S_N - \E S_N^\prime} > N\epsilon\right) = 0\]
+ Considering the $\lim \sup$ allows us to not to worry about whether the limit actually exists, and is sufficient to conclude $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$. To this end, we have
+ \begin{align*}
+ \lim \sup_{N \to \infty}  \Prob\left(\abs{S_N - \E S_N^\prime} > N\epsilon\right) &= \lim \sup_{N \to \infty} \left[\frac{\Var(S_N^\prime)}{N^2 \epsilon^2}  + N \cdot \Prob(\abs{X_1} > N\epsilon^3) \right] \\
+ 														       &\leq \epsilon \cdot \E\abs{X_1} + \lim \sup_{N \to \infty} N \cdot \Prob(\abs{X_1} > N\epsilon^3) \\
+														       &= \epsilon \cdot \E\abs{X_1}  && \text{See below}
+ \end{align*}
+ Since $\epsilon > 0$ is arbitrary, then this inequality indeed proves that the limit is $0$. To achieve this, we claimed above that 
+ \[\lim \sup_{N \to \infty} N \cdot \Prob(\abs{X_1} > N\epsilon^3) = 0\]
+ which essentially is a claim that $\Prob(\abs{X_1} > N\epsilon^3)$ tends to $0$ faster than $\frac{1}{N}$. To show this, consider
+ \[N \cdot \Prob(\abs{X_1} > N\epsilon^3) = N \cdot \E\left[N \cdot \mathbbm{1}\{\abs{X_1} > N\epsilon^3\} \right] \leq \E\left[\frac{\abs{X_1}}{\epsilon^3} \mathbbm{1}\{\abs{X_1} > N\epsilon^3\} \right]\]
+ The bound follows from the fact that whenever the indicator function is non-zero it follows that $N < \frac{\abs{X_1}}{\epsilon^3}$. We are now in a position to apply the dominated convergence theorem. Indeed, 
+ we have 
+ \[\frac{\abs{X_1}}{\epsilon^3} \mathbbm{1}\{\abs{X_1} > N\epsilon^3\} \leq \frac{\abs{X_1}}{\epsilon^3}\]
+ and
+ \[\frac{\abs{X_1}}{\epsilon^3} \mathbbm{1}\{\abs{X_1} > N\epsilon^3\} \overset{a.s.}{\to} 0\]
+ Therefore, 
+ \[\E\left[\frac{\abs{X_1}}{\epsilon^3} \mathbbm{1}\{\abs{X_1} > N\epsilon^3\} \right] \to \E[0] = 0\]
+ This verifies that $\frac{S_N}{N} - \frac{\E S_N^\prime}{N} \overset{p}{\to} 0$ and thus completes the proof. 
 \end{proof}
 Notice that in this proof we were able to replace the random variable $S_N^\prime$ with the deterministic value $\E S_N^\prime$, a common strategy in these types of proofs.  
 
