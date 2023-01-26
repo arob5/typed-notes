@@ -298,8 +298,15 @@ So the characteristic function of the empirical mean is the same as that of the 
 $\frac{S_N}{N}$ not converge to $\E X_1$, but it has the same exact distribution for any $N$.  
 
 \subsubsection{Example: WLLN Holds with Infinite Mean}
-
-
+The Cauchy example doesn't tell the whole story; here we consider a difference distribution with infinite mean where the WLLN still holds. Let $X_k \overset{iid}{\sim} f$ where $f$ is a density defined by 
+\[f(x) = \frac{C}{x^2 \log \abs{x}} \mathbbm{1}\{\abs{x} > e\}\]
+where $C$ is just a normalizing constant. Note that it can be shown that the distributions with the fattest possible tails subject to finite variance on the real line have densities that look like $\frac{1}{x^3}$. We see that 
+the above density replaces one of the $x$ terms with $\log \abs{x}$, resulting in a slower rate of convergence, and therefore immediately indicating that the at least the second moment should be infinite, and maybe also the 
+first. However, we're getting ahead of ourselves here. First let's verify that this is indeed a valid density. This is easily verified by 
+\[\int_{e}^{\infty} \frac{1}{x^2 \log x} < \int_{e}^{\infty} \frac{1}{x^2} dx < \infty\]
+and then applying symmetry for the negative half. However, it can be verified that 
+\[\E\abs{X} = 2C \int_{e}^{\infty} \frac{1}{x\log x} dx = \infty\]
+so the mean is indeed infinite. It remains to show that the WLLN still holds. 
 
 \end{document}
 
