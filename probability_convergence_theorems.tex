@@ -364,7 +364,7 @@ always de-mean random variables. This assumption would not even be meaningful in
 We now consider a very general weak law that considers arbitrary increasing normalizing sequences $\{b_N\}$, and establishes both necessary and sufficient conditions. This theorem is a bit 
 more complicated to state, but this is not surprising as it zeros in on the very particular conditions that are required for a weak law to hold in a very general setting. 
 \begin{thm}
-Suppose $\{X_k\}$ is an independent (not necessarily iid) sequence of random variables and $\{b_N\}$ is an increasing, non-random sequence. Define the cutoff random variables 
+Suppose $\{X_k\}$ is an independent (not necessarily iid) sequence of random variables and $\{b_N\}$ is an increasing, non-random sequence of positive reals. Define the cutoff random variables 
 \begin{align*}
 &Y_{N, k} = X_k \mathbbm{1}\{\abs{X_k} \leq b_N\}, &&S_N^\prime = \sum_{k = 1}^{N} Y_{N, k}
 \end{align*}
@@ -388,6 +388,23 @@ hold.
 \end{enumerate}
 \end{thm}
 
+\subsection{A Weak Law for Partial Maxima}
+All of the weak laws detailed above conclude that the partial sums $S_N$, when properly normalized by some increasing sequence $\{b_N\}$, converge in probability to the mean $\mu$. Can we establish 
+similar results for statistics other than sums? Indeed we can--below we  present a weak law for partial maxima, where the normalized partial maxima converge in probability to $0$. We begin by stating the result
+for the more-familiar normalizing sequence of polynomials $\{N^{1/r}\}$ before generalizing to arbitrary increasing sequences $\{b_N\}$. 
+
+\begin{thm}
+Suppose $\{X_k\}$ is an iid sequence and define $Y_N := \max_{1 \leq k \leq N} \abs{X_k}$. Then, for $r > 0$, 
+\[\frac{Y_N}{N^{1/r}} \overset{p}{\to} 0 \iff N \cdot \Prob(\abs{X} > N^{1/r}) \to 0\]
+\end{thm}
+Therefore, a weak law for partial maxima exists precisely when the tail  probabilities $\Prob(\abs{X} > N^{1/r})$ decay faster than $\frac{1}{N}$. A larger $r$ indicates lighter tails, in which case the 
+normalization need not be as strong. I also emphasize that this tail decay condition is necessary and sufficient. 
+
+Generalizing to arbitrary increasing sequences $\{b_N\}$ is relatively straightforward, but requires a ``holds for all $\epsilon > 0$ condition'', as stated below. 
+\begin{thm}
+Suppose $\{X_k\}$ is an iid sequence of random variables and $\{b_N\}$ a sequence of non-decreasing positive reals. Define $Y_N := \max_{1 \leq k \leq N} \abs{X_k}$. Then, for $r > 0$, 
+\[\frac{Y_N}{b_N} \overset{p}{\to} 0 \iff N \cdot \Prob(\abs{X} > b_N \epsilon) \to 0 \text{ for all } \epsilon > 0\]
+\end{thm}
 
 \end{document}
 
