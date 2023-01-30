@@ -329,6 +329,66 @@ also symmetric, so that $\E[Y_{N, k}]$ = 0. Now, recall that the triangle inequa
 
 We can interpret this example as an ``edge case'', in which the tails do not converge quite fast enough to yield a finite mean, yet still fast enough such that taking empirical means reduces the randomness in the distribution. 
 
+\subsection{More General Weak Laws}
+We have so far looked at sufficient conditions that yield the weak law
+\[\frac{S_N}{N} \overset{p}{\to} \mu\]
+It is natural to take a step back and wonder if this is just a specific case of a more general phenomenon. Some questions we might ask are:
+\begin{enumerate}
+\item Are there situations in which a scaling other than $\frac{1}{N}$ yields the proper scaling for a weak law? Can we consider other polynomial rates $\frac{1}{N^r}$? Or even more generally, scalings of the 
+form $\frac{1}{b_N}$, where $\{b_N\}$ is an arbitrary increasing sequence? 
+\item Can we find sufficient \textit{and} necessary conditions for the weak law to hold? In essence, can we find precisely the correct conditions that correspond to a weak law existing? 
+\end{enumerate}
+Both of these questions are considered below. 
+
+\subsubsection{Different Scaling Rates: The Marcinkiewiz-Zygmund Weak Law}
+We first consider the question of viewing the scaling $\frac{S_N}{N}$ as a special case of a more general polynomial scaling $\frac{S_N}{N^r}$. This generalization is provided by the 
+Marcinkiewiz-Zygmund weak Law. I will present this law in two parts, although the theorem can be summarized in a single statement. The first part establishes a weak law in a setting where 
+one did not exist before. In particular, if the mean does not exist, but a weaker moment exists than we can still conclude a weak law, but will now need to scale the sum by a larger term to account 
+for the extra randomness in the tails. 
+\begin{thm} 
+Suppose $\{X_k\}$ is an iid sequence with $\E\abs{X_1}^r < \infty$ for some $r \in [0, 1)$. Then 
+\[\frac{S_N}{N^{1/r}} \overset{p}{\to} \mu\]
+\end{thm}
+
+The second part pertains to a setting in which the mean is finite (and hence the WLLN already holds), but states that stronger assumptions can allow us to conclude stronger results. 
+In particular, if we make stronger assumptions 
+on the decay of the tails (i.e. higher moments exist) then this translates into a smaller scaling (i.e. the denominator required to properly collapse the sum is now smaller). 
+\begin{thm} 
+Suppose $\{X_k\}$ is an iid sequence with $\E\abs{X_1}^r < \infty$ for some $r \in [1, 2)$. Moreover, assume $\E X_1 = 0$. Then 
+\[\frac{S_N}{N^{1/r}} \overset{p}{\to} \mu\]
+\end{thm}
+Notice that the $r = 1$ case is simply the standard WLLN. In this second case we require the extra assumption $\E X_1 = 0$ for the proof to work, but it is not limiting in practice as we can 
+always de-mean random variables. This assumption would not even be meaningful in the first part of the theorem, as the first part pertains to the setting where the mean does not exist. 
+
+\subsubsection{A General Weak Law with Necessary and Sufficient Conditions}
+We now consider a very general weak law that considers arbitrary increasing normalizing sequences $\{b_N\}$, and establishes both necessary and sufficient conditions. This theorem is a bit 
+more complicated to state, but this is not surprising as it zeros in on the very particular conditions that are required for a weak law to hold in a very general setting. 
+\begin{thm}
+Suppose $\{X_k\}$ is an independent (not necessarily iid) sequence of random variables and $\{b_N\}$ is an increasing, non-random sequence. Define the cutoff random variables 
+\begin{align*}
+&Y_{N, k} = X_k \mathbbm{1}\{\abs{X_k} \leq b_N\}, &&S_N^\prime = \sum_{k = 1}^{N} Y_{N, k}
+\end{align*}
+\begin{enumerate}
+\item If
+\[\lim_{N \to \infty} \sum_{k = 1}^{N} \Prob(\abs{X_k} > b_n) = 0\]
+and 
+\[\lim_{N \to \infty} \frac{1}{b_N^2} \sum_{k = 1}^{N} \Var(Y_{N, k}) = 0\]
+then
+\[\frac{S_N - \E S_N^\prime}{b_N} \overset{p}{\to} 0\]
+
+\item Conversely, if 
+\[\frac{S_N - \E S_N^\prime}{b_N} \overset{p}{\to} 0\]
+and 
+\[\frac{S_N^\prime}{b_N} \to 0\]
+then 
+\[\lim_{N \to \infty} \sum_{k = 1}^{N} \Prob(\abs{X_k} > b_n) = 0\]
+and 
+\[\lim_{N \to \infty} \frac{1}{b_N^2} \sum_{k = 1}^{N} \Var(Y_{N, k}) = 0\]
+hold. 
+\end{enumerate}
+\end{thm}
+
+
 \end{document}
 
 
