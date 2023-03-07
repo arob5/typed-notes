@@ -105,6 +105,28 @@ I find this statement to provide the best interpretation of almost sure converge
 an unusual event to \textit{zero}. This is a powerful statement, though it gives no sense of how far along in the sequence one must go to achieve this. This interpretation of almost sure convergence is also 
 quite helpful when trying to understand its difference from convergence in probability, which is discussed below. 
 
+\subsubsection{Equivalent Definitions}
+While writing 
+\[\Prob(X_n \to X) = 1\]
+is succinct and convenient, it is often difficult to prove things converge almost surely directly from the definition. We will thus consider some alternative equivalent conditions to almost sure convergence. 
+What makes the definition difficult to work with is that the $\epsilon$ and $N$ that show up in the limit definition are inside of the probability measure:
+\[\Prob(\forall \epsilon > 0, \ \exists N_{\epsilon, \omega} \in \mathbb{N} \text{ s.t. } \forall n \geq N_{\epsilon, \omega}, \ \abs{X_n(\omega) - X(\omega)} < \epsilon ) = 1\]
+If you can establish pointwise convergence using the $\epsilon$-$N$ definition for every $\omega \in \Omega$ then this is no problem; at that point, then the result isn't even probabilistic--it's just a 
+standard analysis proof. But in general this won't be possible. To start working our way towards equivalent definitions, consider the primary set of interest,
+\begin{align*}
+A &:= \{\omega \in \Omega: X_n(\omega) \to X(\omega)\} \\
+   &= \{\omega \in \Omega: \forall \epsilon > 0, \ \exists N_{\epsilon, \omega} \in \mathbb{N} \text{ s.t. } \forall n \geq N_{\epsilon, \omega}, \ \abs{X_n(\omega) - X(\omega)} < \epsilon\}
+\end{align*}
+since $\Prob(A) = 1$ is the definition of $X_n \overset{a.s.}{\to} X$. 
+
+TODO: add theorem
+
+
+To inner-most intersection results from the fact that $\abs{X_n(\omega) - X(\omega)} < \epsilon$ is a condition about the tail of the sequence; 
+that is, something that holds for $n \geq N$. Thus we can write this as an intersection over the indices $N, N + 1, N + 2, \dots$. 
+
+
+
 \subsection{Convergence in Probability}
 Another reasonable way to define convergence that takes the probability measure into account is to consider the probability that $X_n$ is ``far from'' $X$ as a function function of $n$, and require that this 
 probability converge to $0$ as $n \to \infty$.  
