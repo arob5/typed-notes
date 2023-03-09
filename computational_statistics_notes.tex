@@ -9,6 +9,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{bbm}
 
 % Plotting
 \usepackage{pgfplots}
@@ -101,6 +102,44 @@ of a conditional and marginal. As a final point, we recall that the marginal dis
 \[\pi_X(A) = \int_\mathcal{Y} \pi_{X, Y}(A, y) \pi_Y(dy)\]
 This ``integrating out`` step is analogous to the dropping the samples from $Y$ in the above algorithm to obtain marginal samples from $X$. In other words, 
 ignoring $Y$ is just like averaging over $Y$. 
+
+\subsection{Rejection Sampling}
+\textit{Rejection sampling} or \textit{Accept-Reject sampling} addresses the problem of drawing iid samples from a probability distribution $\pi$, where all we know is the 
+density $\pi(x)$, or perhaps even an unnormalized density $\tilde{\pi}$, such that $\pi(x) = \frac{\tilde{\pi}(x)}{Z}$ where $Z = \int \tilde{\pi}(x) dx$ is the normalizing constant which 
+does not depend on $x$. The general idea in rejection sampling is to first draw a sample $x^\prime $from some simpler distribution with density $g(x)$ that we already know how to sample from,
+ and then strategically accept or reject the sample based on our knowledge of the ratio of densities $\frac{\pi(x^\prime)}{g(x^\prime)}$. Intuitively, if $g(x^\prime)$ is much larger $\pi(x^\prime)$ then 
+ in order for the resulting samples to be distributed according $\pi$, we'll have to reject $x^\prime$ with a sizable probability. This idea will be explored in much more depth below, but to start we take 
+ a step back and state some more fundamental ideas. 
+ 
+ \subsubsection{The Fundamental Theorem of Simulation}
+ We begin with what Robert and Casella term the \textit{Fundamental Theorem of Simulation}. Loosely speaking, this states that drawing a sample from $\pi$ is equivalent to selecting a point
+ uniformly at random under the surface $\pi(x)$, and then simply extracting the $x$-coordinate of the resulting sample. To make this more clear, let's first think about what it means to select a point
+ uniformly at random underneath the surface $\pi(x)$. The density of this uniform distribution must be $\frac{1}{\text{Vol}(R)}$, where $R$ is the region underneath $\pi(x)$ and $\text{Vol}(R)$ is the 
+ volume of this region. However, $\pi(x)$ is a density so necessarily $\text{Vol}(R) = 1$. Therefore, the density is simply $1$ inside $R$ and $0$ everywhere else. Noting that $R$ can more explicitly 
+ be described as $R = \{(x, u): 0 \leq u \leq \pi(x)\}$, so we can write the density as 
+ \[p(x, u) = \mathbbm{1}\left[\{(x, u): 0 \leq u \leq \pi(x)\} \right]\]
+We could alternatively arrive at this expression for $p(x, u)$ by considering the two step generative procedure
+\begin{enumerate}
+\item First sample $x \sim \pi$
+\item Next sample $u|x \sim \mathcal{U}(0, \pi(x))$ and return $(x, u)$
+\end{enumerate}
+Putting these two steps together, we have 
+\[p(x, u) = p(u|x)p(x) = \mathcal{U}(u|0, \pi(x))\pi(x) = \frac{1}{\pi(x)}\pi(x) = 1\]
+which is the same expression we arrived at previously. This second method shows that the two-step algorithm results in a uniform distribution on $R$ and by definition returns
+points $(x, u)$ where marginally $x \sim \pi$. However, to rigorously verify the fundamental theorem of simulation, let's start from the definition of the uniform distribution $p(x, u)$ 
+over $R$ and show that the first marginal $p(x)$ is indeed equal to $\pi(x)$. To this end, we have
+\begin{align*}
+p(x) &= \int_{-\infty}^{\infty} p(x, u) du \\
+       &= \int_{-\infty}^{\infty} \mathbbm{1}\left[\{(x, u): 0 \leq u \leq \pi(x)\} \right] du \\
+       &= \int_{0}^{\pi(x)} du \\
+       &= \pi(x)
+\end{align*}
+which verifies the result. So it seems we have replaced the problem of drawing samples from $\pi$ with drawing samples from $p(x, u)$ and then extracting the $x$ portion of the sample. 
+This doesn't seem to be any help at all though, since it is not obvious how to draw samples that are uniformly distributed on $R$. Indeed, the obvious two-step sampling procedure described 
+above requires sampling from $\pi$ as the first step, which is the original problem we were trying to solve! Despite this impracticality, the basic idea here is fundamental, and we will show how 
+to extend it in a way that is actually useful in developing sampling algorithms. 
+
+
 
 \subsection{Space-Filling Sampling Algorithms}
 The purpose of this section is to introduce various sampling algorithms that are often used in the fields of experimental design and computer experiments. I will introduce the 
