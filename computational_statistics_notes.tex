@@ -158,6 +158,25 @@ and the marginal of $p(x, u)$ is given by
 \end{align*}
 which verifies the claim. 
 
+\subsection{Slice Sampling}
+Recall the fundamental theorem of simulation, which stated that we can sample from $\pi$ by sampling uniformly from $R$, the region under the density surface of $\pi(x)$
+ (or from $\tilde{R}$, the region under the the unnormalized density surface
+$\tilde{\pi}(x)$). However, this wasn't immediately useful as sampling under the density surface was just as hard as sampling from $\pi$ directly. However, rejection sampling yielded an indirect method
+to sample from $\tilde{R}$ (we will focus on the case where we only have access to $\tilde{\pi}(x)$ going forward, as this is more general). Rejection sampling accomplished this by sampling from a region 
+that encloses $\tilde{R}$ and then only retaining the sample if it was contained in $\tilde{R}$. This resulted in uniform samples over $\tilde{R}$ (and hence marginal samples from $\pi$), as desired, but this came
+at the cost of efficiency--the rejected samples are essentially wasted computation. Metropolis-Hastings type MCMC algorithms presented a very different approach to sampling from $\pi$, but faced the challenge of 
+tuning the step-size of the algorithm, which was determined by the variance of the proposal distribution. Gibbs sampling offered an MCMC approach with automatic step-size selection, by alternately sampling from 
+the marginal conditional distributions. Slice sampling combines ideas from rejection sampling and Gibbs sampling by directly sampling from the uniform distribution over $\tilde{R} := \left\{(x, u): 0 \leq u \leq \tilde{\pi}(x) \right\}$
+using Gibbs sampling. Letting $p(x, u)$ denote the uniform density over $\tilde{R}$, Gibbs sampling proceeds by alternating sampling from $p(x|u)$ and $p(u|x)$. Recall that the density is given by 
+\[p(x, u) = \frac{1}{Z}\mathbbm{1}\left\{(x, u): 0 \leq u \leq \tilde{\pi}(x) \right\}\]
+where $Z = \int \tilde{\pi}(x) dx$ is the normalizing constant. So the problem becomes how to sample from $p(x|u)$ and $p(u|x)$. The latter is no problem, since
+\[u|x \sim \mathcal{U}(0, \tilde{\pi}(x))\]
+Sampling from $p(x|u)$ is where things get tricky. Let $S_x := \{x: \hat{\pi}(x) > u\}$, which represents the x-values corresponding to the horizontal ``slice'' of $\tilde{R}$ at fixed height $u$. The other conditional thus has 
+distribution
+\[x|u \sim \mathcal{U}(S_x)\]
+In general, if $\tilde{\pi}(x)$ is unimodal, then $S_x$ might be a disconnected set. This makes uniformly sampling from the slice $S_x$ a challenging problem in general. Algorithms have been proposed to do so, but we will not 
+discuss them here. The case where $\tilde{\pi}(x)$ is unimodal is much simpler, since this guarantees that the slice $S_x$ is a connected region (there are no holes or separate pieces). 
+
 
 \subsection{Space-Filling Sampling Algorithms}
 The purpose of this section is to introduce various sampling algorithms that are often used in the fields of experimental design and computer experiments. I will introduce the 
