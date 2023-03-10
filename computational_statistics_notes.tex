@@ -117,7 +117,7 @@ does not depend on $x$. The general idea in rejection sampling is to first draw 
  uniformly at random underneath the surface $\pi(x)$. The density of this uniform distribution must be $\frac{1}{\text{Vol}(R)}$, where $R$ is the region underneath $\pi(x)$ and $\text{Vol}(R)$ is the 
  volume of this region. However, $\pi(x)$ is a density so necessarily $\text{Vol}(R) = 1$. Therefore, the density is simply $1$ inside $R$ and $0$ everywhere else. Noting that $R$ can more explicitly 
  be described as $R = \{(x, u): 0 \leq u \leq \pi(x)\}$, so we can write the density as 
- \[p(x, u) = \mathbbm{1}\left[\{(x, u): 0 \leq u \leq \pi(x)\} \right]\]
+ \[p(x, u) = \mathbbm{1}\left\{(x, u): 0 \leq u \leq \pi(x)\right\}]\]
 We could alternatively arrive at this expression for $p(x, u)$ by considering the two step generative procedure
 \begin{enumerate}
 \item First sample $x \sim \pi$
@@ -130,15 +130,33 @@ points $(x, u)$ where marginally $x \sim \pi$. However, to rigorously verify the
 over $R$ and show that the first marginal $p(x)$ is indeed equal to $\pi(x)$. To this end, we have
 \begin{align*}
 p(x) &= \int_{-\infty}^{\infty} p(x, u) du \\
-       &= \int_{-\infty}^{\infty} \mathbbm{1}\left[\{(x, u): 0 \leq u \leq \pi(x)\} \right] du \\
+       &= \int_{-\infty}^{\infty} \mathbbm{1}\left\{(x, u): 0 \leq u \leq \pi(x)\right\} du \\
        &= \int_{0}^{\pi(x)} du \\
        &= \pi(x)
 \end{align*}
 which verifies the result. So it seems we have replaced the problem of drawing samples from $\pi$ with drawing samples from $p(x, u)$ and then extracting the $x$ portion of the sample. 
 This doesn't seem to be any help at all though, since it is not obvious how to draw samples that are uniformly distributed on $R$. Indeed, the obvious two-step sampling procedure described 
 above requires sampling from $\pi$ as the first step, which is the original problem we were trying to solve! Despite this impracticality, the basic idea here is fundamental, and we will show how 
-to extend it in a way that is actually useful in developing sampling algorithms. 
-
+to extend it in a way that is actually useful in developing sampling algorithms. Speaking of practicality, we already mentioned that we want algorithms that work even if we can only evaluate the 
+unnormalized density  $\tilde{\pi}(x)$, as is often the case in practice. Therefore, as a first step towards practical algorithms, let's generalize the fundamental theorem of simulation to the case 
+where the normalization constant $Z$ is unknown. In particular, our claim is that sampling uniformly from the region $\tilde{R} := \left\{(x, u): 0 \leq u \leq \tilde{\pi}(x) \right\}$ and then extracting the 
+$x$ component results in a sample distributed according to $\pi(x)$. That is, the idea of sampling from $\pi$ by sampling uniformly under the density surface only requires knowledge of the density 
+up to a normalizing constant. We proceed as before, defining the density $p(x, u)$ corresponding to the uniform distribution over $\tilde{R}$ and then show that $\pi(x)$ is a marginal of $p(x, u)$. 
+We know that the uniform distribution must have density
+\[p(x, u) = \frac{1}{\text{Vol}(\tilde{R})}\mathbbm{1}\left\{(x, u): 0 \leq u \leq \tilde{\pi}(x) \right\}\]
+where 
+\[ \text{Vol}(\tilde{R}) = \int_{-\infty}^{\infty} \int_{0}^{\tilde{\pi}(x)} du dx = \int_{-\infty}^{\infty} \tilde{\pi}(x) dx = Z \]
+by definition of the normalizing constant $Z$. Thus, 
+\[p(x, u) = \frac{1}{Z}\mathbbm{1}\left\{(x, u): 0 \leq u \leq \tilde{\pi}(x) \right\}\]
+and the marginal of $p(x, u)$ is given by
+\begin{align*}
+\int_{-\infty}^{\infty} p(x, u) du &= \int_{-\infty}^{\infty} \frac{1}{Z}\mathbbm{1}\left\{(x, u): 0 \leq u \leq \tilde{\pi}(x) \right\} du \\
+					     &= \frac{1}{Z} \int_{0}^{\tilde{\pi}(x)} du \\
+					     &= \frac{1}{Z} \tilde{\pi}(x) \\
+					     &= \frac{1}{Z} Z\pi(x) \\
+					     &= \pi(x)
+\end{align*}
+which verifies the claim. 
 
 
 \subsection{Space-Filling Sampling Algorithms}
