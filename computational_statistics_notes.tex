@@ -175,7 +175,90 @@ Sampling from $p(x|u)$ is where things get tricky. Let $S_x := \{x: \hat{\pi}(x)
 distribution
 \[x|u \sim \mathcal{U}(S_x)\]
 In general, if $\tilde{\pi}(x)$ is unimodal, then $S_x$ might be a disconnected set. This makes uniformly sampling from the slice $S_x$ a challenging problem in general. Algorithms have been proposed to do so, but we will not 
-discuss them here. The case where $\tilde{\pi}(x)$ is unimodal is much simpler, since this guarantees that the slice $S_x$ is a connected region (there are no holes or separate pieces). 
+discuss them here. The case where $\tilde{\pi}(x)$ is unimodal is much simpler, since this guarantees that the slice $S_x$ is a connected region (there are no holes or separate pieces). So how to sample uniformly 
+from the slice $S_x$ in this simple case? We can use a notion of rejection sampling, trapping $S_x$ in a square region, sampling a point $x^\prime $from this region, and accepting only if $\hat{\pi}(x^\prime) > u$. Each time a sample is rejected, we can rule out all points farther away from $S_x$ than $x^\prime$, thus shrinking the bounding region, and increasing the acceptance probability after each rejection. 
+
+\subsubsection{Elliptical Slice Sampling}
+Elliptical slice sampling is a variant of slice sampling that is specialized to sampling from distributions with Gaussian priors; that is, distributions of the form 
+\[\pi(f) \propto \mathcal{N}_M(f|0, \Sigma)\mathcal{L}(f)\]
+where $\mathcal{L}(f) = p(\text{Data}|f)$ is a likelihood function. We have changed notation to let $f \in \R^M$ denote the vector of parameters we wish to sample from, given that elliptical slice sampling 
+is motivated by sampling function values in a Gaussian Process (GP) model. We elaborate on this motivation below. 
+
+\bigskip
+\noindent
+Consider a standard GP regression model
+\begin{align*}
+y_i &= f(x_i) + \epsilon_i, \ i = 1, \dots, N \\
+f(\cdot) &\sim \mathcal{GP}(0, k(\cdot, \cdot)) \\
+\epsilon_i &\overset{iid}{\sim} N(0, \sigma^2)
+\end{align*}
+where $y \in \R^N$ is a vector of observed data at inputs $X \in \R^{N \times d}$. I will denote the vector of function evaluations at the training points by $f := f(X) \in \R^N$. 
+We are ultimately interested in posterior inference over  $\tilde{f} := f(\mathcal{X}) \in \R^M$, the latent function values at unobserved inputs $\mathcal{X} \in \R^{M \times d}$.
+There are two primary tasks that are of central importance in such GP models 
+\begin{enumerate}
+\item Determining the kernel parameters used to define $k(\cdot, \cdot)$, which is often achieved my maximizing the marginal likelihood $p(y|X)$. 
+\item Performing posterior inference for $p(\tilde{f}|X, y)$.
+\end{enumerate}
+For the former task, the marginal log-likelihood is given by the integral
+\[p(y|X) = \int p(y|f)p(f) df\] 
+which is ``marginal'' in the sense that its computation requires marginalizing over $f$. For the second task, the posterior is given by the integral
+\[p(\tilde{f}|X, y) = \int p(\tilde{f}|f)p(f|y) df\]
+which again requires integrating out $f$, this time with respect to the posterior over the function values at the training points $p(f|y)$. In the regression model presented above, with 
+a GP prior and Gaussian likelihood, all of these computations admit closed-form solutions. Indeed, for the marginal likelihood we have 
+\[p(y|X) = \int \mathcal{N}_N(y|f, \sigma^2I_N)N_{N}(f|0, k(X)) df\] 
+which results in a Gaussian integrand and an analytical solution. Similarly, for the posterior over $\tilde{f}$, 
+\[p(\tilde{f}|X, y) = \int p(\tilde{f}|f)p(f|y) df \qquad (\star)\]
+$p(\tilde{f}|f)$ is a conditional of a multivariate Gaussian and hence Gaussian, and $p(f|y) \propto p(y|f)p(f) = \mathcal{N}_N(y|f, \sigma^2 I_N)\mathcal{N}_N(f|0, k(X))$ and is 
+hence also Gaussian. Therefore, there seems to be no immediate need for sampling procedures, since everything is essentially Gaussian and available in closed form. However, if we
+move away from the Gaussian likelihood in the regression model, the analytical tractability is broken. We thus motivate elliptical slice sampling by the need to approximate the integral 
+$(\star)$ in the non-Gaussian likelihood setup. In particular, we note that this integral can be approximated using a Monte Carlo approach by drawing samples from
+\[p(f|y) \propto p(f) p(y|f) = \mathcal{N}_N(f|0, k(X))p(y|f)\]
+Connecting this to distribution we said we wanted to sample from using elliptical slice sampling, we have that $\pi(f) = p(f|y)$ where $\Sigma = k(X)$ and $\mathcal{L}(f) = p(y|f)$. 
+
+
+\bigskip
+\noindent
+\textbf{Example.} Consider a standard GP regression model
+\begin{align*}
+y_i &= f(x_i) + \epsilon_i, \ i = 1, \dots, N \\
+f(\cdot) &\sim \mathcal{GP}(0, k(\cdot, \cdot)) \\
+\epsilon_i &\overset{iid}{\sim} N(0, \sigma^2)
+\end{align*}
+where $y \in \R^N$ is a vector of observed data at inputs $X \in \R^{N \times d}$. We are interested in posterior inference over $\pi(f) = p(f|y, X)$, where $f := f(\mathcal{X}) \in \R^M$ is a vector 
+of latent function values at unobserved inputs $\mathcal{X} \in \R^{M \times d}$. The likelihood is thus
+\[\mathcal{L}(f) = N_N(y|f(X), \sigma^2 I_N)\]
+and the prior over the latent function values of interest is 
+\[p(f) = N_M(f|0, k(\mathcal{X})) = N_M(f|0, \Sigma)\]
+where we have defined $\Sigma := k(\mathcal{X}) \in \R^{M \times M}$. The posterior is thus
+\[\pi(f) \propto \mathcal{N}_M(f|0, \Sigma)\mathcal{L}(f)\]
+exactly as above. In this setting with a Gaussian likelihood and GP prior, $\pi(f)$ is also Gaussian so there is no need to consider complicated sampling algorithms. The need for elliptical slice 
+sampling is better motivated by the following GP classification example, where the posterior is no longer available in closed-form. 
+
+\bigskip
+\noindent
+\textbf{Example.} Now consider a GP model for binary classification, where the observed values are $y_i \in \{0, 1\}$. We now define the function $f: \R^d \to \R$ to give the log-odds
+\[f(x_i) = \log \frac{\Prob(y_i = 1)}{1 - \Prob(y_i = 1)} = \text{logit}(\Prob(y_i = 1))\]
+so unlike in the last example the function values are not observed, even in the training set. Inverting the logit function gives the probability of the output equaling $1$
+\[\Prob(y_i = 1) = \frac{e^{f(x_i)}}{1 + e^{f(x_i)}}\]
+Considering a Bernolli likelihood, the model is thus
+\begin{align*}
+y_i|f_i &\overset{ind}{\sim} \text{Bern}\left(\frac{e^{f(x_i)}}{1 + e^{f(x_i)}}\right), \ i = 1, \dots, N \\
+f(\cdot) &\sim \mathcal{GP}(0, k(\cdot, \cdot))
+\end{align*}
+Note that what we are really interested in the class probabilities 
+\[\tilde{p}_i := p(\tilde{y}_i = 1|\tilde{x}_i) = \frac{e^{f(\tilde{x}_i)}}{1 + e^{f(\tilde{x}_i)}}\]
+at test inputs $\tilde{x}_i, i = 1, \dots, M$ collected in the matrix $\mathcal{X} \in \R^{M \times d}$. Thus, the vector of log-odds evaluations $f := f(X) \in \R^N$ 
+at the training points is now a nuisance parameter that must be integrated out, unlike in the previous regression example where it was directly observed. The GP prior of $f(\cdot)$ induces 
+a prior on the class probability function $p(\cdot)$, though the latter will not be Gaussian due to the fact that $\tilde{p}_i$ is a non-linear function of $f_i$. The posterior of interest 
+is now over $\tilde{p} \in \R^M$, the vector of class probabilities at the test inputs. 
+
+
+
+The posterior of interest $\pi(f)$ is over $f := f(\mathcal{X}) \in \R^M$, the log-odds evaluations at the test points $\mathcal{X} \in \R^{M \times d}$. The posterior can again be written in the form
+\[\pi(f) = p(f|X, y) \propto \mathcal{N}_M(f|0, \Sigma) \mathcal{L}(f) \]
+where again $\Sigma := k(\mathcal{X})$ but now this time
+\[\mathcal{L}(f) = \prod_{i = 1}^{N} \Prob(y_i = 1)^{y_i}\left[1 - \Prob(y_i = 1)\right]^{1 - y_i} = \prod_{i = 1}^{N} \left[\frac{e^{f(x_i)}}{1 + e^{f(x_i)}}\right]^{y_i}\left[\frac{1}{1 + e^{f(x_i)}}\right]^{1 - y_i} \]
+The posterior 
 
 
 \subsection{Space-Filling Sampling Algorithms}
