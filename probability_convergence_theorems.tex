@@ -135,6 +135,10 @@ we consider a specific example.
 \subsubsection{Example: A sequence that converges in probability but not almost surely}
 TODO
 
+% Overview of LLNs
+\section{Laws of Large Numbers: The Big Picture}
+TODO: the weak vs. the strong law
+
 % WLLN
 \section{Weak Laws of Large Numbers}
 This section details a variety of weak laws of large numbers (WLLNs), which concern the convergence of sums of random variables in probability. Recall from the previous section that intuitively we can think 
@@ -405,6 +409,51 @@ Generalizing to arbitrary increasing sequences $\{b_N\}$ is relatively straightf
 Suppose $\{X_k\}$ is an iid sequence of random variables and $\{b_N\}$ a sequence of non-decreasing positive reals. Define $Y_N := \max_{1 \leq k \leq N} \abs{X_k}$. Then, for $r > 0$, 
 \[\frac{Y_N}{b_N} \overset{p}{\to} 0 \iff N \cdot \Prob(\abs{X} > b_N \epsilon) \to 0 \text{ for all } \epsilon > 0\]
 \end{thm}
+
+\section{The Strong Law of Large Numbers}
+Under suitable assumptions, the strong law of large numbers (SLLN) yields convergence of the empirical average $\overline{X}_n = \frac{S_n}{n}$ to the true mean $\mu$ just like the WLLN, but now in the stronger 
+sense of almost sure convergence
+\[\frac{S_n}{n} \overset{a.s.}{\to} \mu\]
+As discussed in previous sections, this is the notion of convergence we would intuitively want when considering problems of statistical learning. It turns out that proving this stronger theorem is much more involved than 
+proving the weak law. To do so, we show that proving the strong law is equivalent to establishing the convergence of an infinite series of random variables, so we must first develop a theory of random series. Here is the 
+link between random series and strong laws (Gut lemma 6.5.1)
+\begin{lemma}
+Let $\{X_k\}$ be random variables and $\{a_n\}$ a sequence of positive real numbers increasing to infinity. Set $a_0 = 0$. Then, 
+\[\sum_{k = 1}^{\infty} \frac{X_k}{a_k} \text{ converges a.s. } \implies \frac{1}{a_n} \sum_{k = 1}^{n} X_k \overset{a.s.}{\to} 0\]
+\end{lemma}
+Note that setting $a_n := n$ gives $\frac{S_n}{n}$ on the righthand side, which is the typical sequence of interest in laws of large numbers. The convergence on the righthand side should be interpreted 
+as a convergent sequence as $n \to \infty$. This result makes intuitive sense since the $\{a_n\}$ are increasing, so the normalization from dividing by $a_n$ on the righthand side is a stronger effect than 
+the normalization on the lefthand side. So the goal of establishing a strong law becomes the goal of showing the series $\sum_{k = 1}^{\infty} \frac{X_k}{a_k}$ is almost surely convergent. 
+
+\subsection{Establishing the Convergence of Random Series}
+We will detail a few different results that provide sufficient conditions for a random series to converge, and hence will provide sufficient conditions for the strong law to hold. However, the crown jewel will 
+be the \textit{Kolmogorov Three Series theorem}, which provides sufficient and necessary conditions for series convergence and thus will yield an ``if and only if'' strong law.  
+
+\begin{thm}
+(Kolmogorov convergence criterion) Let $\{X_k\}$ be independent with means $\{\mu_k\}$ and variances $\{\sigma_k^2\}$. Then 
+\[\sum_{k = 1}^{\infty} \sigma_k^2 < \infty \implies \sum_{k = 1}^{\infty} (X_k - \mu_k) \text{ converges a.s. }\]
+If, in addition, $\sum_{k = 1}^{\infty} \mu_k$ converges then $\sum_{k = 1}^{\infty} X_k$ converges almost surely. 
+\end{thm}
+I emphasize again that convergence of infinite series here should be interpreted as convergence of the sequence of partial sums. This result again makes intuitive sense, since the assumption 
+$\sum_{k = 1}^{\infty} \sigma_k^2 < \infty$ essentially means that the variance eventually $0$, which implies that $X_k$ tends towards its mean so that $X_k - \mu_k$ tends towards $0$. So eventually 
+nothing is being added to the partial sums so they converge. To make this a little more precise, it is important to think about the sufficient condition $\sum_{k = 1}^{\infty} \sigma_k^2 < \infty$. In particular, 
+this condition implies that $\sigma_k^2 \to 0$ and that the $\sigma_k^2$ are uniformly bounded. However, these two facts are not enough to guarantee almost sure convergence of $\sum_{k = 1}^{\infty} (X_k - \mu_k)$. 
+The condition $\sum_{k = 1}^{\infty} \sigma_k^2 < \infty$ is much stronger, as it essentially ensures that the $\sigma_k^2$ converge to $0$ ``fast enough''. Indeed, the Cauchy convergence criterion states that 
+\[\sum_{k = 1}^{\infty} \sigma_k^2 < \infty \iff \forall \epsilon > 0 \exists N \text{ s.t. } \forall n > m \geq N, \sum_{k = m + 1}^{n} \sigma_k^2 < \epsilon\]
+This is much stronger than just saying $\sigma_k^2 < \epsilon$ for $k$ sufficiently large. The Kolmogorov convergence criterion is actually enough to establish a sufficient condition for the SLLN. However, the below theorem
+is what is required to prove the true if and only if version of the strong law. Before stating the theorem, we provide some context. The above lemma assumed that the variances of the random variables were 
+finite. It turns out this is not required for the SLLN to hold. To deal with infinite variances we utilize the same strategy as we did for the weak law, considering the truncated random variables
+$Y_k := X_k \mathbbm{1}\{\abs{X_k} \leq A\}$ (just like we did for the weak law). The trick will be to show that if the partial sums of the $Y_k$ converge then so do the partial sums of the $X_k$. Note that this can only 
+be true if 
+\[\Prob(X_k \neq Y_k \text{ i.o.}) = 0\]
+We already know from the Kolmogorov convergence criterion that if the variances of the $Y_k$ are summable and the means of the $Y_k$ converge then the partial sums of the $Y_k$ will converge. These two conditions
+correspond to two of the series in the Kolmogorov three series theorem. The third series ensures the condition $\Prob(X_k \neq Y_k \text{ i.o.}) = 0$. Thus, it is really quite a small leap to extend the previous lemma to 
+the infinite variance case. The truly remarkable part about the Kolmogorov three series theorem is that the implication also goes the other way. 
+\begin{thm}
+(Kolmogorov Three Series Theorem) Let $A > 0$ and $\{X_k\}$ be independent. Define the truncated random variables $Y_k := X_k \mathbbm{1}\{\abs{X_k} \leq A\}$. 
+\end{thm}
+TODO: review B-C and show that the series in the 3 series theorem does indeed imply the i.o. condition. 
+
 
 \end{document}
 
