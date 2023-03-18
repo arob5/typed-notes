@@ -411,13 +411,13 @@ Suppose $\{X_k\}$ is an iid sequence of random variables and $\{b_N\}$ a sequenc
 \end{thm}
 
 \section{The Strong Law of Large Numbers}
-Under suitable assumptions, the strong law of large numbers (SLLN) yields convergence of the empirical average $\overline{X}_n = \frac{S_n}{n}$ to the true mean $\mu$ just like the WLLN, but now in the stronger 
+Under suitable assumptions, the strong law of large numbers (SLLN) yields convergence of the empirical average $\overline{X}_n = \frac{S_n}{n}$ to the true mean $\mu$ in the iid case just like the WLLN, but now in the stronger 
 sense of almost sure convergence
 \[\frac{S_n}{n} \overset{a.s.}{\to} \mu\]
 As discussed in previous sections, this is the notion of convergence we would intuitively want when considering problems of statistical learning. It turns out that proving this stronger theorem is much more involved than 
 proving the weak law. To do so, we show that proving the strong law is equivalent to establishing the convergence of an infinite series of random variables, so we must first develop a theory of random series. Here is the 
 link between random series and strong laws (Gut lemma 6.5.1)
-\begin{lemma}
+\begin{lemma} \label{series_convergence_lemma}
 Let $\{X_k\}$ be random variables and $\{a_n\}$ a sequence of positive real numbers increasing to infinity. Set $a_0 = 0$. Then, 
 \[\sum_{k = 1}^{\infty} \frac{X_k}{a_k} \text{ converges a.s. } \implies \frac{1}{a_n} \sum_{k = 1}^{n} X_k \overset{a.s.}{\to} 0\]
 \end{lemma}
@@ -429,7 +429,7 @@ the normalization on the lefthand side. So the goal of establishing a strong law
 We will detail a few different results that provide sufficient conditions for a random series to converge, and hence will provide sufficient conditions for the strong law to hold. However, the crown jewel will 
 be the \textit{Kolmogorov Three Series theorem}, which provides sufficient and necessary conditions for series convergence and thus will yield an ``if and only if'' strong law.  
 
-\begin{thm}
+\begin{thm} \label{Kolmogorov_convergence_criterion}
 (Kolmogorov convergence criterion) Let $\{X_k\}$ be independent with means $\{\mu_k\}$ and variances $\{\sigma_k^2\}$. Then 
 \[\sum_{k = 1}^{\infty} \sigma_k^2 < \infty \implies \sum_{k = 1}^{\infty} (X_k - \mu_k) \text{ converges a.s. }\]
 If, in addition, $\sum_{k = 1}^{\infty} \mu_k$ converges then $\sum_{k = 1}^{\infty} X_k$ converges almost surely. 
@@ -443,17 +443,67 @@ The condition $\sum_{k = 1}^{\infty} \sigma_k^2 < \infty$ is much stronger, as i
 This is much stronger than just saying $\sigma_k^2 < \epsilon$ for $k$ sufficiently large. The Kolmogorov convergence criterion is actually enough to establish a sufficient condition for the SLLN. However, the below theorem
 is what is required to prove the true if and only if version of the strong law. Before stating the theorem, we provide some context. The above lemma assumed that the variances of the random variables were 
 finite. It turns out this is not required for the SLLN to hold. To deal with infinite variances we utilize the same strategy as we did for the weak law, considering the truncated random variables
-$Y_k := X_k \mathbbm{1}\{\abs{X_k} \leq A\}$ (just like we did for the weak law). The trick will be to show that if the partial sums of the $Y_k$ converge then so do the partial sums of the $X_k$. Note that this can only 
+$Y_k := X_k \mathbbm{1}\{\abs{X_k} \leq A\}$ (just like we did for the weak law), since the truncated random variables have finite variance. 
+The trick will be to show that if the partial sums of the $Y_k$ converge then so do the partial sums of the $X_k$. Note that this can only 
 be true if 
 \[\Prob(X_k \neq Y_k \text{ i.o.}) = 0\]
 We already know from the Kolmogorov convergence criterion that if the variances of the $Y_k$ are summable and the means of the $Y_k$ converge then the partial sums of the $Y_k$ will converge. These two conditions
 correspond to two of the series in the Kolmogorov three series theorem. The third series ensures the condition $\Prob(X_k \neq Y_k \text{ i.o.}) = 0$. Thus, it is really quite a small leap to extend the previous lemma to 
 the infinite variance case. The truly remarkable part about the Kolmogorov three series theorem is that the implication also goes the other way. 
 \begin{thm}
-(Kolmogorov Three Series Theorem) Let $A > 0$ and $\{X_k\}$ be independent. Define the truncated random variables $Y_k := X_k \mathbbm{1}\{\abs{X_k} \leq A\}$. 
+(Kolmogorov Three Series Theorem) Let $A > 0$ and $\{X_k\}$ independent random variables. Define the truncated random variables $Y_k := X_k \mathbbm{1}\{\abs{X_k} \leq A\}$. Then the sequence of partial sums 
+$\{S_n\}$ converges almost surely if and only if
+\begin{enumerate}
+\item $\sum_{k = 1}^{\infty} \Prob(X_k \neq Y_k) = \sum_{k = 1}^{\infty} \Prob(\abs{X_k} > A) < \infty$ 
+\item $\sum_{k = 1}^{\infty} \E Y_k$ converges 
+\item $\sum_{k = 1}^{\infty} \Var(Y_k) < \infty$ 
+\end{enumerate}
 \end{thm}
-TODO: review B-C and show that the series in the 3 series theorem does indeed imply the i.o. condition. 
+To be clear here, a sufficient condition for $\{S_n\}$ to converge almost surely is that the three series must converge \textit{for some } $A > 0$. Conversely, if $\{S_n\}$ converges a.s. then 
+necessarily the three series converge for any $A > 0$. Following this logic, if the three conditions hold for some $A$ then $\{S_n\}$ converges almost surely, which then implies that they hold 
+for all $A$; the point here is that to establish that the SLLN holds we need only verify the conditions for a single $A$. Also note that the first series converging implies 
+\[\Prob(X_k \neq Y_k \text{ i.o.}) = 0\]
+by a direct application of the first Borel-Cantelli lemma. 
 
+On a final note, we state some perhaps surprising relationships between the different notions of convergence of the sequence of partial sums $\{S_n\}$, in the case where the $X_k$ are 
+independent. 
+\begin{thm}
+Let $\{X_k\}$ be a sequence of independent random variables with associated partial sums $\{S_n\}$. Then 
+\begin{enumerate}
+\item $S_n$ converges in distribution if and only if $S_n$ converges in probability. 
+\item $S_n$ converges in probability if and only if $S_n$ converges almost surely. 
+\end{enumerate}
+\end{thm}
+We know that almost sure convergence always implies convergence in probability, and convergence in probability always implies convergence in distribution. What is new here is the reverse inequalities. 
+
+\subsection{The Strong Laws}
+We begin by stating a version of the SLLN that establishes only a sufficient condition. This will be straightforward to prove given the above theorems regarding the convergence of random 
+series. We then proceed to state, without proof, the if and only if statement, which relies on the Kolmogorov three series theorem.
+
+\begin{thm}
+Let $\{X_k\}$ be independent with mean zero and finite variances $\sigma_k^2$. Then 
+\[\sum_{k = 1}^{\infty} \frac{\sigma_k^2}{k^2} < \infty \implies \frac{S_n}{n} \overset{a.s.}{\to} 0\]
+\end{thm}
+
+\begin{proof}
+From \ref{series_convergence_lemma} it is sufficient to show that $\sum_{k = 1}^{n} \frac{X_k}{k}$ converges almost surely as $n \to \infty$. Since 
+\[\sum_{k = 1}^{\infty} \Var\left(\frac{X_k}{k}\right) = \sum_{k = 1}^{\infty} \frac{\sigma_k^2}{k^2} < \infty \]
+then by the Kolmogorov convergence criterion (\ref{Kolmogorov_convergence_criterion}), $\sum_{k = 1}^{n} \frac{X_k}{k}$ converges almost surely. 
+\end{proof}
+It is now quite straightforward to prove the commonly-stated SLLN in the iid case. 
+\begin{corollary} 
+Let $\{X_k\}$ be iid with mean $\mu$ and finite variance $\sigma^2$. Then, 
+\[\frac{S_n}{n} \overset{a.s.}{\to} \mu\]
+\end{corollary}
+
+\begin{proof}
+Let $\tilde{X}_k := X_k - \mu$ so that $\E \tilde{X}_k = 0$ and $\Var(\tilde{X}_k) = \sigma^2$. Then 
+\[\sum_{k = 1}^{\infty} \frac{\Var(\tilde{X}_k)}{k^2} = \sigma^2 \sum_{k = 1}^{\infty} \frac{1}{k^2} < \infty\]
+so we may apply the previous theorem to conclude 
+\[\frac{1}{n} \sum_{k = 1}^{n} (X_k - \mu) = \frac{1}{n} \sum_{k = 1}^{n} \tilde{X}_k \overset{a.s.}{\to} \mu \]
+which then implies 
+\[\frac{S_n}{n} = \frac{1}{n} \sum_{k = 1}^{n} X_k \overset{a.s.}{\to} \mu \]
+\end{proof}
 
 \end{document}
 
