@@ -374,7 +374,7 @@ Suppose $\{X_k\}$ is an independent (not necessarily iid) sequence of random var
 \end{align*}
 \begin{enumerate}
 \item If
-\[\lim_{N \to \infty} \sum_{k = 1}^{N} \Prob(\abs{X_k} > b_n) = 0\]
+\[\lim_{N \to \infty} \sum_{k = 1}^{N} \Prob(\abs{X_k} > b_N) = 0\]
 and 
 \[\lim_{N \to \infty} \frac{1}{b_N^2} \sum_{k = 1}^{N} \Var(Y_{N, k}) = 0\]
 then
@@ -490,7 +490,7 @@ From \ref{series_convergence_lemma} it is sufficient to show that $\sum_{k = 1}^
 \[\sum_{k = 1}^{\infty} \Var\left(\frac{X_k}{k}\right) = \sum_{k = 1}^{\infty} \frac{\sigma_k^2}{k^2} < \infty \]
 then by the Kolmogorov convergence criterion (\ref{Kolmogorov_convergence_criterion}), $\sum_{k = 1}^{n} \frac{X_k}{k}$ converges almost surely. 
 \end{proof}
-It is now quite straightforward to prove the commonly-stated SLLN in the iid case. 
+It is now quite straightforward to prove the commonly-stated sufficient condition for the SLLN in the finite variance case. 
 \begin{corollary} 
 Let $\{X_k\}$ be iid with mean $\mu$ and finite variance $\sigma^2$. Then, 
 \[\frac{S_n}{n} \overset{a.s.}{\to} \mu\]
@@ -504,6 +504,120 @@ so we may apply the previous theorem to conclude
 which then implies 
 \[\frac{S_n}{n} = \frac{1}{n} \sum_{k = 1}^{n} X_k \overset{a.s.}{\to} \mu \]
 \end{proof}
+Now for the full strong law, which provides implications in both directions and does not require an assumption of finite variance. 
+\begin{thm}
+Let $\{X_k\}$ be iid random variables. 
+\begin{enumerate}
+\item If $\E \abs{X_1} < \infty$ and $\E X_1 = \mu$, then $\frac{S_n}{n} \overset{a.s.}{\to} \mu$. 
+\item If $\frac{S_n}{n} \overset{a.s.}{\to} c$ for some constant $c$, then $c = \E X_1$ and $\E \abs{X_1} < \infty$. 
+\end{enumerate}
+\end{thm}
+I provide the general structure of the proof below, suppressing some of the details. 
+\begin{proof}
+$(\implies)$ Establishing the forward implication primarily comes down to an application of the Kolmogorov three series test. However, this test only guarantees almost sure convergence to some 
+limiting random variable, so there is more work to be done to ensure the correct limit. The first goal will be to define suitable truncated random variables $Y_k$ and show that 
+\[\sum_{k = 1}^{\infty} \frac{Y_k - \E Y_k}{k} \text{ converges a.s.}\]
+which we will conclude by an application of the Kolmogorov three series test. Next we will show that this implies that the sequence of empirical averages of the $Y_k$ converge almost 
+surely to $\mu$. But since the $X_k$ and $Y_k$ are convergence equivalent (as is established by the first series in the Kolmogorov three series theorem), this means that the 
+empirical averages of the $X_k$ converge to the same limit, which is the strong law we seek. We begin with the application of the Kolmogorov three series theorem, tackling the three series
+in turn. \textbf{Watch YouTube proof of SLLN instead.}
+\begin{enumerate}
+\item Show there exists an $A > 0$ such that $\sum_{k = 1}^{\infty} \Prob\left(\frac{\abs{\tilde{X}_k}}{k} > A \right) < \infty$. \\[.2cm]
+The assumption that the $X_k$ are integrable takes care of this. Indeed, due to the tail probability formula for expectation we have 
+\begin{align*}
+\E\abs{X_1} < \infty &\iff \sum_{k = 1}^{\infty} \Prob(\abs{\tilde{X}_1} > k) < \infty \\
+			      &\iff \sum_{k = 1}^{\infty} \Prob(\abs{\tilde{X}_k} > k) < \infty \\
+			      &\iff \sum_{k = 1}^{\infty} \Prob\left(\frac{\abs{\tilde{X}_k}}{k} > 1 \right) < \infty
+\end{align*}
+where the second step is due to the iid assumption. Thus, the first condition holds with $A = 1$. 
+
+\item Letting $Y_k := \tilde{X}_k \mathbbm{1}\left\{\frac{\tilde{X}_k}{k} \leq 1\right\}$, show $\sum_{k = 1}^{\infty} \Var\left(\frac{Y_k}{k}\right) < \infty$. \\[.2cm]
+This can be shown using the facts that $\E \abs{Y_1} < \infty$ and the $Y_k$ are independent, but it is a bit technical so I will omit it here. 
+
+\item  $\sum_{k = 1}^{\infty} \E \frac{Y_k}{k} < \infty$. \\[.2cm]
+This is often the most difficult condition to check in the Kolmogorov three series test. 
+
+\end{enumerate}
+\end{proof}
+
+\section{The Central Limit Theorem}
+We have seen that under suitable assumptions, for iid random variables the empirical average $\overline{X}_n := \frac{S_n}{n}$ converges to the mean $\mu$ of the random variables. 
+The law of large numbers is a qualitative statement; either $\overline{X}_n$ converges to $\mu$ or it doesn't. 
+A natural question is then: can we make any probabilistic statements about \textit{how} $\overline{X}_n$ fluctuates about $\mu$? This is the realm of the Central Limit Theorem (CLT). 
+Loosely speaking, the CLT states that as $n$ grows large, the distribution of $S_n$ gets closer and closer to a Gaussian. Naturally, the distribution of $S_n$ can shift and spread out 
+as $n$ gets larger. Thus, by properly normalizing the distributions to have mean zero and unit variance, we can make the following statement: 
+\[\frac{S_n - \E[S_n]}{\text{SD}(S_n)} = \frac{S_n - n\mu}{\sigma \sqrt{n}} \overset{d}{\to} N(0, 1)\]
+Expanding the sum, we can equivalently as
+\[\frac{1}{\sigma \sqrt{n}} \sum_{k = 1}^{n} (X_k - \mu) \overset{d}{\to} N(0, 1)\]
+or in terms of the empirical mean as
+\[\frac{\sqrt{n}}{\sigma} (\overline{X}_n - \mu) \overset{d}{\to} N(0, 1)\]
+We will find that in addition to the finite mean assumption required by the SLLN, a finite variance assumption is necessary for the CLT to hold. 
+In addition to this standard CLT for iid random variables, we will see generalizations to the case where the $X_k$ are independent, but not necessarily identically distributed. CLTs of 
+this type will look like
+\[\frac{1}{s_n} \sum_{k = 1}^{n} (X_k - \mu_k) \overset{d}{\to} N(0, 1)\]
+where 
+\[s_n^2 := \sum_{k = 1}^{n} \sigma_k^2 \]
+In this more general setting, in addition to the variances $\sigma_k^2$ being finite, we will also require assumptions that essentially imply that in the limit, individual $X_k$ cannot exert
+too much influence in determining the sums. Very informally, we require that the random variables ``mix together'' in the limit, so that they are all exchangeable in some sense. Clearly this 
+holds in the case when they are iid, but the assumptions required are weaker than the identically distributed assumption. 
+
+\subsection{The iid Case.}
+\begin{thm}
+Let $\{X_k\}$ be iid with finite mean $\mu$ and finite variance $\sigma^2 > 0$. Then, 
+\[\frac{S_n - n\mu}{\sigma \sqrt{n}} \overset{d}{\to} N(0, 1)\]
+\end{thm}
+
+\subsection{The Non-Identically Distributed Case: Lindeberg-Levy-Feller}
+We now consider dropping the assumption that the $X_k$ are identically distributed. The $X_k$ are now free to have different means $\mu_k$ and variances $\sigma_k^2$, both of which 
+we assume are finite. In addition, throughout this section we assume that the $\sigma_k^2$ are not all zero, which excludes this uninteresting degenerate case. We will also make use of the 
+notation 
+\[s_n^2 := \Var(S_n) = \sum_{k = 1}^{n} \sigma_k^2\]
+The CLT in the iid case showed that in the limit, no matter what the distribution of the underlying $X_k$, the fluctuations mix together in such a way that the distribution of the sum $S_n$ 
+approaches a Gaussian. Relaxing the identically distributed assumption, we now must identify the conditions that allow the $X_k$ to mix together in this way. The two central conditions are 
+called the \textit{Lindeberg Conditions}. 
+\begin{enumerate}
+\item $L_1(n) := \max_{1 \leq k \leq n} \frac{\sigma_k^2}{s_n^2} = \frac{\max_{1 \leq k \leq n} \sigma_k^2}{\sum_{k = 1}^{n} \sigma_k^2} \to 0$
+\item $L_2(n) := \frac{1}{s_n^2} \sum_{k = 1}^{n} \E\left[(X_k - \mu_k)^2 \mathbbm{1}\{\abs{X_k - \mu_k} > \epsilon s_n\} \right] \to 0$
+\end{enumerate} 
+These are not the most intuitive things in the world. For the first Lindeberg condition, we see that $L_1(n)$ considers the most dominant $X_k$ out of the first $n$ random variables in the
+sequence, in the sense of having the largest variance. $L_1(n)$ is the proportion of the variance of this dominant random variable over the variance of the sum $S_n$. The first condition thus 
+says that in the limit, this dominance proportion must go to $0$. In a certain sense this means that the variability in any one of the $X_k$ becomes negligible in the limit. This second condition 
+appears a bit more difficult to parse. Looking inside the indicator function, $\mathbbm{1}\{\abs{X_k - \mu_k} > \epsilon s_n\}$, note that $s_n$ is the typical deviation of the sum $S_n$ 
+from its mean. Taking $\epsilon = 1$ for convenience for the moment, the indicator function is thus considering the event where the deviation of $X_k$ from its mean is larger than the typical 
+deviation of $S_n$ from its mean. The expectation is then considering the average of square of these ``unusual'' deviations. Then the expected squared unusual deviations for each of the 
+first $n$ random variables in the sequence are summed up and this value is compared to the variance of the sum $s_n^2$. The second condition is thus requiring that in the limit, such exceptional 
+deviations of the $X_k$ from their means must become negligible compared to the variance of the sum $s_n^2$. 
+
+The two Lindeberg conditions are not necessary and sufficient for the CLT to hold, but they're pretty close. It actually turns out that the second Lindeberg condition implies the first. 
+The actual statement of the theorem looks kind of like and if and only if, but is a bit weird due to the possibility of some odd edge cases. We will explore these weird cases a bit after
+the statement of the theorem. 
+\begin{thm}
+Let $\{X_k\}$ be independent random variables with finite means $\mu_k$ and finite variances $\sigma_k^2$ not all equal to zero. 
+\begin{enumerate}
+\item If the second Lindeberg condition holds, then so does the first, and 
+\[\frac{1}{s_n} \sum_{k = 1}^{n} (X_k - \mu_k) \overset{d}{\to} N(0, 1)\]
+\item If the first Lindeberg condition holds and the CLT holds, then the second Lindeberg condition holds. 
+\end{enumerate}
+\end{thm}
+What should be immediately clear is that the second Lindeberg condition is sufficient for the CLT to hold. However, the statement of the converse leaves open the possibility that 
+it is not strictly necessary; i.e. there are weird cases where the CLT holds despite the second Lindeberg condition failing. The first Lindeberg condition excludes this weird cases. To better
+understand this, let's consider some implications of the first Lindeberg condition. Clearly $L_1(n) \to 0$ implies $s_n^2 \to \infty$. If the first Lindeberg condition doesn't hold, this leaves open 
+the possibility that $s_n^2$ converges; that is, 
+\[\sum_{k = 1}^{\infty} \sigma_k^2 < \infty\]
+If this is the case, then by the Kolmogorov convergence criterion (\ref{Kolmogorov_convergence_criterion}), we know that $S_n$ converges almost surely. Thus, 
+$S_n - \E S_n = \sum_{k = 1}^{n} (X_k - \mu_k)$ converges almost surely \textit{without normalization}. 
+
+\subsection{The Lyapounov CLT}
+The second Lindeberg condition is difficult to check. Lyapounov's condition is a stronger sufficient condition that is often much easier to check in practice. Lyapounov's condition essentially 
+requires that any moment higher than the second moment exists (it is common to use the third moment), and then limits the growth rate of these moments in an average sense. 
+\begin{thm}
+Let $\{X_k\}$ be independent random variables with finite means $\mu_k$ and finite variances $\sigma_k^2$ not all equal to zero. Also assume that for some $\delta > 0$, 
+$\E \abs{X_k}^{2 + \delta} < \infty$ for all $k$. If 
+\[\frac{1}{s_n^{2 + \delta}} \sum_{k = 1}^{n} \E\left[\abs{X_k - \mu_k}^{2 + \delta}\right] \to 0\]
+then the CLT holds. 
+\end{thm}
+There are cases where the Lyapounov condition doesn't hold, but the Lindeberg condition (and hence the CLT) does, but in general the Lyapounov condition is very useful in practice. 
+
 
 \end{document}
 
