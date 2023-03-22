@@ -236,16 +236,64 @@ a prior on the class probability function $p(\cdot)$, though the latter will not
 \begin{enumerate}
 \item Obtain the posterior over $\tilde{f}$:
 \[p(\tilde{f}|X, y) = \int p(\tilde{f}|f)p(f|y) df\]
-\item Utilize $p(\tilde{f}|X, y)$ from the above step to obtain $p(\tilde{p}|X, y)$. 
+where $p(\tilde{f}|f)$ is Gaussian but $p(f|y) \propto p(y|f)p(f)$ is not ($p(y|f)$ is Bernoulli). 
+\item Utilize $p(\tilde{f}|X, y)$ from the above step to obtain $p(\tilde{p}|X, y)$. \\[.2cm]
+If sampling is used, this simply means transforming a sample of $\tilde{f}$ into a sample of $\tilde{p}$ via
+\[\tilde{p} = \frac{e^{\tilde{f}}}{1 + e^{\tilde{f}}}\]
 \end{enumerate}
 Neither of these steps admit closed-form solutions, so either analytical or stochastic (sampling) approximations are necessary. Focusing on sampling-based approaches, the 
 distribution $p(\tilde{f}|X, y)$ in step one can be approximated by drawing samples from the joint posterior $p(\tilde{f}, f|X, y)$ and then extracting the $\tilde{f}$ samples to 
-marginalize over $f$. For step two, the samples from $p(\tilde{f}|X, y)$ can be transformed by applying the inverse logit to obtain samples from $p(\tilde{p}|X, y)$. 
+marginalize over $f$. In particular, we can sample from this joint via the following two-step procedure: 
+\begin{itemize}
+\item Sample $f^\prime \sim p(f|X, y)$
+\item Sample $\tilde{f}^\prime \sim p(\tilde{f}|f^\prime)$
+\end{itemize}
+which can be repeated and then the samples of $\tilde{f}$ are returned (the sampling procedure has approximated the marginalization over $f$). 
+For step two, the samples from $p(\tilde{f}|X, y)$ can simply be transformed by applying the inverse logit to obtain samples from $p(\tilde{p}|X, y)$. Finally, note 
+that this procedure is marginalizing over the latent function values $f$ associated with the \textit{observed} responses $y$. Performing inference over
+latent values $\tilde{f}$ at input unobserved input locations requires averaging over the uncertainty in latent values for the observed responses. 
 
 \subsubsection{Sampling Strategies for Gaussian Processes}
-In both of the above examples, inference for GPs boils down to essentially the same problem: sampling from $p(f|y)$, the posterior distribution over function values. 
-In the above examples, $f$ contained function values evaluated at both the training and test points. \textbf{TODO}: change $f$ notation above to not be confusing. 
+In both of the above examples, inference for GPs boils down to essentially the same problem: sampling from $p(f|y)$, the posterior distribution over function values
+(technically we should write $p(f|X, y)$ but I suppress the $X$ to lighten notation). In the standard GP regression problem with independent Gaussian noise, $p(f|y)$
+was available in closed-form. However, analytical calculations were broken when non-Gaussian noise was considered. Moreover, in the GP classification example, this 
+distribution is likewise unavailable in closed form. Note that in the classification problem, we detailed a two-step sampling procedure to sample from 
+$p(\tilde{f}, f|X, y)$. Sampling from $p(f|y)$ (the first step) is the challenging step of this procedure, since the second step just requires sampling from the Gaussian 
+$p(\tilde{f}|f^\prime)$. In general, we have access to the unnormalized density
+\[p(f|y) \propto p(y|f)p(f) = p(y|f)\mathcal{N}_N(f|0, K)\]
+where $K$ is the $N \times N$ matrix given by $(K)_{ij} := k(x_i, x_j)$. In general, if the likelihood $p(y|f)$ is non-Gaussian, then the posterior $p(f|y)$ will not take the 
+form of some well-known distribution. For example, in the classification example, $p(f|y)$ is a product over Bernoullis:
+\begin{align}
+p(f|y) &\propto \mathcal{N}_N(f|0, K) \prod_{i = 1}^{N} p_i^{y_i}(1 - p_i)^{1 - y_i} \label{logistic_post} \\
+	 &= \mathcal{N}_N(f|0, K) \prod_{i = 1}^{N} \left(\frac{e^{f_i}}{1 + e^{f_i}}\right)^{y_i}\left(\frac{1}{1 + e^{f_i}}\right)^{1 - y_i} \nonumber \\
+	 &= \mathcal{N}_N(f|0, K) \prod_{i = 1}^{N} \frac{e^{f_i y_i}}{1 + e^{f_i}} \nonumber
+\end{align}
+There are a few issues that make sampling from $p(f|y)$ difficult. First of all, $f \in \R^N$ and the number of observations $N$ can be quite large. Second, the distribution 
+$p(f|y)$ will often be quite correlated, which poses problems for many standard sampling schemes. This correlation is often stemming from correlations in the prior
+$\mathcal{N}_N(f|0, K)$, reflecting correlations that encode the smoothness of the latent function. We will begin by discussing why two standard MCMC schemes--Gibbs sampling
+and Metropolis-Hastings--might run into trouble here, and then proceed to explore more sophisticated alternatives.  
 
+\bigskip
+\noindent
+\textbf{Gibbs Sampling.} A Gibbs sampling approach would involve cycling through the conditional posteriors $p(f_i|y, f_{-i})$, sampling from them one at a time. 
+Here, $f_{-i}$ is shorthand for $f_1, \dots, f_{i - 1}, f_{i + 1}, \dots, f_N$ (i.e. all of the latent function values are fixed at their current values, except for $f_i$). So the question is:
+can we sample from these conditional posteriors? First, a couple observations. Note that the conditional posterior is proportional to the posterior itself, since
+\[p(f_i|y, f_{-i}) \propto p(y|f_i, f_{-i})p(f_i, f_{-i}) = p(y|f)p(f)\]
+Thus, a strategy for determining $p(f_i|y, f_{-i})$ (up to a constant) is to take the density $p(f|y)$ and drop all terms without dependence on $f_i$. To this end, let's once again 
+take a look at $p(f|y)$. Assuming the likelihood factorizes, then this density takes the form 
+\begin{align*}
+p(f|y) &\propto \mathcal{N}_N(f|0, K) \prod_{j = 1}^{N} p(y_j|f_j) \\
+	 &\propto \exp\left\{-\frac{1}{2} f^T K^{-1} f \right\} \prod_{j = 1}^{N} p(y_j|f_j) \\
+	 &= \exp\left\{-\frac{1}{2} \sum_{j,l = 1}^{N} f_j f_l \left(K^{-1}\right)_{jl} \right\} \prod_{j = 1}^{N} p(y_j|f_j) \\
+	 &= \prod_{j = 1}^{N} \prod_{l = 1}^{N} \exp\left\{-\frac{1}{2} f_j f_l \left(K^{-1}\right)_{jl} \right\} \cdot \prod_{j = 1}^{N} p(y_j|f_j) \\
+\end{align*}
+The density (\ref{logistic_post}) for the classification model is a specific example of this form, where the likelihood factorized into a product of Bernoulli densities. We expanded 
+the Gaussian density in a product in the interest of dropping terms that do not depend on $f_i$, as mentioned before. By dropping these terms, we obtain 
+\begin{align*}
+p(f_i|y, f_{-i}) &\propto \exp\left\{-\frac{1}{2}f_i^2 \left(K^{-1}\right)_{ii} \right\} \prod_{j \neq i} \exp\left\{-f_i f_j \left(K^{-1}\right)_{ij} \right\} \cdot p(y_i|f_i) \\
+		    &= \exp\left\{-\frac{1}{2} f_i^2 \left(K^{-1}\right)_{ii} - \sum_{j \neq i} f_i f_j \left(K^{-1}\right)_{ij} \right\} \cdot p(y_i|f_i)
+\end{align*}
+which uses the fact that the precision matrix $K^{-1}$ is symmetric. \textbf{TODO: show this is log-concave}. 
 
 \subsection{Space-Filling Sampling Algorithms}
 The purpose of this section is to introduce various sampling algorithms that are often used in the fields of experimental design and computer experiments. I will introduce the 
