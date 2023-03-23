@@ -293,7 +293,23 @@ the Gaussian density in a product in the interest of dropping terms that do not 
 p(f_i|y, f_{-i}) &\propto \exp\left\{-\frac{1}{2}f_i^2 \left(K^{-1}\right)_{ii} \right\} \prod_{j \neq i} \exp\left\{-f_i f_j \left(K^{-1}\right)_{ij} \right\} \cdot p(y_i|f_i) \\
 		    &= \exp\left\{-\frac{1}{2} f_i^2 \left(K^{-1}\right)_{ii} - \sum_{j \neq i} f_i f_j \left(K^{-1}\right)_{ij} \right\} \cdot p(y_i|f_i)
 \end{align*}
-which uses the fact that the precision matrix $K^{-1}$ is symmetric. \textbf{TODO: show this is log-concave}. 
+which uses the fact that the precision matrix $K^{-1}$ is symmetric. 
+\textbf{TODOs:}
+\begin{itemize}
+\item Show above conditional posterior is log-concave. 
+\item Discuss potential for adaptive rejection algorithm of Gilks and Wild (1992). 
+\end{itemize} 
+
+\bigskip
+\noindent
+\textbf{Metropolis-Hastings.}
+\begin{itemize}
+\item Sampling from prior, why this is desirable and also potentially an issue (see Neil Lawrence paper).
+\item Sampling from prior but with smaller variance. 
+\item Alternative proposal mentioned in Neal and in elliptical slice sampling paper. Is this related to overrelaxation? 
+\item De-correlated prior (see project from Youssef's class). 
+\item Elliptical slice sampling. 
+\end{itemize}
 
 \subsection{Space-Filling Sampling Algorithms}
 The purpose of this section is to introduce various sampling algorithms that are often used in the fields of experimental design and computer experiments. I will introduce the 

@@ -1,0 +1,113 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\def\R{\mathbb{R}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+\begin{document}
+
+\begin{center}
+\Large
+Notes on Scalable Gaussian Processes
+\end{center}
+
+\begin{flushright}
+Andrew Roberts
+\end{flushright} 
+
+\section{Different Approaches to Approximate GPs}
+
+\section{Background: Factor Graphs and Pseudo Data}
+
+\subsection{Pseudo Data}
+The use of pseudo data is a feature utilized in many different approximate GP schemes, including both the approximate generative model and approximate inference approaches. Hence, we choose to introduce 
+this concept here rather than with a specific scalable GP method.
+
+The primary computational challenge of working with GPs is performing operations on the dense $N \times N$ kernel matrix $K$, where $N$ is the number of training observations. When thinking about 
+reducing the computational cost, a pretty natural thought is that maybe we can capture the essence of the training data with fewer than $N$ points. The idea is to introduce 
+$M << N$ so-called pseudo data points (which may or may not be a subset of the original training dataset) and utilize these points in such a way that hopefully the computation time now scales as some function 
+of $M$, rather than as $N^3$. When $M$ is much smaller than $N$ this can result in large computational gains, at the cost of some approximation error.
+
+\subsection{Factor Graphs} 
+It is useful to have visual representation of GP models, which clearly displays the conditional dependencies between all of the variables. \textit{Factor graphs} are such a tool. To begin, consider a density $p$
+that can be factored as 
+\[p(x_1, x_2, x_3) = p_1(x_1, x_2)p_2(x_2, x_3)\]
+for some other densities $p_1$ and $p_2$. If we consider $x_2$ as fixed, then we see that $p(x_1, x_2, x_3)$ can be interpreted as the conditional density of $x_1$ and $x_3$ given $x_2$, up to a 
+normalizing constant. The two terms on the righthand side can be interpreted similarly, so we see that this factorization is telling us that $x_1$ is independent of $x_3$, given $x_2$ (since their conditional 
+joint density factors as a product of their marginal conditional densities). This conditional independence can equivalently be expressed as the following factor graph. 
+\[\text{\textbf{TODO}: add factor graph}\] 
+This context can help us discover a very nice interpretation of the precision matrix (i.e., the inverse covariance matrix) of a multivariate Gaussian distribution; namely, that the precision matrix encodes 
+conditional independencies. This is in contrast to the covariance matrix of a Gaussian, which encodes independence between variables, which represents a stronger condition. To see this, consider the 
+density for the gaussian $\mathcal{N}(0, \Sigma)$. 
+\begin{align*}
+\mathcal{N}(x|0, \Sigma) &\propto \exp\left\{-\frac{1}{2}x^T \Sigma^{-1}x \right\} \\
+				       &= \exp\left\{-\frac{1}{2} \sum_{i, j} x_i x_j \left(\Sigma^{-1}\right)_{ij} \right\} \\
+				       &= \prod_{i,j} \exp\left\{-\frac{1}{2} x_i x_j \left(\Sigma^{-1}\right)_{ij} \right\} \\
+				       &\propto \prod_{i,j}  p_{ij}(x_i, x_j)
+\end{align*}
+Thus, we observe that Gaussian densities factor into a product of densities that each only depend on two of the variables. Notice that if $\left(\Sigma^{-1}\right)_{ij} = 0$ then 
+$p_{ij}(x_i, x_j) = 1$ so the factor associated with the variables $i$ and $j$ drops out of the product and we conclude that $x_i$ and $x_j$ are conditionally independent, given all 
+the other variables. Let's be a bit more rigorous in proving this result. 
+
+Consider what this looks like for a three-dimensional Gaussian. Notice that the factor for each $i \neq j$ appears twice in the above product, so the density has the form
+\[p(x_1, x_2, x_3) = p(x_1) p^2(x_1, x_2)p^2(x_1, x_3)p(x_2) p^2(x_2, x_3)p(x_3)\]
+so if, say, $\left(\Sigma^{-1}\right)_{23} = 0$ then this becomes 
+\[p(x_1, x_2, x_3) = p(x_1) p^2(x_1, x_2)p^2(x_1, x_3)p(x_2) p(x_3)\]
+Now, notice that if we fix $x_1$ then $p(x_1)$ is just a constant, and the $p^2(x_1, x_3)$ is now viewed as a function of only $x_3$ so what's left is a product of terms that depend on 
+$x_2$ times a product of terms that depend on $x_3$. Thus, $x_2$ is conditionally independent of $x_3$, given $x_1$. 
+
+\section{Approximate Generative Models}
+
+\subsection{Fully Independent Training Conditional (FITC)}
+
+
+\end{document}
+
+
