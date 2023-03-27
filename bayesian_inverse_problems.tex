@@ -1,0 +1,307 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Bayesian Inverse Problems}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{The General Framework}
+
+\subsection{Introduction to Finite Dimensional Inverse Problems}
+Inverse problems generically take the form
+\begin{align}
+y &= f(\theta),
+\end{align}
+where $f: \R^d \to \R$ is a forward model (i.e. parameter-to-observation operator), $\theta \in \mathcal{D}$ is an unknown input to the forward model which we seek to learn, and
+$y \in \R^n$ are observations of the output of the forward model. The task is to infer the input parameter $\theta$ that gave rise to the observations $y$. Typically, we consider finite
+dimensional parameter spaces $\mathcal{D} \subset \R^d$ but will also touch on scenarios where $\mathcal{D}$ is infinite-dimensional (e.g. inferring a spatial field). 
+To reflect the reality that 
+observations are almost always corrupted by noise, we adopt a statistical framework
+\begin{align}
+y &= f(\theta) + \epsilon \label{inverse_problem_statistical} \\
+\epsilon &\sim \rho_\epsilon \nonumber
+\end{align}
+which now defines a likelihood $p(y|\theta) := \rho(y - f(\theta))$ that, loosely speaking, expresses the probability of observing the data $y$ given that the input parameter was $\theta$. It is quite common
+to assume Gaussian noise 
+\begin{align}
+y &= f(\theta) + \epsilon \label{inverse_problem_statistical_Gaussian} \\
+\epsilon &\sim N_n(0, \Sigma_\epsilon) \nonumber,
+\end{align}
+which then yields the Gaussian likelihood $p(y|\theta) = N_n(y|f(\theta), \Sigma_\epsilon)$. The function $\rho: \R^d \to \R$ in this case is given by 
+\[\rho(s) \propto \exp\left\{-\frac{1}{2} s^T \Sigma_{\epsilon}^{-1} s \right\}\]
+ I will consider this particular choice of likelihood throughout much of the exposition, but consider non-Gaussian 
+likelihoods later in the paper. Assuming $\Sigma_\epsilon$ is known, a staightforward approach to solving [\ref{inverse_problem_statistical_Gaussian}] (i.e. estimating the value of $\theta$ 
+that gave rise to $y$) is to use MLE
+\begin{align}
+\hat{\theta}_{MLE} &:= \argmax_{\theta} N_n(y|f(\theta), \Sigma_\epsilon) \\
+			     &= \argmin_{\theta \in \mathcal{D}} \frac{1}{2} (y - f(\theta))^T \Sigma_\epsilon^{-1} (y - f(\theta)) \nonumber
+\end{align}
+However, in applications this approach commonly suffers from various problems, including the lack of a unique solution to the optimization problem and high sensitivity of the minimizer to perturbations of 
+the data $y$. To ameliorate these issues, one approach is to \textit{regularize} the problem by penalizing values of $\theta$ that drift too far away from some fixed point in the input space $\mathcal{D}$. 
+\begin{align}
+\hat{\theta}_{\theta_0, \Sigma_0} &= \argmin_{\theta \in \mathcal{D}} \frac{1}{2} (y - f(\theta))^T \Sigma_\epsilon^{-1} (y - f(\theta)) + \frac{1}{2} (\theta - \theta_0)^T \Sigma_0^{-1}(\theta - \theta_0) \label{regularization}
+\end{align}
+where $\Sigma_0$ characterizes the weighted norm that quantifies the penalty imposed as a function of the distance between $\theta$ and $\theta_0$. The values $\theta_0$ and $\Sigma_0$ must be chosen 
+a priori, and this seems problematic given that they appear to be somewhat arbitrary in the formulation [\ref{regularization}]. Adopting a Bayesian framework helps put these choices in a more transparent 
+modeling setup. Following typical Bayesian procedure, we place a prior $\pi_0$ on $\theta$ which encodes our current beliefs about the true value of the parameter. 
+\begin{align}
+y &= f(\theta) + \epsilon \label{inverse_problem_Bayesian} \\
+\theta &\sim \pi_0 \\
+\epsilon &\sim N_n(0, \Sigma_\epsilon) \nonumber.
+\end{align}
+Solving the Bayesian inverse problem $[\ref{inverse_problem_Bayesian}]$ now means obtaining (or summarizing) the posterior distribution of the parameter given the data, which is calculated via Bayes' rule. 
+\begin{align}
+p(\theta|y) &= \frac{N_n(y|f(\theta), \Sigma_\epsilon)\pi_0(\theta)}{\int N(y|f(\theta), \Sigma_\epsilon)\pi_0(\theta) d\theta} \propto N_n(y|f(\theta), \Sigma_\epsilon)\pi_0(\theta) \label{posterior}
+\end{align}
+The integral in the denominator of [\ref{posterior}] is typically intractable, but $p(\theta|y)$ can be sampled from using Markov Chain Monte Carlo (MCMC) techniques. In the case of a Gaussian prior 
+$\theta \sim N_d(\theta_0, \Sigma_0)$ the posterior becomes
+\begin{align}
+p(\theta|y) &\propto N_n(y|f(\theta), \Sigma_\epsilon)N_d(\theta|\theta_0, \Sigma_0) \\
+ 		&\propto \exp\left\{-\frac{1}{2} (y - f(\theta))^T \Sigma_\epsilon^{-1} (y - f(\theta)) - \frac{1}{2} (\theta - \theta_0)^T \Sigma_0^{-1}(\theta - \theta_0) \right\} \nonumber
+\end{align}
+which in general is not Gaussian if $f$ is non-linear. The maximum a posterior (MAP) estimate is thus
+\begin{align}
+\hat{\theta}_{\text{MAP}} := \argmin_{\theta \in \mathcal{D}} \frac{1}{2} (y - f(\theta))^T \Sigma_\epsilon^{-1} (y - f(\theta)) + \frac{1}{2} (\theta - \theta_0)^T \Sigma_0^{-1}(\theta - \theta_0) \label{MAP}
+\end{align}
+which we notice is identical to the regularized MLE estimate $\hat{\theta}_{\theta_0, \Sigma_0}$. Therefore, the seemingly arbitrary choices $m_0$ and $\Sigma_0$ in the regularized setting are naturally 
+interpreted as the parameters defining the prior on $\theta$ in the Bayesian setting. The Bayesian framework also provides more than just this new interpretation; it provides a solution to the inverse problem 
+in terms of a distribution $p(\theta|y)$ rather than just a point estimate $\hat{\theta}_{\theta_0, \Sigma_0}$. While we can still calculate the point estimate $\hat{\theta}_{\text{MAP}}$, there are many other ways 
+to interrogate the posterior to conduct more robust uncertainty quantification. 
+
+\subsection{More General Theoretical Framework}
+We now consider a general setting for Bayesian inverse problems, where the input parameter space $\mathcal{D}$ may be infinite dimensional. We again consider a forward operator (or parameter-to-observation 
+map) $f: \mathcal{D} \to \mathcal{Y}$. As before, the task is to solve the equation
+\begin{align*}
+y = f(\theta)
+\end{align*}
+for $\theta \in \mathcal{D}$, given fixed $y \in \mathcal{Y}$. For full generality, we can consider $(\mathcal{D}, \norm{\cdot}_{\mathcal{D}})$ and $(\mathcal{Y},  \norm{\cdot}_{\mathcal{Y}})$ as Banach spaces. As discussed previously, this problem is often plagued by ill-posedness--non-existence 
+of solutions or extreme sensitivity of the solution to $y$. A classical approach to address these issues is to instead consider a least-squares, or regularized least-squares, solution to the problem. The notion of distance in the least-squares problem is given by the norm $\norm{\cdot}_{\mathcal{Y}}$, which yields the least-squares problem  
+\begin{align*}
+\hat{\theta} := \argmin_{\theta \in \mathcal{D}} \frac{1}{2} \norm{y - f(\theta)}_{\mathcal{Y}}^2
+\end{align*}
+where the $\frac{1}{2}$ is included for consistency, recalling the relation between the squared error and Gaussian distribution discussed in the previous section. For the regularized problem, we penalize deviations 
+of $\theta$ from some pre-specified $m_0$. We could of course define this penalty as $\norm{u - m_0}_{\mathcal{D}}$, but in the interest of generality we consider the option of restricting $\theta$ to some smaller 
+Banach space $\mathcal{E}$, equipped with arbitrary norm $\norm{\cdot}_\mathcal{E}$:
+\begin{align*}
+\hat{\theta} := \argmin_{\theta \in \mathcal{E}} \left(\frac{1}{2} \norm{y - f(\theta)}_{\mathcal{Y}}^2 + \frac{1}{2} \norm{\theta - m_0}^2_E\right)
+\end{align*}
+Moving away from pure optimization and instead adopting a Bayesian statistical framework offers many benefits, as described in the previous section. To this end, we consider a prior probability measure $\mu_0$ on 
+$\theta$ which encodes prior information as to the true value of $\theta$, before observing any data. Moreover, we now suppose that the data $y$ has been measured with noise. This yields the model
+\begin{align*}
+y = f(\theta) + \epsilon
+\end{align*}
+where $\epsilon$ is the \textit{observational noise}, which we in general consider to be a mean zero random variable. The distributions on $\epsilon$ and $\theta$ induce a distribution on $y$, as well as a joint 
+distribution over $(y, \theta)$. The marginal of this joint distribution corresponding to $\theta$ is simply the prior measure $\mu_0$, while the marginal corresponding to $y$ is known as the \textit{evidence}. The primary object of interest is the conditional random variable $\theta|y$, with associated probability measure $\mu^y$. The distribution $\mu^y$ encodes knowledge about the parameter after observing $y$, thus combining 
+information from prior beliefs and observed data. 
+
+To make this concrete, we now turn back to the finite dimensional case where $\mathcal{Y} \subset \in \R^n$ and $\mathcal{D} \subset \R^d$ and probability densities exist. In this simpler setting, we consider characterizing the posterior measure $\mu^y$. 
+
+\begin{thm}
+Assume $\mathcal{Y} \subset \R^n$, $\mathcal{D} \subset \R^d$, and that the measure $\mu_0$ has associated density (i.e. Radon-Nikodym derivative with respect to Lebesgue measure) $\pi_0$. 
+Moreover, assume the likelihood $p(y|\theta)$ is proportional to a density $\rho(y - f(\theta))$. Then, 
+\begin{enumerate}
+\item The posterior measure $\mu^y$ is absolutely continuous with respect to the prior measure $\mu_0$ (written $\mu^y << \mu_0$). 
+\item The Radon-Nikodym derivative of $\mu^y$ with respect to $\mu_0$ is proportional to $\rho(y - f(\theta))$, written $\frac{d\mu^y}{d\mu_0} \propto \rho(y - f(\theta))$. 
+\end{enumerate}
+\end{thm}
+
+\begin{proof} 
+Note that since the prior and likelihood are both given by densities, then the posterior density is given by Bayes' rule
+\[\pi^y(\theta) \propto \pi_0(\theta) \rho(y - f(\theta))\]
+Let $A$ be any measurable set. To establish the first claim we must show that $\mu_0(A) = 0 \implies \mu^y(A) = 0$. Assuming $\mu_0(A) = 0$ means
+\[\int_A \pi_0(\theta) d\theta = 0\]
+and since $\pi_0$ is non-negative this implies that $\pi_0(\theta) = 0$ almost surely on $A$. Then, 
+\[\mu^y(A) = \int_A \pi^y(\theta) d\theta = \int_A \pi_0(\theta) \rho(y - f(\theta)) d\theta = 0\]
+which follows from the fact that $\pi_0(\theta) = 0$ almost surely on $A$. Thus, $\mu^y << \mu_0$. For the second claim, recall that the definition of the Radon-Nikodym derivative requires 
+\[\mu^y(A) = \int_A \frac{d\mu^y}{d\mu_0} d\mu_0\]
+for any measurable $A$. But we have 
+\[\mu^y(A) = \int_A \pi^y(\theta) d\theta \propto \int_A \pi_0(\theta) \rho(y - f(\theta)) d\theta = \int_A \rho(y - f(\theta)) d\mu_0 \]
+Comparing the two expressions, we observe $\frac{d\mu^y}{d\mu_0} \propto \rho(y - f(\theta))$. 
+\end{proof} 
+In the finite-dimensional setting, we now have two representations for the posterior measure:
+\begin{enumerate}
+\item $\pi^y(\theta) := \frac{d\mu^y}{d\lambda}(\theta) \propto \pi_0(\theta)\rho(y - f(\theta))$, the Radon-Nikodym derivative with respect to the Lebesgue measure $\lambda$ (what we typically think of as the posterior density).
+\item $\frac{d\mu^y}{d\mu_0}(\theta) \propto \rho(y - f(\theta))$, the Radon-Nikodym derivative with respect to the prior measure $\mu_0$. 
+\end{enumerate}
+The density $\frac{d\mu^y}{d\mu_0}$ can be interpreted as the function that re-weights the prior measure by taking into account the data $y$, and thus updating the current beliefs about $\theta$. 
+
+We now consider re-writing $\rho$ in terms of a \textit{potential function} $\Phi$. It is not immediately clear how this is helpful, but the potential function formulation is the one which will naturally extend to settings
+where $\mathcal{D}$ or $\mathcal{Y}$ are infinite-dimensional. Moreover, in the common case of a Gaussian likelihood, the potential function has a very natural interpretation as an $L_2$ error metric summarizing 
+the discrepancy between $y$ and $f(\theta)$. To this end, note that $\rho$ is a density and hence non-negative so we can define $\Phi(\theta; y)$ such that
+\[\rho(y - f(\theta)) \propto \exp\left\{-\Phi(\theta; y)\right\}\]
+holds. This gives us a new representation of the Radon-Nikodym derivative of the posterior with respect to the prior:
+\[\frac{d\mu^y}{d\mu_0}(\theta) \propto \rho(y - f(\theta)) \propto \exp\left\{-\Phi(\theta; y)\right\}\]
+To see that this is quite natural in the familiar Gaussian likelihood setting, consider that $y|\theta \sim \mathcal{N}_n(f(\theta), \Sigma_\epsilon)$ so that 
+\[\rho(y - f(\theta)) \propto  \exp\left\{-\frac{1}{2}(y - f(\theta))^T \Sigma_\epsilon^{-1}(y - f(\theta))\right\}.\]
+Therefore, we see that 
+\[\Phi(\theta; y) = \frac{1}{2}(y - f(\theta))^T \Sigma_\epsilon^{-1}(y - f(\theta))\]
+which is just the weighted $L_2$ error between the observed data $y$ and the model output $f(\theta)$. It will be notationally and conceptually useful to explicitly write this as a weighted norm 
+\[\norm{y - f(\theta)}^2_{\Sigma_{\epsilon}} := (y - f(\theta))^T \Sigma_\epsilon^{-1}(y - f(\theta))\]
+To better understand this definition, note that $\Sigma_\epsilon$ is positive definite and thus has a square root $\Sigma_\epsilon^{1/2}$ satisfying $\Sigma_\epsilon = \Sigma_\epsilon^{1/2} \left(\Sigma_\epsilon^{1/2}\right)^T$. Then, 
+\begin{align*}
+(y - f(\theta))^T \Sigma_\epsilon^{-1}(y - f(\theta)) &= (y - f(\theta))^T \Sigma_\epsilon^{-1/2} \left(\Sigma_\epsilon^{-1/2}\right)^T(y - f(\theta)) \\
+									   &= \left[\left(\Sigma_\epsilon^{-1/2}\right)^T (y - f(\theta)) \right]^T \left[\left(\Sigma_\epsilon^{-1/2}\right)^T (y - f(\theta)) \right] \\
+									   &= \norm{\left(\Sigma_\epsilon^{-1/2}\right)^T (y - f(\theta))}_2^2
+\end{align*}
+so we see the weighted metric can be thought equivalently as applying the standard $L_2$ metric to the difference $y - f(\theta)$ that is first pre-multiplied by $\left(\Sigma_\epsilon^{-1/2}\right)^T$. 
+
+\section{Surrogate Models}
+TODO: consider example in Teckentrup paper where forward model $f$ is emulated and results in approximate inverse problem 
+
+\section{Quantifying Posterior Approximation Error}
+In classical optimization-based inverse problems, we want to be able to measure the sensitivity of the solution $\hat{\theta}$ of the inverse problem to the observed data. When this sensitivity is high we might call the 
+problem \textit{ill-posed}. It is of interest to be able to quantify the well-posedness of a problem, which can help guide practical applications. In the Bayesian setting, we no longer have a single point solution 
+$\hat{\theta}$ to the inverse problem, but rather a distribution $\pi(\theta)$ summarizing the uncertainty in the true value of the parameter. However, such sensitivity analyses are still of considerable interest here. We now 
+ask how the posterior distribution $\mu^y$ responds to changes in the observed data $y$. While the Bayesian approach is in general more robust to ill-posedness, sensitivity to observed data is still a concern. Moreover, if we further complicate things by replacing the true posterior with some approximation $\hat{\mu^y}$ (e.g. through the use of GP surrogates) then we also naturally want some measure of the approximation error between the true and approximate distributions. All of these questions point to the need for a notion of distance between probability measures. There is no one perfect metric that will apply to all problems, but we detail some common choices below. We introduce these distances using generic measures $\mu_1$ and $\mu_2$, and reference measure $\nu$, but one should keep in mind that we can think of $\mu_1$ as the true posterior 
+$\mu^y$ and $\mu_2$ as some approximation of $\mu^y$, for example.  
+
+\subsection{Total Variation Distance}
+Total variation distance (TV) is a natural candidate to start with, and we will use it to motivate some of the other distances. The TV distance simply asks the question: what is the largest difference in probabilities that can occur when measuring the probability according to $\mu_1$ versus $\mu_2$? This is quite natural. One nice way to think about this is to sample from the 
+two distributions. If $\pi_1$ and $\pi_2$ are very similar then we expect the samples generated from each distribution to be almost indistinguishable. On the other hand, if they are completely 
+different then we might only need a few samples to distinguish between them with high confidence. The TV distance considers the ``worst-case'' event $A$, in the sense that $A$ is the event 
+on which $\pi_1$ and $\pi_2$ disagree the most. Mathematically, the definition is given by 
+\begin{align*}
+\text{TV}(\pi_1, \pi_2) := \sup_{A} \abs{\mu_1(A) - \mu_2(A)}
+\end{align*}
+where the supremum is taken over all measurable sets $A$. Since $\mu_1(A)$ and $\mu_2(A)$ take values in $[0, 1]$ then 
+\[0 \leq \text{TV}(\pi_1, \pi_2) \leq 1\]
+If the distributions have densities $\pi_1$ and $\pi_2$ with respect to the Lebesgue measure $\lambda$ then this can be 
+written 
+\begin{align*}
+\text{TV}(\pi_1, \pi_2) = \sup_{A} \abs{\int_A \left[\pi_1(\theta) - \pi_2(\theta)\right] d\theta }
+\end{align*}
+We can immediately establish a connection with $L_1$ distance. 
+\begin{align*}
+\text{TV}(\pi_1, \pi_2) &= \sup_{A} \abs{\int_A \left[\pi_1(\theta) - \pi_2(\theta)\right] d\theta } \\
+				 &\leq \sup_{A} \int_A \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
+				 &\leq \sup_{A} \int \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
+				 &= \int \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
+				 &= \norm{\pi_1 - \pi_2}_{L_1^\lambda}
+\end{align*}
+so the TV distance between the measures $\mu_1$ and $\mu_2$ is no larger than the $L_1$ distance between their densities $\pi_1$ and $\pi_2$. Trying to establish the opposite 
+inequality is tricky since we need to bring the absolute value outside of the integral. The trick is to split the integral into two parts to avoid absolute values. To this end, let 
+$B := \{\theta \in \mathcal{D}: \pi_1(\theta) \geq \pi_2(\theta)\}$. Then 
+\begin{align*}
+\norm{\pi_1 - \pi_2}_{L_1^\lambda} &= \int \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
+						      &= \int_B \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta +  \int_B \left(\pi_2(\theta)  - \pi_1(\theta)\right) d\theta \\
+						      &\leq \sup_A \int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta + \sup_A \int_A \left(\pi_2(\theta)  - \pi_1(\theta)\right) d\theta \\
+						      &\leq \sup_A \abs{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta} + \sup_A \abs{\int_A \left(\pi_2(\theta)  - \pi_1(\theta)\right) d\theta} \\
+						      &= 2 \sup_A \abs{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta} \\
+						      &= 2 \cdot \text{TV}(\pi_1, \pi_2)
+\end{align*}
+So we have shown 
+\begin{align*}
+\text{TV}(\pi_1, \pi_2) &\leq \norm{\pi_1 - \pi_2}_{L_1^\lambda} \\
+\frac{1}{2} \norm{\pi_1 - \pi_2}_{L_1^\lambda} &\leq \text{TV}(\pi_1, \pi_2)
+\end{align*}
+This might make us wonder if the constant in the first inequality is $\frac{1}{2}$ so that we have the exact equivalence 
+\begin{align*}
+\text{TV}(\pi_1, \pi_2) &= \frac{1}{2} \norm{\pi_1 - \pi_2}_{L_1^\lambda}
+\end{align*}
+Indeed this is the case. To show this we will need to be a bit more careful with the first bound. To start, note that 
+\begin{align*}
+\int_\mathcal{D} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta &= \int_B \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta + \int_{\mathcal{D} \setminus B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta \\
+											     &=  \int_B \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta - \int_{\mathcal{D} \setminus B} \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta \\
+\end{align*}
+But the lefthand side is $0$ since $\pi_1$ and $\pi_2$ are densities, so 
+\begin{align*}
+\int_B \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta &= \int_{\mathcal{D} \setminus B} \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta
+\end{align*}
+a fact which we will exploit below. Now let $A$ be any measurable set. It follows that 
+\begin{align*}
+\abs{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta} &= \max\left\{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta, -\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta \right\} \\
+										      &=  \max\left\{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta, \int_A \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta \right\} \\
+										      &\leq \max\left\{\int_{A \cap B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta, \int_{A \cap (\mathcal{D} \setminus B)} \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta \right\} \\
+										      &\leq \max\left\{\int_{B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta, \int_{\mathcal{D} \setminus B} \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta \right\} \\
+										      &= \int_{B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta \\
+										      &= \frac{1}{2} \left[\int_{B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta + \int_{\mathcal{D} \setminus B} \left(\pi_2(\theta) - \pi_1(\theta) \right) d\theta \right] \\
+										      &= \frac{1}{2} \left[\int_{B} \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta + \int_{\mathcal{D} \setminus B} \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \right] \\
+										      &= \frac{1}{2} \int_{\mathcal{D}} \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
+										      &= \frac{1}{2} \norm{\pi_1 - \pi_2}_{L_1^{\lambda}(\mathcal{D})}
+\end{align*}
+The first inequality follows from the fact that intersecting the domain of integration of the first integral with $B$ removes values of $\theta$ which results in a negative integrand, and hence the 
+integral gets larger. The same reasoning applies to the second integral. The fifth and seventh lines both use the fact that was proved above. This inequality holds for every measurable set $A$ and thus 
+\begin{align*}
+\text{TV}(\pi_1, \pi_2) &= \sup_A \abs{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta} \leq \frac{1}{2} \norm{\pi_1 - \pi_2}_{L_1^{\lambda}(\mathcal{D})}
+\end{align*}
+which establishes the reverse inequality and thus verifies 
+\begin{align*}
+\text{TV}(\pi_1, \pi_2) &= \frac{1}{2} \norm{\pi_1 - \pi_2}_{L_1^\lambda}
+\end{align*}
+Recalling that $\text{TV}(\pi_1, \pi_2)$ takes values in $[0, 1]$, then we see that 
+\[0 \leq \norm{\pi_1 - \pi_2}_{L_1^\lambda} \leq 2\]
+so the two distances $\text{TV}(\pi_1, \pi_2)$ and $\norm{\pi_1 - \pi_2}_{L_1^\lambda}$ are measuring the same exact thing, just on a different scale. 
+
+To review, we started with the very natural definition of TV distance as the largest possible difference in probabilities that the two measures could assign to any given set $A$. We then showed that this notion could be equivalently defined (up to a multiplicative constant) as the $L_1$ distance between the densities of the measures. One way to see that this makes sense is to consider that the density functions $\pi_1$ and $\pi_2$ are unit vectors with respect to $\norm{\cdot}_{L_1^\lambda}$ (since they have to integrate to $1$ by definition). Therefore, the distance 
+$\norm{\pi_1 - \pi_2}_{L_1^\lambda}$ is not affected by ``size'' of $\pi_1$ or $\pi_2$. We would not, for example, want to calculate the $L_1$ distance between unnormalized densities, since arbitrarily scaling the densities would change the notion of distance, even though the underlying probability distribution would remain the same. 
+
+
+\subsection{Hellinger Distance}
+The Hellinger distance is perhaps the most popularly used measure of distance between probability distributions in the Bayesian inverse problem literature, for reasons that will be discussed below. I will motivate this motion of distance using the $\text{TV}$/$L_1$ notions discussed above. We established that $L_1$ notions of distance between probability densities yields a reasonable interpretation of the distance between two probability measures. It is natural to wonder: would replacing $L_1$ with $L_2$ also give us something useful? In short, not really. As mentioned in the previous section, the $L_1$ notion was reasonable since $\pi_1$ and $\pi_2$ are unit vectors with respect to $L_1$. However, $\pi_1$ and $\pi_2$ are \textit{not} unit vectors with respect to $L_2$. We see that 
+\[\norm{\pi_1 - \pi_2}_{L_2^\lambda} = \int (\pi_1(\theta) - \pi_2(\theta))^2 d\theta = \int \pi_1^2(\theta) d\theta + \int \pi_2^2(\theta) d\theta - 2\int \pi_1(\theta)\pi_2(\theta) d\theta\]
+so changes in the first two terms will affect the distance, which is not a desirable property. But what if we just dropped those terms and considered a our notion of distance to be the inner product 
+\[- 2\int \pi_1(\theta)\pi_2(\theta) d\theta\]
+But this still doesn't make sense at all. Consider the two cases
+\begin{enumerate}
+\item $\pi_1(0) = \frac{1}{10} \text{ and } \pi_2(0) = \frac{2}{10}$
+\item $\pi_1(0) = \frac{9}{10} \text{ and } \pi_2(0) = 1$
+\end{enumerate}
+If we sampled from these distributions, then in the first case we would expect to observe the sample $0$ about twice as much from the second distribution compared to the first, while $0$ would appear with pretty similar frequency in the second example. The relevant terms in the inner product would be $\frac{1}{10} \cdot \frac{2}{10} = \frac{2}{100}$ and $\frac{9}{10} \cdot 1 = \frac{90}{100}$, so we would actually be \textit{penalizing} the first distribution for being closer, the opposite of what we want. To flip this around, it seems we would actually want to consider the quotient $\frac{\pi_1(\theta)}{\pi_2(\theta)}$ rather than the product of the densities, which is exactly what many notions of distance between probability measures considers (e.g. KL divergence). Obviously considering the quotient instead abandons the idea of $L_2$ distance. However, it turns out that with a slight tweak we can still define an $L_2$ measure that actually makes sense. 
+
+\end{document}
