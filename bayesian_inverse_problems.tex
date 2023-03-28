@@ -303,5 +303,7 @@ But this still doesn't make sense at all. Consider the two cases
 \item $\pi_1(0) = \frac{9}{10} \text{ and } \pi_2(0) = 1$
 \end{enumerate}
 If we sampled from these distributions, then in the first case we would expect to observe the sample $0$ about twice as much from the second distribution compared to the first, while $0$ would appear with pretty similar frequency in the second example. The relevant terms in the inner product would be $\frac{1}{10} \cdot \frac{2}{10} = \frac{2}{100}$ and $\frac{9}{10} \cdot 1 = \frac{90}{100}$, so we would actually be \textit{penalizing} the first distribution for being closer, the opposite of what we want. To flip this around, it seems we would actually want to consider the quotient $\frac{\pi_1(\theta)}{\pi_2(\theta)}$ rather than the product of the densities, which is exactly what many notions of distance between probability measures considers (e.g. KL divergence). Obviously considering the quotient instead abandons the idea of $L_2$ distance. However, it turns out that with a slight tweak we can still define an $L_2$ measure that actually makes sense. 
+\textbf{Also discuss difference vs quotient wrt normalizing constants:} e.g. $\abs{\frac{\pi_1(\theta)}{Z_1} - \frac{\pi_2(\theta)}{Z_2}}$ (norm constants affect results). vs. 
+$\abs{\frac{\frac{\pi_1(\theta)}{Z_1}}{\frac{\pi_2(\theta)}{Z_2}}} = \frac{Z_2}{Z_1} \frac{\pi_1(\theta)}{\pi_2(\theta)}$ so norm constants will just scale the integral which is fine. 
 
 \end{document}
