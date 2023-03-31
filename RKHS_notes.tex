@@ -90,7 +90,7 @@ computations in those spaces. Up to this point, we have been considering fixing 
 and start by fixing a kernel, then ask if the choice of kernel implies the existence of some interesting feature space $\mathcal{H}$. If we can find certain kernels that imply rich feature spaces, then we never really even have to think about the 
 feature space, but instead just focus on the kernel itself. In fact, we will see that certain choices of the kernel actually imply that $\mathcal{H}$ is infinite-dimensional. This means that it would actually be impossible to perform the operations 
 using the associated feature map with finite computational resources. Therefore, kernel methods are incredibly powerful and allow us to fit models that are implicitly using infinite-dimensional derived features, circumventing the need to actually 
-do computation in the infinite-dimensional space. As we will see, the derived feature space $\mathcal{H}$ is what we will call the RKHS associated with the kernel $k$ and feature map $\phi: \mathcal{X} \to \mathcal{H}$. 
+do computation in the infinite-dimensional space. As we will see, the derived feature space $\mathcal{H}$ is what we will call the RKHS associated with the kernel $k$ and feature map $\phi: \mathcal{X} \to \mathcal{H}$. While we introduced RKHS from a slightly more theoretical perspective below, it is helpful to keep in mind this idea of feature maps to help provide intuition for the definitions. 
 
 \subsection{Defining RKHS via a Smoothness Property}
 There are multiple ways to formally define RKHS. The one we choose here seems quite disconnected from the discussion on feature spaces, but we will establish the connection shortly. We like this definition because it is general and captures 
@@ -101,8 +101,45 @@ Let $\mathcal{X}$ be a non-empty set and $\mathcal{H}$ a Hilbert space of functi
 \[\delta_x(f) = f(x), \ f \in \mathcal{H}\]
 Then $\mathcal{H}$ is called a Reproducing Kernel Hilbert Space (RKHS) if $\delta_x$ is continuous for all $x \in \mathcal{X}$; that is, if all evaluations functionals are continuous. 
 \end{definition}
+From this definition, we see that RKHS are, first an foremost, a Hilbert space, meaning we have notions such as the length of vectors, distance between them, as well as the concept of orthogonality. Moreover, it is a specific Hilbert space consisting of very well-behaved functions. The following proposition is quite helpful in understanding why the continuous evaluation functional property leads to a space of such nice functions. 
+\begin{prop}
+Let $\mathcal{H}$ be a RKHS with norm denoted by $\norm{\cdot}_{\mathcal{H}}$ and $f, f_n \in \mathcal{H}$ for $n \in \mathbb{N}$. If $\norm{f_n - f}_{\mathcal{H}} \to 0$ then $f_n \to f$ pointwise. 
+\end{prop}
+\begin{proof} 
+Let $x \in \mathcal{X}$. Then 
+\begin{align*}
+\abs{f_n(x) - f(x)} &= \abs{\delta_x(f_n) - \delta_x(f)} \\
+			   &= \abs{\delta_x(f_n - f)} \\
+			   &\leq \norm{\delta_x}\norm{f_n - f}_{\mathcal{H}} \to 0
+\end{align*}
+We have used the fact that evaluation functionals are continuous, and that the operator norm satisfies $\norm{\delta_x} < \infty$. This latter fact is by definition of the RKHS, seeing that $\delta_x$ is a linear function and hence the continuity 
+of this functional is equivalent to boundedness. 
+\end{proof}
+This property is quite nice. Loosely speaking, it states that functions that are close in RKHS norm must also be close pointwise. In machine learning and statistical applications, it can be very helpful to have a guarantee that functions are close 
+on a pointwise basis. While $L_2$ spaces are very useful for discussing things like convergence in an average sense, they provide no such pointwise guarantee. In fact, in $L_2$ functions are only defined up to a set of measure zero, so individual pointwise evaluations are really not the focus at all in these spaces. In general, it is possible to have a convergent sequence in the $L_2$ sense, that does not converge pointwise. 
+
+\subsubsection{Reproducing Kernels}
+It perhaps seems a bit odd to motivate RKHS using kernels and feature maps, then define RKHS in such a way that doesn't even mention kernels. We now introduce the notion of a \textit{reproducing kernel} and begin to work our way towards an equivalent definition of RKHS defined in terms of such kernels. In fact, we will shortly prove that the notion of \textit{kernel} as a positive definite function typically used in machine learning settings is actually equivalent to the notion of reproducing kernel defined below. 
+\begin{definition}
+Let $\mathcal{H}$ be a Hilbert space of real-valued functions defined on non-empty set $\mathcal{X}$. A function $k: \mathcal{X} \times \mathcal{X} \to \R$ is called a reproducing kernel if it satisfies the following properties. 
+\begin{enumerate}
+\item $\forall x \in \mathcal{X}, k(\cdot, x) \in \mathcal{H}$
+\item $\forall x \in \mathcal{X}, \forall f \in \mathcal{H}, \langle f, k(\cdot, x)\rangle_{\mathcal{H}} = f(x)$
+\end{enumerate}
+\end{definition} 
+The first property says that if we fix one of the entries of $k$, then viewed as a function of the other entry the resulting function must be in $\mathcal{H}$. Recall that we might think of $\mathcal{H}$ as a space of infinite-dimensional features derived from the original features $\mathcal{X}$ (this connection will be made precise below). Requiring the function $k(\cdot, x)$ to belong to $\mathcal{H}$ thus means that $k(\cdot, x)$ can be thought of as a feature as well. We can intuitively think of this feature as encoding the ``similarity'' between $x$ and other values $x^\prime \in \mathcal{X}$. The second property is known as the \textit{reproducing property}, and states that the RKHS inner product between any $f \in \mathcal{H}$ and $k(\cdot, x)$ is equivalent to simply evaluating $f$ at $x$. Thus, $k(\cdot, x)$ ``reproduces'' the functions in the RKHS in a sense. Note that it follows immediately from this definition that 
+\[\langle k(\cdot, x), k(\cdot, y) \rangle_{\mathcal{H}} = k(x, y) = k(y, x) \]
+Thus, there is a sort of duality between $k(x, y)$, which captures the similarity between the finite-dimensional features $x$ and $y$, and 
+$\langle k(\cdot, x), k(\cdot, y) \rangle_{\mathcal{H}}$, which captures the similarity between the infinite-dimensiuonal features $k(\cdot, x)$ and $k(\cdot, y)$. 
+
 
 \subsection{Connecting back to Feature Maps}
+
+
+\section{Applications}
+\subsection{Maximum Mean Discrepancy}
+Useful: https://stats.stackexchange.com/questions/276497/maximum-mean-discrepancy-distance-distribution
+
 
 
 
