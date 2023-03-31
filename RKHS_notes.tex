@@ -1,0 +1,111 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{An Introduction to Reproducing Kernel Hilbert Spaces in Statistics and Machine Learning}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+There are many ways to motivate Reproducing Kernel Hilbert Spaces (RKHS). They are of pure mathematical interest in addition to providing utility in myriad applied fields. I will motivate RKHS as 
+representing the codomain of a feature map in machine learning applications, which will lead us to the celebrated ? theorem, which provides a very useful interpretation of kernels. I will then proceed to 
+explore other interpretations and uses of RKHS, emphasizing their power to study classes of functions with certain degrees of smoothness. Mapping features and controlling smoothness of functions do not 
+initially appear to be related, but the theory of RKHS will shed light on deep connections between these two ideas. 
+
+\section{Hilbert Space Review}
+
+\section{Machine Learning Motivation: Feature Maps and Kernels}
+\subsection{The Big Picture}
+Let $\mathcal{X}$ be an arbitrary, non-empty set. We can think of this as a standard input or feature space in a machine learning setting. Note that we have not assumed any structure on $\mathcal{X}$; no notion of 
+distance, geometry, etc. It is ideal to be able to develop this theory on a completely arbitrary input set given that in applications input data can come in many forms, without any sort of obvious structure. The general 
+machine learning setup is to suppose we have observed training data pairs $\{(x_i, y_i)\}_{i = 1}^{N}$ such that $x_i \in \mathcal{X}$. We could then proceed to fit a model directly on the observed features $x_i$; however, 
+it is often advantageous to first derive more informative features $\phi(x_i)$ by applying some feature map $\phi: \mathcal{X} \to \mathcal{H}$. The model is then fit in the transformed space, using the derived training set 
+$\{(\phi(x_i), y_i)\}_{i = 1}^{N}$. As an example, suppose we are considering a linear regression model with $\mathcal{X} = \R$. Training a linear model on $\{(x_i, y_i)\}_{i = 1}^{N}$ will only allow us to fit straight lines to the 
+dataset. However, if the relationship exhibits non-linearity we may choose to also regress on derived features consisting of polynomial terms: $\phi(x_i) = [1, x_i, x_i^2, \dots, x_i^p]^T$. In this case, the co-domain $\mathcal{H}$
+of the feature map is the space of polynomials up to order $p$. Running a regression on $\{(\phi(x_i), y_i)\}_{i = 1}^{N}$ now yields a much more flexible class of models, though also note that the additional flexibility does come 
+at a computational cost since the dimensionality of the input space has increased from $1$ to $p$. By increasing $p$ we achieve the ability to represent more complex functions, but the computational expense will also increase. 
+\textbf{TODO: } work through the linear model formulas to better motivate the kernel. See how it appears in the equation for $\hat{\beta}$. 
+
+Kernels provide an elegant solution to the issue of increasing computational cost. A key observation is that the additional computational cost of working in the derived feature space often manifests in the form of having to evaluate 
+inner products in $\mathcal{H}$, e.g. $\langle \phi(x_i), \phi(x_j) \rangle_{\mathcal{H}} =  \phi(x_i)^T  \phi(x_j)$. Now suppose we knew of a function $k: \mathcal{X} \times \mathcal{X} \to \R$ that satisfied 
+\[k(x_i, x_j) = \langle \phi(x_i), \phi(x_j) \rangle_{\mathcal{H}}\]
+This would be great since it would allow us to indirectly work in the higher-dimensional space $\mathcal{H}$ while only requiring computations that look like $k(x_i, x_j)$, which take place in the lower-dimensional space. Without providing 
+formal definitions yet, we call the function $k(\cdot, \cdot)$ a \textit{kernel}. We can thus view a kernel as providing a ``short-cut'' to operate in higher-dimensional spaces without having to explicitly perform the expensive inner product 
+computations in those spaces. Up to this point, we have been considering fixing a feature map $\phi$ and then wondering if there exists a kernel $k$ that can capture the relevant properties of $\phi$. However, it is natural to flip this around 
+and start by fixing a kernel, then ask if the choice of kernel implies the existence of some interesting feature space $\mathcal{H}$. If we can find certain kernels that imply rich feature spaces, then we never really even have to think about the 
+feature space, but instead just focus on the kernel itself. In fact, we will see that certain choices of the kernel actually imply that $\mathcal{H}$ is infinite-dimensional. This means that it would actually be impossible to perform the operations 
+using the associated feature map with finite computational resources. Therefore, kernel methods are incredibly powerful and allow us to fit models that are implicitly using infinite-dimensional derived features, circumventing the need to actually 
+do computation in the infinite-dimensional space. As we will see, the derived feature space $\mathcal{H}$ is what we will call the RKHS associated with the kernel $k$ and feature map $\phi: \mathcal{X} \to \mathcal{H}$. 
+
+\subsection{Defining RKHS via a Smoothness Property}
+There are multiple ways to formally define RKHS. The one we choose here seems quite disconnected from the discussion on feature spaces, but we will establish the connection shortly. We like this definition because it is general and captures 
+a smoothness property of RKHS. We are thus taking the first steps to connect the ideas of feature maps and controlling smoothness of functions. 
+
+\begin{definition} 
+Let $\mathcal{X}$ be a non-empty set and $\mathcal{H}$ a Hilbert space of functions of the form $f: \mathcal{X} \to \R$. Define the \textit{evaluation functional} $\delta_x: \mathcal{H} \to \R$ associated with a fixed $x \in \mathcal{X}$ by 
+\[\delta_x(f) = f(x), \ f \in \mathcal{H}\]
+Then $\mathcal{H}$ is called a Reproducing Kernel Hilbert Space (RKHS) if $\delta_x$ is continuous for all $x \in \mathcal{X}$; that is, if all evaluations functionals are continuous. 
+\end{definition}
+
+\subsection{Connecting back to Feature Maps}
+
+
+
+\end{document}
+
+

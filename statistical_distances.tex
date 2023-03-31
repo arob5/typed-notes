@@ -1,0 +1,178 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Notions of Distance Between Probability Measures}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+In this document I consider notions of distance (loosely speaking) or ``discrepancy'' between two probability measures $P$ and $Q$, each defined over the same measurable space $(\Omega, \mathcal{F})$. I will use the notation 
+$p$ and $q$ to denote the densities (i.e. Radon-Nikodym derivatives) of the respective measures with respect to the Lebesgue measure $\lambda$. I will typically present the notions of discrepancy in their general, 
+measure-theoretic formulation, but will primarily focus the discussions on the case where densities exist. 
+
+It will often be useful to think of $P$ as the ``true distribution'' and $Q$ as an 
+approximation to $P$, although this distinction will not always be relevant. Some of the distances considered here will be legitimate distances, meaning they satisfy the mathematical definition of a distance \textit{metric}. 
+\begin{definition}
+TODO
+\end{definition}
+Others may violate this definition, often by failing to satisfy symmetry or the triangle inequality. Given that I have chosen to designate $P$ as some true distribution, and $Q$ as an approximation to $Q$, then it is not surprising 
+that this asymmetry would yield reasonable notions of discrepancy that violate symmetry. 
+
+\section{Total Variation Distance}
+Total variation distance (TV) is a natural candidate to start with, and we will use it to motivate some of the other distances. The TV distance simply asks the question: what is the largest difference in 
+probabilities that can occur when measuring the probability according to $P$ versus $Q$? This is quite natural. One nice way to think about this is to sample from the 
+two distributions. If $P$ and $Q$ are very similar then we expect the samples generated from each distribution to be almost indistinguishable. On the other hand, if they are completely 
+different then we might only need a few samples to distinguish between them with high confidence. The TV distance considers the ``worst-case'' event $A \in \mathcal{F}$, in the sense that $A$ is the event 
+on which $P$ and $Q$ disagree the most. Mathematically, the definition is given by 
+\begin{align*}
+\text{TV}(P, Q) := \sup_{A} \abs{P(A) - Q(A)}
+\end{align*}
+where the supremum is taken over all measurable sets $A$. Since $P(A)$ and $Q(A)$ take values in $[0, 1]$ then 
+\[0 \leq \text{TV}(P, Q) \leq 1\]
+If the distributions have densities $p$ and $q$ with respect to the Lebesgue measure $\lambda$ then this can be 
+written 
+\begin{align*}
+\text{TV}(P, Q) = \sup_{A} \abs{\int_A \left[p(\theta) - q(\theta)\right] d\theta }
+\end{align*}
+We can immediately establish a connection with $L_1$ distance. 
+\begin{align*}
+\text{TV}(P, Q) &= \sup_{A} \abs{\int_A \left[p(\theta) - q(\theta)\right] d\theta } \\
+				 &\leq \sup_{A} \int_A \abs{p(\theta) - q(\theta)} d\theta \\
+				 &\leq \sup_{A} \int \abs{p(\theta) - q(\theta)} d\theta \\
+				 &= \int \abs{p(\theta) - q(\theta)} d\theta \\
+				 &= \norm{p - q}_{L_1^\lambda}
+\end{align*}
+so the TV distance between the measures $P$ and $Q$ is no larger than the $L_1$ distance between their densities $p$ and $q$. Trying to establish the opposite 
+inequality is tricky since we need to bring the absolute value outside of the integral. The trick is to split the integral into two parts to avoid absolute values. To this end, let 
+$B := \{\theta \in \mathcal{D}:p(\theta) \geq q(\theta)\}$. Then 
+\begin{align*}
+\norm{p - q}_{L_1^\lambda} &= \int \abs{p(\theta) - q(\theta)} d\theta \\
+						      &= \int_B \left(p(\theta) - q(\theta)\right) d\theta +  \int_B \left(q(\theta)  - p(\theta)\right) d\theta \\
+						      &\leq \sup_A \int_A \left(p(\theta) - q(\theta)\right) d\theta + \sup_A \int_A \left(q(\theta)  - p(\theta)\right) d\theta \\
+						      &\leq \sup_A \abs{\int_A \left(p(\theta) - q(\theta)\right) d\theta} + \sup_A \abs{\int_A \left(q(\theta)  - p(\theta)\right) d\theta} \\
+						      &= 2 \sup_A \abs{\int_A \left(p(\theta) - q(\theta)\right) d\theta} \\
+						      &= 2 \cdot \text{TV}(p, q)
+\end{align*}
+So we have shown 
+\begin{align*}
+\text{TV}(p, q) &\leq \norm{p - q}_{L_1^\lambda} \\
+\frac{1}{2} \norm{p - q}_{L_1^\lambda} &\leq \text{TV}(p, q)
+\end{align*}
+This might make us wonder if the constant in the first inequality is $\frac{1}{2}$ so that we have the exact equivalence 
+\begin{align*}
+\text{TV}(p, q) &= \frac{1}{2} \norm{p - q}_{L_1^\lambda}
+\end{align*}
+Indeed this is the case. To show this we will need to be a bit more careful with the first bound. To start, note that 
+\begin{align*}
+\int_\mathcal{D} \left(p(\theta) - q(\theta)\right) d\theta &= \int_B \left(p(\theta) - q(\theta)\right) d\theta + \int_{\mathcal{D} \setminus B} \left(p(\theta) - q(\theta)\right) d\theta \\
+											     &=  \int_B \left(p(\theta) - q(\theta)\right) d\theta - \int_{\mathcal{D} \setminus B} \left(q(\theta) - p(\theta)\right) d\theta \\
+\end{align*}
+But the lefthand side is $0$ since $p$ and $q$ are densities, so 
+\begin{align*}
+\int_B \left(p(\theta) - q(\theta)\right) d\theta &= \int_{\mathcal{D} \setminus B} \left(q(\theta) - p(\theta)\right) d\theta
+\end{align*}
+a fact which we will exploit below. Now let $A$ be any measurable set. It follows that 
+\begin{align*}
+\abs{\int_A \left(p(\theta) - q(\theta)\right) d\theta} &= \max\left\{\int_A \left(p(\theta) - q(\theta)\right) d\theta, -\int_A \left(p(\theta) - q(\theta)\right) d\theta \right\} \\
+										      &=  \max\left\{\int_A \left(p(\theta) - q(\theta)\right) d\theta, \int_A \left(q(\theta) - p(\theta)\right) d\theta \right\} \\
+										      &\leq \max\left\{\int_{A \cap B} \left(p(\theta) - q(\theta)\right) d\theta, \int_{A \cap (\mathcal{D} \setminus B)} \left(q(\theta) - p(\theta)\right) d\theta \right\} \\
+										      &\leq \max\left\{\int_{B} \left(p(\theta) - q(\theta)\right) d\theta, \int_{\mathcal{D} \setminus B} \left(q(\theta) - p(\theta)\right) d\theta \right\} \\
+										      &= \int_{B} \left(p(\theta) - q(\theta)\right) d\theta \\
+										      &= \frac{1}{2} \left[\int_{B} \left(p(\theta) - q(\theta)\right) d\theta + \int_{\mathcal{D} \setminus B} \left(q(\theta) - p(\theta) \right) d\theta \right] \\
+										      &= \frac{1}{2} \left[\int_{B} \abs{p(\theta) - q(\theta)} d\theta + \int_{\mathcal{D} \setminus B} \abs{p(\theta) - q(\theta)} d\theta \right] \\
+										      &= \frac{1}{2} \int_{\mathcal{D}} \abs{p(\theta) - q(\theta)} d\theta \\
+										      &= \frac{1}{2} \norm{p - q}_{L_1^{\lambda}(\mathcal{D})}
+\end{align*}
+The first inequality follows from the fact that intersecting the domain of integration of the first integral with $B$ removes values of $\theta$ which results in a negative integrand, and hence the 
+integral gets larger. The same reasoning applies to the second integral. The fifth and seventh lines both use the fact that was proved above. This inequality holds for every measurable set $A$ and thus 
+\begin{align*}
+\text{TV}(p, q) &= \sup_A \abs{\int_A \left(p(\theta) - q(\theta)\right) d\theta} \leq \frac{1}{2} \norm{p - q}_{L_1^{\lambda}(\mathcal{D})}
+\end{align*}
+which establishes the reverse inequality and thus verifies 
+\begin{align*}
+\text{TV}(p, q) &= \frac{1}{2} \norm{p - q}_{L_1^\lambda}
+\end{align*}
+Recalling that $\text{TV}(p, q)$ takes values in $[0, 1]$, then we see that 
+\[0 \leq \norm{p - q}_{L_1^\lambda} \leq 2\]
+so the two distances $\text{TV}(p, q)$ and $\norm{p - q}_{L_1^\lambda}$ are measuring the same exact thing, just on a different scale. 
+
+To review, we started with the very natural definition of TV distance as the largest possible difference in probabilities that the two measures could assign to any given set $A$. We then showed that this notion could be equivalently defined (up to a multiplicative constant) as the $L_1$ distance between the densities of the measures. One way to see that this makes sense is to consider that the density functions $p$ and $q$ are unit vectors with respect to $\norm{\cdot}_{L_1^\lambda}$ (since they have to integrate to $1$ by definition). Therefore, the distance 
+$\norm{p - q}_{L_1^\lambda}$ is not affected by ``size'' of $p$ or $q$. We would not, for example, want to calculate the $L_1$ distance between unnormalized densities, since arbitrarily scaling the densities would change the notion of distance, even though the underlying probability distribution would remain the same. 
+
+\section{Kullback-Leibler }
+
+
+\section{Hellinger Distance}
+The Hellinger distance is perhaps the most popularly used measure of distance between probability distributions in the Bayesian inverse problem literature, for reasons that will be discussed below. I will motivate this motion of distance using the $\text{TV}$/$L_1$ notions discussed previously. We established that $L_1$ notions of distance between probability densities yields a reasonable interpretation of the distance between two probability measures. It is natural to wonder: would replacing $L_1$ with $L_2$ also give us something useful? In short, not really. As mentioned in the previous section, the $L_1$ notion was reasonable since $p$ and $q$ are unit vectors with respect to $L_1$. However, $p$ and $q$ are \textit{not} unit vectors with respect to $L_2$. We see that 
+\[\norm{p - q}_{L_2^\lambda} = \int (p(\theta) - q(\theta))^2 d\theta = \int p^2(\theta) d\theta + \int q^2(\theta) d\theta - 2\int p(\theta)q(\theta) d\theta\]
+so changes in the first two terms will affect the distance, which is not a desirable property. But what if we just dropped those terms and considered a our notion of distance to be the inner product 
+\[- 2\int p(\theta)q(\theta) d\theta\]
+But this still doesn't make sense at all. Consider the two cases
+\begin{enumerate}
+\item $p(0) = \frac{1}{10} \text{ and } q(0) = \frac{2}{10}$
+\item $p(0) = \frac{9}{10} \text{ and } q(0) = 1$
+\end{enumerate}
+If we sampled from these distributions, then in the first case we would expect to observe the sample $0$ about twice as much from the second distribution compared to the first, while $0$ would appear with pretty similar frequency in the second example. The relevant terms in the inner product would be $\frac{1}{10} \cdot \frac{2}{10} = \frac{2}{100}$ and $\frac{9}{10} \cdot 1 = \frac{90}{100}$, so we would actually be \textit{penalizing} the first distribution for being closer, the opposite of what we want. To flip this around, it seems we would actually want to consider the quotient $\frac{p(\theta)}{q(\theta)}$ rather than the product of the densities, which is exactly what many notions of distance between probability measures considers (e.g. KL divergence). Obviously considering the quotient instead abandons the idea of $L_2$ distance. However, it turns out that with a slight tweak we can still define an $L_2$ measure that actually makes sense. 
+\textbf{Also discuss difference vs quotient wrt normalizing constants:} e.g. $\abs{\frac{p(\theta)}{Z_1} - \frac{q(\theta)}{Z_2}}$ (norm constants affect results). vs. 
+$\abs{\frac{\frac{p(\theta)}{Z_1}}{\frac{q(\theta)}{Z_2}}} = \frac{Z_2}{Z_1} \frac{p(\theta)}{q(\theta)}$ so norm constants will just scale the integral which is fine. 
+
+\end{document}
+
+
+
