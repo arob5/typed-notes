@@ -127,7 +127,7 @@ Let $\mathcal{H}$ be a Hilbert space of real-valued functions defined on non-emp
 \item $\forall x \in \mathcal{X}, \forall f \in \mathcal{H}, \langle f, k(\cdot, x)\rangle_{\mathcal{H}} = f(x)$
 \end{enumerate}
 \end{definition} 
-The first property says that if we fix one of the entries of $k$, then viewed as a function of the other entry the resulting function must be in $\mathcal{H}$. Recall that we might think of $\mathcal{H}$ as a space of infinite-dimensional features derived from the original features $\mathcal{X}$ (this connection will be made precise below). Requiring the function $k(\cdot, x)$ to belong to $\mathcal{H}$ thus means that $k(\cdot, x)$ can be thought of as a feature as well. We can intuitively think of this feature as encoding the ``similarity'' between $x$ and other values $x^\prime \in \mathcal{X}$. The second property is known as the \textit{reproducing property}, and states that the RKHS inner product between any $f \in \mathcal{H}$ and $k(\cdot, x)$ is equivalent to simply evaluating $f$ at $x$. Thus, $k(\cdot, x)$ ``reproduces'' the functions in the RKHS in a sense. Note that it follows immediately from this definition that 
+The first property says that if we fix one of the entries of $k$, then viewed as a function of the other entry the resulting function must be in $\mathcal{H}$. Recall that we might think of $\mathcal{H}$ as a space of infinite-dimensional features derived from the original features $\mathcal{X}$ (this connection will be made precise below). Requiring the function $k(\cdot, x)$ to belong to $\mathcal{H}$ thus means that $k(\cdot, x)$ can be thought of as a feature as well. We can intuitively think of this feature as encoding the ``similarity'' between $x$ and other values $x^\prime \in \mathcal{X}$. The second property is known as the \textit{reproducing property}, and states that the RKHS inner product between any $f \in \mathcal{H}$ and $k(\cdot, x)$ is equivalent to simply evaluating $f$ at $x$. Thus, $k(\cdot, x)$ ``reproduces'' the functions in the RKHS. In other words, in RKHS pointwise function evaluation can be represented as an inner product. Note that it follows immediately from this definition that 
 \[\langle k(\cdot, x), k(\cdot, y) \rangle_{\mathcal{H}} = k(x, y) = k(y, x) \]
 Thus, there is a sort of duality between $k(x, y)$, which captures the similarity between the finite-dimensional features $x$ and $y$, and 
 $\langle k(\cdot, x), k(\cdot, y) \rangle_{\mathcal{H}}$, which captures the similarity between the infinite-dimensional features $k(\cdot, x)$ and $k(\cdot, y)$. 
@@ -147,6 +147,35 @@ Since this holds for all $f \in \mathcal{H}$, and the only vector that is orthog
 or 
 \[k_1(\cdot, x) = k_2(\cdot, x)\]
 
+\end{proof}
+ Next, we prove existence, which requires an application of the well-known \textit{Riesz representation theorem}. Importantly, the existence proof tells us that a RKHS can equivalently be defined as
+ a Hilbert space that possesses a reproducing kernel. In other words, the existence of a reproducing kernel is equivalent to pointwise function evaluation being a continuous operation. 
+ \begin{prop}
+ $\mathcal{H}$ is a RKHS if and only if it has a reproducing kernel. 
+ \end{prop}
+ \begin{proof} 
+ $(\impliedby)$ Suppose $\mathcal{H}$ is a Hilbert space with a reproducing kernel $k$. We show that this implies the evaluation functional $\delta_x: \mathcal{H} \to \R$ is continuous, for any 
+ $x \in \mathcal{X}$. Equivalently, we can show that $\delta_x$ is bounded in operator norm. To this end, fix $x \in \mathcal{X}$ and consider
+ \begin{align*}
+ \abs{\delta_x(f)} &= \abs{f(x)} \\
+ 			  &= \langle f, k(\cdot, x) \rangle_{\mathcal{H}} \\
+			  &\leq \norm{f}_{\mathcal{H}} \norm{k(\cdot, x)}_{\mathcal{H}} \\
+			  &=: \norm{f}_{\mathcal{H}} C_x
+ \end{align*}
+ where the second line uses the reproducing property. Note that $C_x := \norm{k(\cdot, x)}_{\mathcal{H}}$ only depends on $x$, not $f$. Thus, for any $f \in \mathcal{H}$, 
+ \[\frac{ \abs{\delta_x(f)}}{\norm{f}_{\mathcal{H}}} \leq C_x\]
+ which implies $\norm{\delta_x} \leq C_x$; i.e. that the evaluation functional $\delta_x$ is bounded, and hence continuous.
+ 
+ $(\implies)$ Now suppose that for any $x \in \mathcal{X}$, the evaluation functional $\delta_x: \mathcal{H} \to \R$ is a bounded, linear operator (i.e. $\delta_x$ is in the topological dual space 
+ of $\mathcal{H}$). We must establish the existence of a reproducing kernel; that is, a mapping $k: \mathcal{X} \times \mathcal{X} \to \R$ satisfying $k(\cdot, x) \in \mathcal{H}$ and the 
+ reproducing property. Since $\delta_x$ is linear and bounded, then the Riesz representation theorem asserts the existence of a function $f_x \in \mathcal{H}$ satisfying 
+ \[\delta_x(f) = \langle f, f_x \rangle_{\mathcal{H}}, \text{ for all } f \in \mathcal{H}\]
+ Define the function $k: \mathcal{X} \times \mathcal{X} \to \R$ by $k(x^\prime, x) := f_x(x^\prime)$ for all $x, x^\prime \in \mathcal{H}$. We now check that $k$ satisfies the two properties of a 
+ reproducing kernel. First, we have
+ \[f_x \in \mathcal{H} \implies k(\cdot, x) \in \mathcal{H}\]
+ so the first property is satisfied. The reproducing property follows from 
+ \[\langle f, k(\cdot, x)\rangle_{\mathcal{H}} = \langle f, f_x \rangle_{\mathcal{H}} = \delta_x(f) = f(x)\]
+ which completes the proof. 
 \end{proof}
  
  To review, we defined an RKHS as a special type of Hilbert space in which all of the evaluation functionals are continuous. We showed that this property is equivalent to the space possessing 
