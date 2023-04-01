@@ -130,8 +130,33 @@ Let $\mathcal{H}$ be a Hilbert space of real-valued functions defined on non-emp
 The first property says that if we fix one of the entries of $k$, then viewed as a function of the other entry the resulting function must be in $\mathcal{H}$. Recall that we might think of $\mathcal{H}$ as a space of infinite-dimensional features derived from the original features $\mathcal{X}$ (this connection will be made precise below). Requiring the function $k(\cdot, x)$ to belong to $\mathcal{H}$ thus means that $k(\cdot, x)$ can be thought of as a feature as well. We can intuitively think of this feature as encoding the ``similarity'' between $x$ and other values $x^\prime \in \mathcal{X}$. The second property is known as the \textit{reproducing property}, and states that the RKHS inner product between any $f \in \mathcal{H}$ and $k(\cdot, x)$ is equivalent to simply evaluating $f$ at $x$. Thus, $k(\cdot, x)$ ``reproduces'' the functions in the RKHS in a sense. Note that it follows immediately from this definition that 
 \[\langle k(\cdot, x), k(\cdot, y) \rangle_{\mathcal{H}} = k(x, y) = k(y, x) \]
 Thus, there is a sort of duality between $k(x, y)$, which captures the similarity between the finite-dimensional features $x$ and $y$, and 
-$\langle k(\cdot, x), k(\cdot, y) \rangle_{\mathcal{H}}$, which captures the similarity between the infinite-dimensiuonal features $k(\cdot, x)$ and $k(\cdot, y)$. 
+$\langle k(\cdot, x), k(\cdot, y) \rangle_{\mathcal{H}}$, which captures the similarity between the infinite-dimensional features $k(\cdot, x)$ and $k(\cdot, y)$. 
 
+It turns out that the the reproducing kernel both exists and is unique. In fact, we will show that $\mathcal{H}$ being a RKHS is equivalent $\mathcal{H}$ having a reproducing kernel. This result will establish 
+the equivalence of the smoothness property (evaluation functionals are continuous) and the existence of a reproducing kernel. We start by showing uniqueness. 
+\begin{prop}
+If it exists, the reproducing kernel is unique. 
+\end{prop}
+\begin{proof} 
+Suppose $k_1$ and $k_2$ are both reproducing kernels. Then by definition, for any $f \in \mathcal{H}$ and $x \in \mathcal{X}$, 
+$\langle f, k_1(\cdot, x)\rangle_{\mathcal{H}} = f(x) = \langle f, k_2(\cdot, x)\rangle_{\mathcal{H}}$. Then, using the bilinearity of the 
+inner product,
+\[\langle f, k_1(\cdot, x) - k_2(\cdot, x) \rangle_{\mathcal{H}} = 0\]
+Since this holds for all $f \in \mathcal{H}$, and the only vector that is orthogonal to every other vector in the space is the zero vector, then we conclude
+\[k_1(\cdot, x) - k_2(\cdot, x) = 0\]
+or 
+\[k_1(\cdot, x) = k_2(\cdot, x)\]
+
+\end{proof}
+ 
+ To review, we defined an RKHS as a special type of Hilbert space in which all of the evaluation functionals are continuous. We showed that this property is equivalent to the space possessing 
+ a reproducing kernel. As an alternative exposition, we could have defined a RKHS as a Hilbert space $\mathcal{H}$ of functions with domain $\mathcal{X}$ 
+ satisfying the property that for any $x \in \mathcal{X}$ there exists a function $f_x \in \mathcal{H}$ with the property that 
+ \[f(x) = \langle f, f_x \rangle_{\mathcal{H}}, \text{ for all } f \in \mathcal{H} \]
+ With this definition, we see clearly that RKHS are Hilbert spaces in which point evaluation can be represented as an inner product. The continuity of inner products, thus implies that point evaluation 
+ is continuous, thus arriving at the property used in the original definition we provided for RKHS. Given the alternative definition for RKHS here, we could then introduce the notation 
+ $k(\cdot, x) := f_x(\cdot)$ to complete the connection with our earlier exposition. 
+ 
 
 \subsection{Connecting back to Feature Maps}
 
