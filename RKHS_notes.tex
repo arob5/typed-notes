@@ -150,9 +150,9 @@ or
 \end{proof}
  Next, we prove existence, which requires an application of the well-known \textit{Riesz representation theorem}. Importantly, the existence proof tells us that a RKHS can equivalently be defined as
  a Hilbert space that possesses a reproducing kernel. In other words, the existence of a reproducing kernel is equivalent to pointwise function evaluation being a continuous operation. 
- \begin{prop}
+ \begin{thm}
  $\mathcal{H}$ is a RKHS if and only if it has a reproducing kernel. 
- \end{prop}
+ \end{thm}
  \begin{proof} 
  $(\impliedby)$ Suppose $\mathcal{H}$ is a Hilbert space with a reproducing kernel $k$. We show that this implies the evaluation functional $\delta_x: \mathcal{H} \to \R$ is continuous, for any 
  $x \in \mathcal{X}$. Equivalently, we can show that $\delta_x$ is bounded in operator norm. To this end, fix $x \in \mathcal{X}$ and consider
@@ -177,7 +177,7 @@ or
  \[\langle f, k(\cdot, x)\rangle_{\mathcal{H}} = \langle f, f_x \rangle_{\mathcal{H}} = \delta_x(f) = f(x)\]
  which completes the proof. 
 \end{proof}
- 
+
  To review, we defined an RKHS as a special type of Hilbert space in which all of the evaluation functionals are continuous. We showed that this property is equivalent to the space possessing 
  a reproducing kernel. As an alternative exposition, we could have defined a RKHS as a Hilbert space $\mathcal{H}$ of functions with domain $\mathcal{X}$ 
  satisfying the property that for any $x \in \mathcal{X}$ there exists a function $f_x \in \mathcal{H}$ with the property that 
@@ -186,8 +186,60 @@ or
  is continuous, thus arriving at the property used in the original definition we provided for RKHS. Given the alternative definition for RKHS here, we could then introduce the notation 
  $k(\cdot, x) := f_x(\cdot)$ to complete the connection with our earlier exposition. 
  
-
 \subsection{Connecting back to Feature Maps}
+ Up until this point, the concept of a reproducing kernel may seem somewhat cryptic. We have seen that reproducing kernels provide a way to express function evaluation as an inner product; 
+ $k(\cdot, x)$ is sometimes referred to as the \textit{representer of evaluation} at $x$. But what really is a reproducing kernel? We now begin make our way towards connecting the concept of a 
+ reproducing kernel to the more familiar concept of a kernel often defined in treatments of introductory level machine learning. We begin by establishing one of the most important properties of 
+ reproducing kernels: that they are positive-definite functions. In the following section, we will prove a sort of converse which establishes a deep connection between reproducing kernels and 
+ feature maps. To begin, we define positive definiteness. 
+ \begin{definition}
+ A symmetric function $h: \mathcal{X} \times \mathcal{X} \to \R$ is called positive definite if for any $n \in \mathbb{N}$ and all $\mathbf{a} = (a_1, \dots, a_n)^T \in \R^n$ and 
+ $x_1, \dots, x_n \in \mathcal{X}$, 
+ \[\sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j h(x_i, x_j) \geq 0\]
+ By defining the $n \times n$ matrix $\mathbf{H}$ with entries $\mathbf{H}_{ij} = h(x_i, x_j)$ we can also write this condition as 
+ \[\mathbf{a}^T \mathbf{H} \mathbf{a} \geq 0\]
+ \end{definition}
+ Given that this definition is made with respect to a greater-than-or-equal-to sign, it seems like it might be more appropriate to term this condition \textit{positive semidefinite}. Indeed, some authors 
+ use this terminology, which coincides with the use in linear algebra. However, the definition given above is the standard in machine learning literature. Consider a vector space $\mathcal{U}$ with inner product 
+ $\langle \cdot, \cdot \rangle$. Recall from the definition of inner products, the requirement that for any $u \in \mathcal{U}$, $\langle u, u \rangle > 0$. This property is also typically 
+ called \textit{positive definiteness}, though it clearly appears to be distinct from the definition given above for general symmetric functions. It turns out that all inner products are positive definite (in the sense of 
+ the above definition), which follows from the positive definiteness (in the latter sense mentioned here). 
+ \begin{prop}
+ Let $\mathcal{U}$ be a real vector space with inner product $\langle \cdot, \cdot \rangle$. Then 
+ $\langle \cdot, \cdot \rangle: \mathcal{U} \times \mathcal{U} \to \R$ is a positive definite function. 
+ \end{prop} 
+\begin{proof}
+ First note that by definition of inner products, $\langle \cdot, \cdot \rangle$ is symmetric. Then for any $n \in \mathbb{N}$, $\mathbf{a} = (a_1, \dots, a_n)^T \in \R^n$ and 
+ $u_1, \dots, u_n \in \mathcal{U}$, 
+ \begin{align*}
+ \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j \langle u_i, u_j \rangle &=  \sum_{i = 1}^{n} \sum_{j = 1}^{n} \langle a_i u_i, a_j u_j \rangle \\
+ 										                 &= \langle \sum_{i = 1}^{n}  a_i u_i, \sum_{j = 1}^{n}  a_j u_j \rangle  \\
+										                 &= \langle \sum_{i = 1}^{n}  a_i u_i, \sum_{i = 1}^{n}  a_i u_i \rangle \\
+										                 &> 0
+ \end{align*}
+ where the first two lines use the bilinearity of inner products, and the final line uses the positive-definite property of inner products. 
+\end{proof}
+ So all inner products are symmetric positive definite, bilinear functions. Recall that in the machine learning setup, we start with an arbitrary non-empty set $\mathcal{X}$ with no additional structure. The idea 
+ was that we can apply a feature map $\phi$ to points in $\mathcal{X}$ in order to map them to a more structured space (e.g. think of representing images as vectors of pixel values). The following theorem states 
+ that a function $h$ that implicitly accesses the inner product between transformed features $\phi(x)$ and $\phi(y)$ is itself a positive definite function. The proof is almost identical to the previous proof that inner 
+ products are positive definite. 
+ \begin{thm}
+ Let $\mathcal{X}$ be a non-empty set, $\mathcal{F}$ an arbitrary real Hilbert space, and $\phi: \mathcal{X} \to \mathcal{F}$. Define the function $h: \mathcal{X} \times \mathcal{X} \to \R$ by 
+ $h(x, y) := \langle \phi(x), \phi(y) \rangle_{\mathcal{F}}$. Then $h$ is a positive definite function. 
+ \end{thm}
+ \begin{proof}
+ Note that $h$ is symmetric since $\langle \cdot, \cdot \rangle_{\mathcal{F}}$ is symmetric. Then for any $n \in \mathbb{N}$, $\mathbf{a} = (a_1, \dots, a_n)^T \in \R^n$ and 
+ $x_1, \dots, x_n \in \mathcal{X}$, 
+ \begin{align*}
+ \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j h(x_i, x_j) &=  \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j  \langle \phi(x_i), \phi(x_j) \rangle_{\mathcal{F}} \\
+ 									      &= \langle  \sum_{i = 1}^{n} a_i \phi(x_i), \sum_{i = 1}^{n}  a_i \phi(x_i) \rangle_{\mathcal{F}} \\
+									      &> 0
+ \end{align*}
+ where the logic follows from properties of the inner product, exactly as in the previous proof. 
+ \end{proof}
+ 
+ 
+ 
 
 
 \section{Applications}
