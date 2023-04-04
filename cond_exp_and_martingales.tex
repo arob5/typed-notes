@@ -1,0 +1,105 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Conditional Expectation and Martingales}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Defining Conditional Expectation}
+Here we slowly build up to the general definition of conditional expectation in order to gain intuition. 
+
+\subsection{A Simple Example}
+We begin with the simple example of independently flipping two coins, with respective probabilities $p$ and $q$ of landing heads. Coding $0$ as tails and $1$ as heads, the probability space associated with 
+this experiment is
+\[\Omega = \{(0, 0), (0, 1), (1, 0), (1, 1)\}\]
+The typical $\sigma$-algebra to consider here is the full power set 
+\[\mathcal{F} = 2^{\Omega} = \{\text{All subsets of } \Omega\}\]
+Writing out all of the subsets would be inconvenient, but note that there are $2^4 = 16$ sets in the collection $2^{\Omega}$. Now that we have the measurable space $(\Omega, \mathcal{F})$, we can 
+define a probability measure $\mathbb{P}: \mathcal{F} \to [0, 1]$, which assigns weights to each set in the $\sigma$-algebra. The probability measure corresponding to the two-coin experiment is 
+\begin{align*}
+\Prob(\{(1, 1)\}) &= pq \\
+\Prob(\{(0, 0)\}) &= (1 - p)(1 - q) \\
+\Prob(\{(0, 1)\}) &= (1 - p)q \\
+\Prob(\{(1, 0)\}) &= p(1 - q)
+\end{align*}
+This follows from the fact that any sequence of two independent flips has probability equal to the product of the probabilities of the individual flips. 
+For example, the probability of flipping two heads in a row should be the product of each independently turning up heads. 
+In this case, defining $\Prob(\{\omega\})$ for all singleton sets $\{\omega\} \in \mathcal{F}$ is sufficient to define $\Prob$ on all of $\mathcal{F}$, since the probabilities of disjoint events must add. 
+For example, consider 
+\[A = \{(0, 0), (0, 1)\} = \{\text{First flip is tails and second flip is heads or tails}\}\]
+The probability of $A$ is then sum of the probabilities of the disjoint singleton sets $\{(0, 0)\}$ and 
+$\{0, 1\}$. 
+\[\Prob(A) = \Prob(\{\omega \in \Omega: \omega \in \{(0, 0), (0, 1)\}\}) = \Prob(\{(0, 0)\}) + \Prob(\{(0, 1)\}) = (1 - p)(1 - q) + (1 - p)q = 1 - p\] 
+We have thus constructed a valid probability space $(\Omega, \mathcal{F}, \Prob)$. Although the power set $\sigma$-algebra is the natural choice here, for the purposes of illustration let's consider an alternative 
+$\sigma$-algebra. Since $\sigma$-algebras are supposed to model \textit{knowledge} or \textit{information}, let's try to define the $\sigma$-algebra $\mathcal{G}$ that models the knowledge of the the total number 
+of heads in the experiment. Intuitively, this is less information than is captured by $\mathcal{F}$. For example., the power set $\sigma$-algebra allowed us to make statements about the probability of sets $\{0, 1\}$ and 
+$\{1, 0\}$. However, each of these sets have the same number of heads (one), so according to $\mathcal{G}$ we should not be able to distinguish between these two events. $\mathcal{G}$ should allow us to make statements 
+about the probability of events like ``the experiment produced one head'' but it should not let us say anything about which coin produced that head. Therefore, the sets that have the same number of heads
+\[\{(0, 0)\}, \{(0, 1), (1, 0)\}, \{(1, 1)\}\] 
+should be in $\mathcal{G}$. The $\sigma$-algebra can now be completed by considering unions, intersections, and complements of these sets.
+\begin{align*}
+\mathcal{G} = &\{\{(0, 0)\}, \{(0, 1), (1, 0)\}, \{(1, 1)\}, \\
+		       &\{(0, 0), (0, 1), (1, 0)\}, \{(1, 1), (0, 1), (1, 0)\}, \{(0, 0), (1, 1)\} \}
+\end{align*}
+If should make intuitive sense that these are the sets we end up with; e.g. $\{(0, 0), (0, 1), (1, 0)\}$ is the set corresponding to the event ``the experiment produced zero or one heads''. None of these sets will allow us to make 
+probabilistic statements about the specific sequence in which the heads appeared in the coin flips. 
+
+\end{document}
+
+
