@@ -1,0 +1,87 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Kernel Smoothing Methods}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Kernel Density Estimation}
+Consider the following problem: we have $N$ iid samples from a univariate distribution $X_i \sim \mu$ and would like to estimate the density function (with respect to Lebesgue measure) $\pi$ associated 
+with the distribution $\mu$. This is a non-parametric problem, in contrast to the approach of assuming that the density $\pi$ belongs to some parameterized family (e.g. Gaussian) and then 
+estimating the parameters of that family. How might we go about this? Well, we know that the density is the derivative of the distribution function
+\[\pi(x) = F^\prime(x)\]
+and also that the distribution function can be represented as an expectation 
+\[F(x) = \Prob(X \leq x) = \E \left[\mathbbm{1}\{X \leq x\}\right].\]
+This latter fact implies that we can compute a Monte Carlo estimate of $F(x)$
+\[\hat{F}_N(x) := \frac{1}{N} \sum_{i = 1}^{N} \mathbbm{1}\{X_i \leq x\}\]
+which is unbiased and has nice limited results (law of large numbers, central limit theorem). Note that $\hat{F}_N(x)$ is simply the count of the number of samples $X_i$ that lie below the threshold 
+$x$. Since we can approximate the distribution function, we might try to estimate the density by approximating the derivative of the distribution function (adding a second layer of approximation). Consider the approximation 
+\[F^\prime(x) \approx \frac{F(x + h) - F(x)}{h}\] 
+for some $h > 0$. Clearly, in general this approximation will be better as $h$ gets closer to zero, but we will see that practically the choice of $h$ is limited by how much data we have. Let us now combine these two approximations 
+to yield an estimate of the density at some value $x$.
+\begin{align*}
+\pi(x) = F^\prime(x) &\approx  \frac{F(x + h) - F(x)}{h} \\
+			     &\approx \frac{\hat{F}_N(x + h) - \hat{F}_N(x)}{h} \\
+			    &= \frac{1}{Nh} \sum_{i = 1}^{N} \left[\mathbbm{1}\{X_i \leq x + h\} - \mathbbm{1}\{X_i \leq x\} \right]
+\end{align*}
+
+\end{document}
+
+
