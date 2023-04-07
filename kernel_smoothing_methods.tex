@@ -81,6 +81,23 @@ to yield an estimate of the density at some value $x$.
 			     &\approx \frac{\hat{F}_N(x + h) - \hat{F}_N(x)}{h} \\
 			    &= \frac{1}{Nh} \sum_{i = 1}^{N} \left[\mathbbm{1}\{X_i \leq x + h\} - \mathbbm{1}\{X_i \leq x\} \right]
 \end{align*}
+Note that the summation simply counts the number of samples $X_i$ contained in the interval $[x, x + h]$. There are a couple of glaring issues with this approach. First of all, it doesn't seem to make a lot of sense to only 
+consider samples in $[x, x + h]$. Really we should be considering samples contained in some interval centered at $x$. Thus, let's re-define $h$ to be the width of this interval (i.e. the interval $\left[x - \frac{h}{2}, x + \frac{h}{2}\right]$ 
+and denote by $N_h(x)$ the number of points in this interval. Then the estimate becomes 
+\[\hat{\pi}_N(x) := \frac{N_h(x)}{Nh}\]
+Intuitively, $\frac{N_h(x)}{N}$ is a proportion that represents an estimate of the change in probability mass from $x - \frac{h}{2}$ to $x + \frac{h}{2}$; that is, an estimate of the change in the distribution function $F$ around $x$. And $h$ 
+represents in small change in $x$. Thus, $\hat{\pi}_{N}(x)$ is simply a crude estimate $\frac{\Delta F}{\Delta x}$ of the derivative $F^\prime(x)$. If we consider the extreme where $F^\prime(x) = 0$ then this means there is no probability 
+mass locally at $x$, and hence we don't expect any samples locally around $x$. In this case $\Delta F = \hat{\pi}_N(x) = 0$ so the estimate of the density is $0$, as desired. Aside from the need to select the width of the interval $h$, the major 
+weakness of this estimator is that it does not provide a continuous estimator of $\pi(x)$. Consider increasing $x$ and thinking about how the estimate $\hat{\pi}_N(x)$ will vary. The estimate will be constant as long as the $h$-length interval 
+contains the same samples. As soon as this interval collects a new point or passes over a sample it previously contained, the estimate $\hat{\pi}_N(x)$ will typically make a discrete jump. This is not desirable in the common case where the 
+true density is continuous, and moreover can result in a higher variance estimator.
+
+The idea of KDE is thus to adjust this estimator by considering more of a smoothed average in the changes in the number of samples as $x$ increases. To this end, let $K_h(\cdot; x)$ be some continuous function in the first argument. 
+Previously, we centered an interval on $x$ that defined a sharp cut-off that either included or excluded each sample $x_i$. On the other hand, $K_h(x_i; x)$ provides some sort of smooth notion of the distance of the samples $x_i$ from $x$. 
+Replacing $N_h(x)$ in the previous estimator (which was a sum over indicator functions) with a sum over the continuous functions $K_h(x_i; x)$ yields the new generic estimator 
+\[\hat{\pi}_N(x) = \frac{1}{Nh} \sum_{i = 1}^{N} K_h(x_i; x)\]
+Since this represents a sum of continuous functions, then the resulting estimate of the density will be continuous. 
+While we have not yet considered a specific form for $K_h(\cdot; x)$, we can think of $h$ as analogous to the width of the interval in the discontinuous estimator. 
 
 \end{document}
 
