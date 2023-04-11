@@ -231,24 +231,58 @@ or
  Note that $h$ is symmetric since $\langle \cdot, \cdot \rangle_{\mathcal{F}}$ is symmetric. Then for any $n \in \mathbb{N}$, $\mathbf{a} = (a_1, \dots, a_n)^T \in \R^n$ and 
  $x_1, \dots, x_n \in \mathcal{X}$, 
  \begin{align*}
- \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j h(x_i, x_j) &=  \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j  \langle \phi(x_i), \phi(x_j) \rangle_{\mathcal{F}} \\
- 									      &= \langle  \sum_{i = 1}^{n} a_i \phi(x_i), \sum_{i = 1}^{n}  a_i \phi(x_i) \rangle_{\mathcal{F}} \\
-									      &> 0
+ \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j h(x_i, x_j) &=  \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j  \left\langle \phi(x_i), \phi(x_j) \right\rangle_{\mathcal{F}} \\
+ 									      &= \left\langle  \sum_{i = 1}^{n} a_i \phi(x_i), \sum_{i = 1}^{n}  a_i \phi(x_i) \right\rangle_{\mathcal{F}} \\
+									      &\geq 0
  \end{align*}
  where the logic follows from properties of the inner product, exactly as in the previous proof. 
  \end{proof}
  An interesting question is: does this go the other way? In particular, if we're given an arbitrary positive definite function, does their exist a feature space and feature map such that the positive definite 
  function can be represented as an inner product in that space? If true, this would yield a very interesting characterization of what it means to be a positive definite function; namely, that positive definite 
- functions are simply functions that implicitly access inner products in some other space. 
+ functions are simply functions that implicitly access inner products in some other space. The answer to this question is yes, and the result is known as the \textit{Moore-Aronszajn theorem}. Before getting 
+ to this theorem, we prove two simpler intermediate results: 1.) that reproducing kernels are positive-definite functions, and 2.) reproducing kernels obey a Cauchy-Schwarz type inequality.
+ 
+ \begin{lemma} 
+ Reproducing kernels are positive definite. 
+ \end{lemma}
+ \begin{proof} 
+ We can simply apply the previous result. In particular, let $\mathcal{H}$ be the Hilbert space of functions $f: \mathcal{X} \to \R$ with reproducing kernel $k: \mathcal{X} \times \mathcal{X} \to \R$. 
+ Define $\phi: \mathcal{X} \to \mathcal{H}$ by $\phi(x) = k(\cdot, x)$. Since $\phi(x) \in \mathcal{H}$ we can then exploit the reproducing property to conclude
+ \[k(x, x^\prime) = \langle k(\cdot, x), k(\cdot, x^\prime) \rangle_{\mathcal{H}} = \langle \phi(x), \phi(x^\prime) \rangle_{\mathcal{H}}\]
+ The setup of the previous theorem is now satisfied, so we can conclude that $k$ is positive definite. 
+ \end{proof}
+ 
+ \begin{lemma} 
+ If $h: \mathcal{X} \times \mathcal{X} \to \R$ is positive definite, then for $x, x^\prime \in \mathcal{X}$, 
+ \[\abs{h(x, x^\prime)}^2 \leq h(x, x)h(x^\prime, x^\prime)\]
+ \end{lemma}
+ \begin{proof} 
+ 
+ \end{proof}
+ So we now know that reproducing kernels are positive definite functions, and also obey a Cauchy-Schwarz type inequality; both facts indicate that they are closely related to inner products. In fact, 
+ we have showed that the reproducing kernel can be represented as an inner product $k(x, x^\prime) = \langle \phi(x), \phi(x^\prime) \rangle_{\mathcal{H}}$, where $\phi(x) = k(\cdot, x)$. This construction 
+ will be central in the statement and proof of the \textit{Moore-Aronszajn theorem}. 
  
  
+ 
+ \section{Examples of RKHS}
+ \begin{itemize}
+ \item Set of real-valued functions with bounded Fourier transform (i.e. frequencies bounded in some interval $[-a, a]$). 
+ \item Sobolev space of order $m$. 
+ \end{itemize}
 
 
 \section{Applications}
 \subsection{Maximum Mean Discrepancy}
 Useful: https://stats.stackexchange.com/questions/276497/maximum-mean-discrepancy-distance-distribution
 
-
+\section{References:}
+\begin{itemize}
+\item What is an RKHS? (Gretton)
+\item Statistical Machine Learning (CMU lectures by Larry Wassterman and Ryan Tibshirani); see lecture on two-sample testing. 
+\item Look into why KL isn't a good metric for density estimation due to its sensitivities on the tail of the distribution (Noted by Wasserman in lecture on density estimation). Works much better in MLE. 
+\item See Larry Wasserman's notes on minimax theory (I believe he talks about Hellinger distance).  
+\end{itemize}
 
 
 \end{document}
