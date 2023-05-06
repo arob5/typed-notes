@@ -221,6 +221,88 @@ The expectation in the numerator is defined with respect to $\mathcal{F}$, since
 
 \subsection{General Definition of Conditional Expectation}
 
+\section{Review for Final Exam}
+
+\subsection{Conditional Expectation}
+Throughout this section let $(\Omega, \mathcal{F}, \Prob)$ be a probability space and $\mathcal{G}$ a sub-$\sigma$-algebra of $\mathcal{F}$. 
+
+\begin{definition}
+Let $X: \Omega \to \R$ be an integrable $\mathcal{F}$-measurable random variable (denoted $X \in \mathcal{F}$). The conditional expectation of $X$ with respect to $\mathcal{G}$ is a random variable 
+$Z \in \mathcal{G}$ satisfying $\E[X \mathbbm{1}_{G}] = \E[Z \mathbbm{1}_{G}]$ for all $G \in \mathcal{G}$. The conditional expectation is typically denoted
+as $\E[X|\mathcal{G}] \equiv Z$. 
+\end{definition}
+
+The conditional expectation satisfies some properties that we would intuitively hope are true: linearity, monotonicity, conditional expectation of a constant is a.s. equal to that constant. Here are some perhaps less-obvious 
+properties: 
+\begin{itemize}
+\item Law of iterated expectations: $\E \E[X|\mathcal{G}] = \E X$. Note that the outer expectation of the left is wrt $\mathcal{G}$, while the one on the right is wrt $\mathcal{F}$. 
+\item If $X \in \mathcal{G}$ then $\E[X|\mathcal{G}] \overset{a.s.}{=} X$. This just says that, given knowledge of $\mathcal{G}$ completely determines $X$, since $X \in \mathcal{G}$. Essentially, $X$ can be treated like a constant. 
+\item If $\mathcal{G}$ is independent of $X$ then $\E[X|\mathcal{G}] = \E[X]$. So $\mathcal{G}$ provides no additional information about $X$. 
+\item $\abs{\E[X|\mathcal{G}]} \leq \E[\abs{X}|\mathcal{G}]$. More generally, the generalization of Jensen's inequality for conditional expectation holds as we would expect. 
+\item If $X$ and $XY$ are integrable, $Y \in \mathcal{G}$ then $\E[XY|\mathcal{G}] = Y\E[X|\mathcal{G}]$ ($Y$ can be treated as a constant). 
+\item The tower property: If $\mathcal{F}_1 \subset \mathcal{F}_2$ then 
+\[\E[\E[X|\mathcal{F}_1]|\mathcal{F}_2] = \E[X|\mathcal{F}_1] = \E[\E[X|\mathcal{F}_2]|\mathcal{F}_1] \]
+In other words, not matter the order of conditioning the best best guess of $X$ is limited by the less granular $\sigma$-algebra, since once you condition on $\mathcal{F}_1$ the information in 
+the more granular $\mathcal{F}_2$ is lost. 
+\end{itemize}
+
+\subsection{Martingale Basics}
+
+\begin{definition}
+A collection of increasing sub-$\sigma$-algebras of $\mathcal{F}$, 
+\[\mathcal{F}_1 \subset \mathcal{F}_2 \subset \dots \subset \mathcal{F}\]
+ is called a \textit{filtration}. A sequence of random variables $\{X_n\}$ is said to be \textit{adapted} to the filtration $\{\mathcal{F}_n\}$ provided that $X_n \in \mathcal{F}_n$ for all $n$. 
+ If instead $X_n \in \mathcal{F}_{n-1}$ for all $n$, then we say that $\{X_n\}$ is $\{\mathcal{F}_n\}$-predictable. 
+\end{definition}
+We can think of a filtration as capturing knowledge through time, where $\mathcal{F}_n$ captures the knowledge up through time $n$. A sequence of random variables being adapted to the filtration encodes the 
+notion that $X_n$ only depends on information up through time $n$ (it does not require looking into the future). A sequence of random variables being predictable means that $X_n$ is completely determined by 
+information up through the previous time step $n - 1$. A good example is a betting strategy, where $X_n$ is how much money you are going to bet in round $n$. It is reasonable to think that how much you are going to 
+bet is completely determined by how you have fared in the previous rounds. 
+
+A few more notes on filtrations and $\sigma$-algebras. First, define the $\sigma$-algebra $\sigma_\infty = \sigma \left\{\bigcup_{n} \mathcal{F}_n \right\}$, 
+which includes all information as time ``goes to infinity''. Next, we typically are considering a sequence $\{X_n\}$ and do not explicitly mention a filtration, which means that we are implicitly assuming the natural filtration
+\[\mathcal{F}_n := \sigma\left\{X_0, X_1, \dots, X_n \right\} := \sigma\left(\bigcup_{k = 0}^{n} \sigma(X_k) \right)\]
+Recall that the union of $\sigma$-algebras is not necessarily a $\sigma$-algebra, hence the need for the $\sigma$ on the outside of the union. 
+
+\begin{definition}
+Let $\{X_n\}$ be an $\{\mathcal{F}_n\}$-adapted sequence of integrable random variables. Then $\{X_n, \mathcal{F}_n\}$ is called a \textit{martingale} if 
+\[\E[X_{n + 1}|\mathcal{F}_n] = X_n \text{, for all } n\]
+If is called a sub-martingale if $\E[X_{n + 1}|\mathcal{F}_n] \geq X_n$ and a super-martingale if $\E[X_{n + 1}|\mathcal{F}_n] \leq X_n$. We call it an $L^p$-martingale (or sub/super) if, in addition, $\E[\abs{X_n}^p] < \infty$ for all $n$. 
+\end{definition}
+A martingale encodes the notion of a ``fair game'' in which, given information up through round $n$, the expected payout of future rounds is $0$ (i.e. your expected earnings is whatever your current earnings are). It can also be seen 
+as a generalization of a random walk (where in a random walk $X_n$ is simply a sum of $n$ mean-zero independent random variables). One key initial observation is that martingales have constant mean (they are ``mean stationary''). 
+Indeed, applying the defining relation of martingales and the law of iterated expectations
+\[\E X_{n+1} = \E \E[X_{n + 1}|\mathcal{F}_n] = \E X_n \text{ for all } n\]
+
+
+To explore the idea of martingales generalizing random walks, consider a random walk
+\[X_n = \sum_{k = 0}^{n} Y_k\]
+where the $Y_k$ are independent, mean-zero. The key property of a random walk is that it has independent increments $X_{n + 1} - X_n$ (clearly, since this difference equals $Y_k$ and the $Y_k$ are independent). We can thus 
+view a random walk as some starting condition plus its increments up to the current time: 
+\[X_n = Y_0 + \sum_{k = 1}^{n} Y_k\]
+where we note that $X_0 = Y_0$. The initial condition is in general a mean-zero random variable, independent of the increments, though it is often simply set to zero, $X_0 \equiv 0$ so that the process starts at the origin. Martingales 
+generalize this notion by allowing processes which look like 
+\[X_n = \sum_{k = 0}^{n} U_k\]
+where the $U_k$ are mean-zero, but not necessarily independent. In the case of martingales, the $U_k$ are uncorrelated (a weaker condition), which can also be thought of as an orthogonality condition. So while random walks have 
+independent increments, martingales of this form have orthogonal increments. I should emphasize at this point that martingales are more general than sums of mean zero random variables; for example, we will see product forms of 
+martingales in addition to the sum forms discussed here. That being said, martingales can always be decomposed as a sum of its increments in this way. Indeed, let $\{X_n\}$ be a generic martingale. Then 
+\[X_n = X_0 + \sum_{k = 1}^{n} (X_k - X_{k-1})\]
+which simply follows from the terms cancelling in the telescoping sum. Now, we can define $U_0 := X_0$ and $U_n := X_n - X_{n - 1}$, $n \geq 1$ so that this can be re-written as 
+\[X_n = \sum_{k = 0}^{n} U_k\]
+Note that since martingales have constant expectation then 
+\[\E U_n = \E[X_n - X_{n-1}] = 0\]
+so the increments are indeed mean zero. Also note that $U_n = X_n - X_{n-1} \in \mathcal{F}_n$ so that $\{U_n\}$ is $\{\mathcal{F}_n\}$-adapted. Finally note that the increments satisfy a property analogous to the defining relation for 
+martingales. 
+\[\E[U_{n + 1}|\mathcal{F}_n] = \E[X_{n + 1} - X_n|\mathcal{F}_n] = \E[X_{n + 1}] - X_n = \E[X_{n + 1} - X_n] = 0\]
+so that the conditional expectations of the increments, in addition to the unconditional ones, are also $0$. The above argument is a very common one; it uses linearity of conditional expectation, the fact that $X_n \in \mathcal{F}_n$ and hence 
+gets pulled out like a constant, and $X_{n + 1}$ is independent of $\mathcal{F}_n$ so that its conditional expectation equals the unconditional expectation. We have thus shown that martingales can be decomposed as partial sums of 
+a sequence $\{U_n\}$ satisfying the properties just outlined. It makes sense to give this sequence a name. 
+
+\begin{definition}
+An $\{F_n\}$-adapted sequence $\{U_n\}$ is called a \textit{martingale difference sequence} provided that $\E[U_{n+1}|\mathcal{F}_n] = 0$. The standard sub/super terminology is also used when the equality is replaced with 
+$\geq$ or $\leq$, respectively. 
+\end{definition}
+
 \end{document}
 
 
