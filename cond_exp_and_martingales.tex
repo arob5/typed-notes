@@ -303,6 +303,70 @@ An $\{F_n\}$-adapted sequence $\{U_n\}$ is called a \textit{martingale differenc
 $\geq$ or $\leq$, respectively. 
 \end{definition}
 
+Let's now consider some martingales other than random walks. It turns out that the square of an $L_2$ martingale is not quite a martingale, but by subtracting off the mean of the process we can obtain a martingale. 
+To show this, let $Y_k$ be independent mean zero random variables with variances $\sigma_k^2$, $S_n = \sum_{k = 1}^{n} Y_k$ their partial sum, and denote $s_n^2 := \sum_{k = 1}^{n} \sigma_k^2$. Note that the mean zero restriction on the $Y_k$ is not actually a restriction; these random variables could have 
+non-zero mean and then we would just center them to show the analogous result. The claim 
+is that $X_n := S_n^2$ is a sub-martingale but $X_n^\prime := S_n^2 - s_n^2$ is a martingale.  To show this, consider 
+\begin{align*}
+\E[X_{n + 1}|\mathcal{F}_n] &= \E\left[\left(Y_{n + 1} + S_n \right)^2 \bigg| \mathcal{F}_n \right] \\
+					   &= \E[Y_{n + 1}^2|\mathcal{F}_n] + \E[S_n^2|\mathcal{F}_n] + 2\E[Y_{n+1}S_n|\mathcal{F}_n] \\
+					   &= \E[Y_{n + 1}^2] + S_n^2 + 2 S_n \E[Y_{n+1}|\mathcal{F}_n] \\
+					   &= \sigma_{n + 1}^2 + S_n^2 + 2S_n \E[Y_{n+1}] \\
+					   &= X_n + \sigma_{n + 1}^2 \geq S_n^2
+\end{align*}
+so this is indeed a sub-martingale. Notice that the last three steps use the standard measurability and independence arguments discussed above (note that $S_n^2 \in \mathcal{F}_n$). 
+An almost identical calculation shows that the correction $X_n^\prime := S_n^2 - s_n^2$ results in a martingale. 
+
+It turns out that many martingales also take a product form. If $Y_k$ are independent with mean $1$, then 
+\[X_n = \prod_{k = 1}^{n} Y_k\]
+can easily be shown to be a martingale. The argument is very similar as the above, where the final term is split off of the product, rather than the sum and then measurability and independence 
+arguments are applied. We finish this introduction with a couple more examples of special types of martingales. First, let $\{\mathcal{F}_n\}$ be a filtration, $Z$ a random variable with finite 
+expectation Then define 
+\[X_n := \E[Z|\mathcal{F}_n]\]
+I claim this defines a martingale. We can think of the random process $\{X_n\}$ as representing the acquisition of more and more information about $Z$ over time. Before proving that it actually holds, 
+consider the defining relation $\E[X_{n+1} |\mathcal{F}_n] = X_n$. This is a bit odd to interpret given that $X_n := \E[Z|\mathcal{F}_n]$. Loosely speaking, I like to think of $X_n$ as the ``best guess'' of 
+$Z$ given knowledge up to time $n$. The defining relation thus says that considering a ``better guess'' $\E[Z|\mathcal{F}_{n+1}]$ does not gain us any thing if we are conditioning on $\mathcal{F}_n$; i.e.
+conditioning on $\mathcal{F}_n$ drops all additional knowledge gained from $\mathcal{F}_{n+1}$ (this is essentially just the tower law, and indeed the proof relies on the tower law as I show below).
+\[\E[X_{n + 1}|\mathcal{F}_n] = \E[\E(Z|\mathcal{F}_{n+1})|\mathcal{F}_n] = \E[Z|\mathcal{F}_n] = X_n\] 
+This martingale seems pretty odd, but it turns out to have some very nice and important properties. 
+
+Using similar arguments, we can actually devise a way to adjust any integrable, adapted sequence $\{Y_k\}$ into a martingale. Indeed, set $X_0 = Y_0$ and define 
+\[X_n = \sum_{k = 1}^{n} \left(Y_k - \E[Y_k|\mathcal{F}_{k-1}] \right), n \geq 1\]
+$\{X_n, \mathcal{F}_n\}$ is a martingale. This makes sense; we are just adjusting the increments (i.e. martingale differences) to have conditional mean zero so that the defining relation 
+will hold. 
+
+\subsection{Martingale Algebra}
+Whenever defining a new mathematical object, it is typical to study classes of transformations that preserve the structure of the object. In this vein, one can show the following. 
+Let $\{X_n\}$, $\{Q_n\}$ be martingales. 
+\begin{enumerate}
+\item linear combinations of martingales are martingales; i.e. a $\{a X_n + b Q_n\}$. If $X_n$ and $Q_n$ are instead submartingales, then \textit{positive} linear combinations 
+$(a, b > 0)$ preserve the submartingale structure. The same is true of supermartingales.  
+\item $\max\{X_n, Q_n\}$ is a submartingales. this makes sense since submartingales are increasing random processes, in the sense that expectations of future states given the 
+past are higher than the current state. 
+\item Similarly, $\min\{X_n, Q_n\}$ is a supermartingale. 
+\item Changing the sign of a supermartingale (i.e. $a \cdot X_n$, where $a < 0$) results in submartingale, and vice versa. 
+\item A Jensen-type result: if $\{X_n\}$ is a martingale and $g$ a convex function then $\{g(X_n)\}$ is a sub-martingale. 
+\item If $\{X_n\}$ is a martingale then so is $\{\abs{X_n}\}$ as well as the positive and negative parts $\{X_n^+\}$ and $\{X_n^-\}$. 
+\item If $X_n \in L_p(\Omega)$ and $p > 1$ then $\{\abs{X_n}^p\}$ (this is a consequence of the Jensen-type result due to convexity). 
+\end{enumerate}
+
+\subsection{Orthogonality}
+We have already noted that martingales have orthogonal (i.e. uncorrelated) increments. We make this more precise here. To even talk about orthogonality, we must 
+have $X_n \in L_2(\Omega)$, hence throughout this section we assume $\{X_n\}$ is an $L_2$ martingale. We showed before that any martingale can be represented 
+as the partial sums of a martingale difference sequence $\{U_k\}$, such that 
+\[X_n = \sum_{k = 0}^{n} U_k\]
+Since $\E U_k = 0$ then the claim of orthogonal increments is a claim that $\E U_k U_j = 0$ for $j > k$. Conditioning on the less informative (``coarser'') $\sigma$-algebra, 
+\[\E[U_k U_j | \mathcal{F}_k] = U_k \E[U_j | \mathcal{F}_k] = U_k \E[U_j] = U_k \cdot 0 = 0\]
+where the second step uses independence. Now taking expectations of both sides and applying the law of iterated expectations yields the result 
+\[\E \E[U_k U_j|\mathcal{F}_k] = \E U_k U_j = 0\]
+This orthogonality implies 
+\[\E \left(\sum_{i = k + 1}^{j} U_i \right)^2 = \sum_{i = k + 1}^{j} \E U_i^2\]
+
+\subsection{Decompositions}
+
+
+
+
 \end{document}
 
 
