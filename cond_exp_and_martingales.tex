@@ -333,7 +333,7 @@ This martingale seems pretty odd, but it turns out to have some very nice and im
 Using similar arguments, we can actually devise a way to adjust any integrable, adapted sequence $\{Y_k\}$ into a martingale. Indeed, set $X_0 = Y_0$ and define 
 \[X_n = \sum_{k = 1}^{n} \left(Y_k - \E[Y_k|\mathcal{F}_{k-1}] \right), n \geq 1\]
 $\{X_n, \mathcal{F}_n\}$ is a martingale. This makes sense; we are just adjusting the increments (i.e. martingale differences) to have conditional mean zero so that the defining relation 
-will hold. 
+will hold. This is basically the analog of centering random walks. 
 
 \subsection{Martingale Algebra}
 Whenever defining a new mathematical object, it is typical to study classes of transformations that preserve the structure of the object. In this vein, one can show the following. 
@@ -361,11 +361,44 @@ where the second step uses independence. Now taking expectations of both sides a
 \[\E \E[U_k U_j|\mathcal{F}_k] = \E U_k U_j = 0\]
 This orthogonality implies 
 \[\E \left(\sum_{i = k + 1}^{j} U_i \right)^2 = \sum_{i = k + 1}^{j} \E U_i^2\]
+Perhaps a little more surprisingly, we have 
+\[\E[X_k X_j] = \E[X_k^2]\]
+This follows from an identical argument as before, since
+\[\E[X_k X_j | \mathcal{F}_k] = X_k \E[X_j | \mathcal{F}_j] = X_k \E[X_j]\]
+Now taking expectations and applying tower law, 
+\[\E \E[X_k X_j | \mathcal{F}_k]  = \E[X_k X_j] = \E[X_k] \E[X_j] = \E[X_k]^2\]
+where the last step follows from the fact that martingales have constant mean. 
 
 \subsection{Decompositions}
+We now discuss a couple useful martingale decompositions. 
 
+\subsubsection{The Doob Decomposition}
+Recall that we already discussed that any $\{\mathcal{F}_n\}$-adapted, integrable sequence $\{Y_k\}$ can be turned into a martingale by 
+setting $X_0 = Y_0$ and defining 
+\[X_n = \sum_{k = 1}^{n} \left(Y_k - \E[Y_k|\mathcal{F}_{k-1}] \right), n \geq 1\]
+We will use this below. Also, before proceeding we need one more definition. We call $\{A_n, \mathcal{F}_n\}$ an \textit{increasing process} provided that 1.) $A_0 = 0$, 2.) $A_n$ increases to 
+$+\infty$, and 3.) $A_n$ is $\{\mathcal{F}_n\}$-predictable. The result known as \textit{Doob's decomposition} claims that any submartingale $\{X_n\}$ can be uniquely decomposed as 
+\[X_n = M_n + A_n\]
+where $\{M_n\}$ is a martingale and $\{A_n\}$ an increasing process. While I will not prove this in full, it uses the fact that 
+\[M_n := \sum_{k = 1}^{n} \left(X_k - \E[X_k|\mathcal{F}_{k-1}] \right), n \geq 1\]
+is a martingale. Given this, the only choice for $A_n$ is to set it equal to the remainder $X_n - M_n$:
+\[A_n := X_n - M_n\]
+$\{A_n\}$ can be shown to be an increasing process and that this decomposition is unique. 
 
-
+\subsubsection{The Krickenberg Decomposition}
+It is often convenient to avoid working with potentially negative objects $x$ by instead decomposing as a difference of two positive quantities $x = x^+ - x^-$. For example, this is used 
+when extending the definition of the Lebesgue integral from non-negative functions to arbitrary functions. This idea turns out to be useful for martingales as well. In particular, we seek 
+to understand the conditions under which a martingale $\{X_n\}$ can be decomposed as 
+\[X_n = M_n^+ - M_n^-\]
+where $M_n^+$ and $M_n^-$ are non-negative martingales. It turns out that the condition we need is a uniform bound on $\E X_n^+$, 
+\[\sup_n \E(X_n^+) < \infty\]
+Note that this is very similar to assuming a uniform bound on $\E \abs{X_n}$, and that there is nothing special about the positive part; we could also have assumed the same for the negative 
+part. The reason is that martingales have constant expectation $\mu$, so that 
+\[\mu = \E X_n = \E X_n^+ - \E X_n^-\]
+implies that either $\E X_n^+$,  $\E X_n^-$ must both be finite or must both be infinite. Since these two terms differ only by $\mu$ then uniformly bounding one of them implies a uniform bound 
+on the other. And since 
+\[\E\abs{X_n} =  \E X_n^+ + \E X_n^-,\]
+this also implies a uniform bound on $\E\abs{X_n}$.
 
 \end{document}
 
