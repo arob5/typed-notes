@@ -398,7 +398,62 @@ part. The reason is that martingales have constant expectation $\mu$, so that
 implies that either $\E X_n^+$,  $\E X_n^-$ must both be finite or must both be infinite. Since these two terms differ only by $\mu$ then uniformly bounding one of them implies a uniform bound 
 on the other. And since 
 \[\E\abs{X_n} =  \E X_n^+ + \E X_n^-,\]
-this also implies a uniform bound on $\E\abs{X_n}$.
+this also implies a uniform bound on $\E\abs{X_n}$. Without proving this result, note that the obvious decomposition $X_n = X_n^+ - X_n^-$ does not get the job done since 
+$X_n^+$ and $X_n^-$ are only guaranteed to be \textit{submartingales}. $M_n^+$ and $M_n^-$ require a more sophisticated construction that is not detailed here. 
+
+\subsection{Stopping Times}
+Stopping times are a fundamental concept in the theory of martingales. Discrete time martingales are random processes indexed by integer-valued time, and there are many questions we want 
+to ask about the value of the process $X_n$ at a specific time $n$, or perhaps as $n \to \infty$, etc. However, we will also find it useful to consider the behavior of the process at a \textit{random time}
+$\tau: \Omega \to \mathbb{N}_0 = \{0, 1, 2, \dots\}$. The value of process at this time is $X_\tau$, and there is now uncertainty both in the value of the process at any specific time, as well as 
+in the time $\tau$ itself. As an example of why we might care about this, consider a ``first entrance time'' or ``hitting time'',
+\[\tau = \min_{n} \{\abs{X_n} \geq a\}\]
+so that $\tau$ is the first time that the process escapes the interval of radius $a$ centered at the origin. Since the process is random, this time is clearly random. If we simulate different trajectories 
+of the process, some may exceed a radius of $a$ very quickly, while others may take much longer. Studying $X_\tau$ will then allow us to characterize the behavior of the process at this random 
+hitting time.
+
+We now define a concept that generalizes the notion of the random hitting time. The key idea we seek to capture in the following definition is that if we condition on $\mathcal{F}_n$ (knowledge up 
+through time $n$) for any $n$ then we ought to be able to pin down the value of the random time. That is, we will only consider random times that are knowable from the past, excluding those that 
+require knowledge of the future. In the example of the hitting time, at any time $n$ knowledge of the past is sufficient to know whether the process has exceeded the radius $a$ or not. On the other 
+hand, what if we considered a ``last exit time''
+\[\tau = \max_{n} \{\abs{X_n} \leq a\}\]
+which means that $\tau$ is the last time the process is within the interval $(-a, a)$. Any any time $n$, given knowledge of the past we cannot pin down the value of $\tau$ since in the future the process 
+may wander back to this interval. The following definition excludes such ``last exit times''. 
+\begin{definition}
+A random variable $\tau: \Omega \to \mathbb{N}_0 \cup \{+\infty\}$ is called a stopping time with respect to $\{\mathcal{F}_n\}$ provided that 
+\[\{\tau = n\} \in \mathcal{F}_n\]
+for all $n$. 
+\end{definition}
+Note that we allow the stopping time to assume the value infinity. This is convenient; for example, for a hitting time $\tau = \min_{n} \{\abs{X_n} \geq a\}$ the process may almost surely never 
+leave the interval $(-a, a)$ in which case $\Prob(\tau = +\infty) = 1$. Using the defining properties of $\sigma$-algebras it is straightforward to show that equivalent definitions of stopping times 
+could sub out $\{\tau = n\}$ for $\{\tau < n\}$, $\{\tau \leq n\}$, $\{\tau > n\}$, or $\{\tau \geq n\}$. 
+
+Given that $\mathcal{F}_n$ encodes all knowledge through time $n$ it is natural to wonder if we can define a $\sigma$-algebra $\mathcal{F}_\tau$ that encodes all knowledge up through the 
+random time $\tau$. Indeed we can. As a motivating example, consider the first entrance time we have been discussing. Recall that we discussed that probabilistic statements about $X_\tau$ 
+require accounting for the uncertainty in the random time $\tau$ as well as uncertainty in the process itself, conditional on a fixed time. Events such as 
+\[A = \{X_\tau = x\}\]
+should be in $\mathcal{F}_\tau$ as this event is a piece of information that only requires knowledge up through time $\tau$. To decompose the randomness in the time versus the randomness 
+in the process, consider re-writing this event as, 
+\[A = \bigcup_{\tau = 0}^{\infty} \left(\{X_\tau = x\} \cap \{\tau = n\}\right) = \bigcup_{\tau = 0}^{\infty} \left(A \cap \{\tau = n\}\right) \]
+Events of the form $A \cap \{\tau = n\}$ are really the key here, as they allow us to make statements about arbitrary event $A$ that also account for the uncertainty in the value of 
+$\tau$. In particular, we must be able to make statements about events of this form given knowledge up to time $n$, not requiring knowledge of the future. Formally, this means that 
+$A \cap \{\tau = n\}$ must be $\mathcal{F}_n$-measurable. Thus, $\mathcal{F}_\tau$ is defined as 
+\[\mathcal{F}_\tau := \{A \in \mathcal{F}_\infty : A \cap \{\tau = n\} \in \mathcal{F}_n \text{ for all } n\}\]
+Recall that $\mathcal{F}_\infty$ is the $\sigma$-algebra generating by all of the $\mathcal{F}_n$ and is hence is the largest (most granular) $\sigma$-algebra we work with in this context. 
+It can be shown that $\mathcal{F}_\tau$ is indeed a well-defined $\sigma$-algebra. Having defined this concept, we state some properties that help to demonstrate that this definition is 
+reasonable; really any notion of ``knowledge up to time $\tau$'' should satisfy these properties. 
+\begin{enumerate}
+\item The trivial random variable $\tau(\omega) \equiv k$ for some $k \in \mathbb{N}_0$ is a stopping time. 
+\item If $\tau(\omega) \equiv k$ then $\mathcal{F}_\tau = \mathcal{F}_k$. 
+\item $\tau \in \mathcal{F}_\tau$
+\item $\tau \in \mathcal{F}_\infty$
+\item $\mathcal{F}_\tau \subset \mathcal{F}_\infty$
+\item $\{\tau = +\infty\} \in \mathcal{F}_\infty$
+\end{enumerate}
+I'll prove the first three. For the trivial stopping time $\tau(\omega) \equiv k$ note that $\{\tau = n\} = \Omega$ if $n = k$ and $\varnothing$. Since both of these events are in $\mathcal{F}_n$
+then $\tau$ is indeed a stopping time, which proves number 1. Also for any $A \in \mathcal{F}_\infty$ this means either $A \cap \{\tau = n\}$ equals either $A \cap \Omega = A$ or 
+$A \cap \varnothing = \varnothing$ so the definition $A \cap \{\tau = n\}$ simply reproduces the events in $\mathcal{F}_k$. Thus, $\mathcal{F}_\tau = \mathcal{F}_k$, which proves property 2. 
+For property 3, consider an arbitrary stopping time $\tau$. We seek to show that for any $n$, $\tau^{-1}(n) = \{\tau = n\} \in \mathcal{F}_\tau$. By definition 
+$A \cap \{\tau = n\} \in \mathcal{F}_\tau$ so setting $A = \Omega$ proves this. 
 
 \end{document}
 
