@@ -448,12 +448,82 @@ reasonable; really any notion of ``knowledge up to time $\tau$'' should satisfy 
 \item $\tau \in \mathcal{F}_\infty$
 \item $\mathcal{F}_\tau \subset \mathcal{F}_\infty$
 \item $\{\tau = +\infty\} \in \mathcal{F}_\infty$
+\item If $\tau_1 \leq \tau_2$ then $\mathcal{F}_{\tau_1} \subset \mathcal{F}_{\tau_2}$
 \end{enumerate}
 I'll prove the first three. For the trivial stopping time $\tau(\omega) \equiv k$ note that $\{\tau = n\} = \Omega$ if $n = k$ and $\varnothing$. Since both of these events are in $\mathcal{F}_n$
 then $\tau$ is indeed a stopping time, which proves number 1. Also for any $A \in \mathcal{F}_\infty$ this means either $A \cap \{\tau = n\}$ equals either $A \cap \Omega = A$ or 
 $A \cap \varnothing = \varnothing$ so the definition $A \cap \{\tau = n\}$ simply reproduces the events in $\mathcal{F}_k$. Thus, $\mathcal{F}_\tau = \mathcal{F}_k$, which proves property 2. 
 For property 3, consider an arbitrary stopping time $\tau$. We seek to show that for any $n$, $\tau^{-1}(n) = \{\tau = n\} \in \mathcal{F}_\tau$. By definition 
 $A \cap \{\tau = n\} \in \mathcal{F}_\tau$ so setting $A = \Omega$ proves this. 
+
+\subsubsection{Stopping Time Arithmetic}
+Just as we studied which operations preserve martingales, we seek to do the same with stopping times. As far as basic arithmetic we have that 
+sums of stopping times are stopping times, but differences are not in general (they can assume negative values, and stopping times cannot). Minima and maxima also 
+preserve stopping times. Minima and maxima of stopping times will be important in subsequent theory, so we introduce special lightweight notation for them:
+\begin{align*}
+\tau_1 \wedge \tau_2 &:= \min\{\tau_1, \tau_2\} \\
+\tau_1 \vee \tau_2 &:= \max\{\tau_1, \tau_2\}
+\end{align*}
+These results can all be proved by checking the measurability condition and using typical properties of $\sigma$-algebras. 
+
+Next, do limits preserve stopping times? We consider limits of monotone sequences: $\tau_k \uparrow \tau$ and $\tau_k \downarrow \tau$. Now it is important to remember that stopping times 
+are integer-valued (or infinity) so the limit of the sequence $\{\tau_k(\omega)\}$ either does not exist, equals a non-negative integer, or is $+\infty$. Since we only consider monotone sequences, 
+this guarantees the first option does not occur, so that the sequences have (potentially infinite) limits. I will show that in either case the limit $\tau$ is indeed a stopping time. To this end, we must 
+show that for any $n$, $\{\tau = n\} \in \mathcal{F}_n$. In the case $\tau_k \uparrow \tau$ and for $\omega \in \Omega$ $\tau(\omega) < \infty$, the 
+once the sequence $\tau_k(\omega)$ hits the value $\tau(\omega)$ it must stay at that value. If $\tau(\omega) = +\infty$ then the sequence $\tau_k(\omega)$ will keep growing larger. Thus, 
+\[\{\tau = n\} = \bigcup_k \{\tau_k = n\} \in \mathcal{F}_n\]
+The first equality captures the above logic that the sequence must eventually hit the value $n$, and the set inclusion uses the fact that unions of sets in $\sigma$-algebras also belong to 
+the $\sigma$-algebra. The case $\tau_k \downarrow \tau$ is similar. In this case the limit must be finite and moreover every element of the sequence $\tau_k(\omega)$ must equal $n$ in order for 
+the limit to be $n$. This is due to the fact that the sequence is decreasing; for example, if $\tau_k < n$ then the limit would have to be less than $n$ so this is not possible. If $\tau_k > n$ then the 
+process is stopped at a value greater than $n$ and the limit is greater than $n$ (it seems that the sequence could still decrease to $n$, but perhaps I am misunderstanding what we mean by 
+monotone decreasing here). Thus, 
+\[\{\tau = n\} = \bigcap_k \{\tau_k = n\} \in \mathcal{F}_n\]
+
+\subsubsection{Optional Sampling/Stopping}
+We setup out of the way, we now arrive at some important results for stopping times and martingales. First of all, recall the defining relation for martingales 
+\[\E[X_{n + 1}|\mathcal{F}_n] = X_n\]
+which we also saw implies that the process has constant (unconditional) expectation. Some natural questions are to wonder if these results also hold for 
+stopping times; i.e. for stopping times $\tau$ and $\tau_1 < \tau_2$,
+\begin{align*}
+&\E[X_{\tau_2}|\mathcal{F}_{\tau_1}] = X_{\tau_1}? &&\E X_{\tau} = \E X_0?
+\end{align*}
+If these statements are both true then in essence we can think of $X_\tau$ as ``part of the martingale'', in that it behaves just like $X_n$ for a non-random time $n$. 
+It turns out these results do not hold in general, so we are interested in conditions under which they do hold. But first we consider an example where they do not hold. 
+
+\bigskip
+\textbf{Example.} Let $\{Y_k\}$ be iid $\Prob(Y_k = 1) = \Prob(Y_k = -1) = \frac{1}{2}$ and define the process 
+$X_n = \sum_{k = 1}^{n} Y_k$ and stopping time $\tau := \min\{n: X_n = 1\}$. First note that $\{X_n\}$ is a centered random walk and hence is a martingale with respect 
+to the natural filtration. 
+Next note that since $X_\tau = X_{\min\{n: X_n = 1\}}$ then $X_\tau$ is almost surely equal to $1$; that is,
+\[\Prob(X_\tau = 1) = 1\]
+Thus, $\E X_\tau = 1$, but $\E X_n = 0$ for all $n$. Thus the process $\{X_1, X_\tau\}$ is \textit{not} a martingale.  
+Thus, any sort of theorems that guarantee that $X_\tau$ is part of the martingale must assume conditions that exclude situations such as this example. It turns out that 
+the problem here is that $\tau$ is ``too large'' in some sense; in fact, it can be shown that $\E \tau = +\infty$. 
+
+It turns out that assuming $\Prob(\tau \leq M) = 1$ (i.e. that $\tau$ is almost surely bounded) is enough to guarantee $X_\tau$ is part of the martingale. There are a few different 
+related results that are often called \textit{Doob's optional sampling} or \textit{Doob's optional stopping} theorem. We present one such result below. 
+\begin{thm}
+Suppose that $\{X_n \mathcal{F}_n\}$ is a martingale and $\tau$ a bounded stopping time; that is, $\Prob(\tau \leq M) = 1$ for some $M$. Then $\{X_\tau, X_M\}$ is also 
+a martingale (with respect to $\{\mathcal{F}_M, \mathcal{F}_\tau\}$); in particular,
+\[\E X_\tau = \E X_M\]
+and 
+\[\E[X_M|\mathcal{F}_\tau] = X_\tau\]
+\end{thm}
+Thinking about $\{X_M, X_\tau\}$ is a bit confusing; it is a random process indexed by random time, but the time can never exceed $M$ (almost surely). And the expectation 
+of the process is constant. Also, the expectation of the process at the ``final time'' $M$, given information up to random time $\tau$ is equal to $X_\tau$, the value of the 
+process at that random time. It really is just a generalization of martingales where the time index $\{0, 1, 2, \dots\}$ has been replaced by a random time $\tau$. 
+
+As a corollary, note that we can construct bounding stopping times from potentially unbounded ones. Indeed, if $\tau$ is a stopping time then 
+$\tau \wedge n$ is bounded; $\Prob(\tau \wedge n \leq n) = 1$. Then by the previous theorem we know that $\{X_{\tau \wedge n}, X_n\}$ is a martingale, and in particular, 
+\[\E X_{\tau \wedge n} = \E X_n\]
+
+Next, I present a more general version of Doob's optional stopping theorem that implies the version stated above. Recall that any integrable random variable 
+$Z \in L_1(\Omega)$ can be used to define a martingale with respect to filtration $\{\mathcal{F}_n\}$ by defining the process
+\[X_n = \E[Z|\mathcal{F}_n]\]
+It turns out that $\{(X_\tau, \mathcal{F}_\tau), (Z, \mathcal{F}_\infty)\}$ is a martingale and in particular, 
+\[\E X_\tau = \E Z\]
+Thus, $Z$ provides a natural ``right endpoint'' for martingales of this sort. 
+
 
 \end{document}
 
