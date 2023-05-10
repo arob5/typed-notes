@@ -524,6 +524,53 @@ It turns out that $\{(X_\tau, \mathcal{F}_\tau), (Z, \mathcal{F}_\infty)\}$ is a
 \[\E X_\tau = \E Z\]
 Thus, $Z$ provides a natural ``right endpoint'' for martingales of this sort. 
 
+\subsubsection{Joining and Stopping Martingales}
+Consider martingales $X_n^{(1)}$ and $X_n^{(2)}$ and stopping time $\tau$. What if we define a process that is equal to the first martingale until the stopping time, at which 
+point the process shifts to the other martingale? Is this concatenation of martingales at random time $\tau$ still a martingale? Under certain conditions, it is. 
+In particular, assume that 
+\[X_\tau^{(1)}(\omega) = X_\tau^{(2)}(\omega), \text{ on the set } \{\tau < \infty\}\]
+Then the process $\{X_n\}$ defined as $X_n(\omega) = X_n^{(1)}(\omega)$ for $n < \tau(\omega)$ and $X_n(\omega) = X_n^{(2)}(\omega)$ for 
+$n \geq \tau(\omega)$ is indeed a martingale. 
+
+A similar result holds for supermartingales, where the condition is now 
+\[X_\tau^{(1)}(\omega) \geq X_\tau^{(2)}(\omega), \text{ on the set } \{\tau < \infty\}\]
+which makes sense, since supermartingales are decreasing (in a certain sense) processes, hence the concatenation of martingales must maintain this decreasing property. 
+The same holds for submartingales if the inequality is reversed. 
+
+Another result in similar spirit says that if $\{X_n\}$ is a martingale then so is $\{X_{\tau \wedge n}\}$, and the same holds for submartingales. Let's try to wrap our heads 
+around this random process. A specific realization of the process yields,
+\[X_{\tau(\omega) \wedge 0}(\omega), X_{\tau(\omega) \wedge 1}(\omega), \dots, X_{\tau(\omega) \wedge n}(\omega) \dots\]
+Since $\tau(\omega) \wedge 0 = 0$ then the initial condition will be $X_{0}(\omega)$. Suppose that for this realization $\tau(\omega) = 0$. Then the realization looks like
+\[X_{0}(\omega), X_{0}(\omega), \dots, X_{0}(\omega), \dots\]
+so the process has been ``stopped'' at time $0$. Suppose instead that $\tau(\omega) = k$. Then the realization looks like, 
+\[X_{0}(\omega), X_{1}(\omega), \dots, X_{k}(\omega), X_{k}(\omega), \dots\]
+that is, the realization looks just like a realization of the original martingale $\{X_n\}$ up until time $k$, and then the process is stopped at time $k$.  
+For this reason, martingales of this type are called \textit{stopped martingales}. In summary, once the stopping time hits, the process is stopped at whatever value 
+it assumed at that time. Recall that by Doob's optional stopping theorem, 
+\[\E X_{\tau \wedge n} = \E X_n = \E X_0\]
+In light of our better understanding of the process $\{X_{\tau \wedge n}\}$ it is interesting that $X_{\tau \wedge n}$ has the same expectation as the original process 
+$X_n$. It essentially says that averaging over all of the times that the process could have stopped it some sense cancels out and the result is that the expectation 
+is still $X_n$. 
+
+\subsubsection{Martingale Inequalities}
+The theory of martingales produces many useful inequalities, that can be viewed as generalizations of standard inequalities like Markov, Chernoff, Hoeffding, etc. 
+For example, the following inequality (the Kolmogorov-Doob inequality) looks quite a bit like a Markov bound, but for running maxima. Letting $\{X_n\}$ be a 
+submartingale and $\lambda > 0$, 
+\[\Prob(\max_{0 \leq k \leq n} X_k > \lambda) \leq \frac{\E \abs{X_n}}{\lambda}\]
+Note that for sub-martingales, $\E X_m \geq \E X_n$ for $m > n$ so that the righthand side is either constant or growing as $n$ grows large. If $\{X_n\}$ is a
+martingale then the statement can be made stronger by replacing $X_k$ with $\abs{X_k}$ inside the probability measure. There are many other useful inequalities as well. 
+
+\subsubsection{Convergence}
+The following theorem is a famous convergence result, and one of the most important theorems in martingale theory. 
+
+\begin{thm}
+Let $\{X_n\}$ be a submartingale that satisfies 
+\[\sup_n \E X_n^+ < \infty\]
+Then $X_n$ converges almost surely. 
+\end{thm}
+Note that the result holds in particular for martingales. 
+
+
 
 \end{document}
 
