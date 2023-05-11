@@ -78,12 +78,12 @@ probability measure, we could simply consider the standard notion of \textit{poi
 \end{align}
 However, as we already discussed, this completely ignores $\mathbb{P}$. Convergence of random variables should naturally incorporate knowledge of this measure, which intuitively tells us 
 how much emphasis should be placed on particular $\omega$. The notion of pointwise convergence [\ref{Pointwise_Convergence}] treats all $\omega$ equally. There are many different reasonable
-ways that we might incorporate $\mathcal{P}$ into the definition of a limit, yielding different notions of convergence, each of which have strengths and weaknesses with respect to particular applications. 
+ways that we might incorporate $\mathbb{P}$ into the definition of a limit, yielding different notions of convergence, each of which have strengths and weaknesses with respect to particular applications. 
 We consider the most popular notions of convergence below. 
 
 \subsection{Almost Sure Convergence}
-Almost sure convergence incorporates knowledge of $\mathcal{P}$ in the simplest manner possible--it simply ignores the set of $\omega$ with zero probability. This is a quite natural slight adjustment 
-of pointwise convergence; if $\mathcal{P}$ assigns zero probability to a set $A \in \mathcal{F}$, then requiring $\{X_n\}$ to converge on this set seems to be overly restrictive. Almost sure convergence 
+Almost sure convergence incorporates knowledge of $\mathbb{P}$ in the simplest manner possible--it simply ignores the set of $\omega$ with zero probability. This is a quite natural slight adjustment 
+of pointwise convergence; if $\mathbb{P}$ assigns zero probability to a set $A \in \mathcal{F}$, then requiring $\{X_n\}$ to converge on this set seems to be overly restrictive. Almost sure convergence 
 simply removes this restriction. However, beyond this adjustment it still does not consider any sort of weighting for the set of positive measure. It just partitions the set of positive measure from that of zero 
 measure, and ignores the latter. 
 
@@ -96,7 +96,7 @@ To be more explicit, we might write out the definition as
 \[\mathbb{P}\left(\left\{\omega \in \Omega: \lim_{n \to \infty} X_n(\omega) = X(\omega)\right\} \right) = 1\]
 or equivalently, 
 \[\mathbb{P}\left(\left\{\omega \in \Omega: \lim_{n \to \infty} X_n(\omega) \neq X(\omega)\right\} \right) = 0\]
-Convergence in probability says that by going far enough along in the sequence we can make $X_n(\omega)$ and $X(\omega)$ arbitrarily close for almost all $\omega$.
+Almost sure convergence says that by going far enough along in the sequence we can make $X_n(\omega)$ and $X(\omega)$ arbitrarily close for almost all $\omega$.
 
 To dig into this a bit deeper, we recall the definition of the standard pointwise limit $\lim_{n \to \infty} X_n(\omega) = X(\omega)$ from real analysis: 
 \begin{align*}
@@ -118,7 +118,7 @@ A sequence of random variables $\{X_n\}$ is said to converge in probability to a
 \[\lim_{n \to \infty} \Prob\left(\abs{X_n(\omega) - X(\omega)} \geq \epsilon \right) = 0\]
 As shorthand, we write $X_n \overset{p}{\to} X$.
 \end{definition}
-This is certainly related almost sure convergence, and I find it quite easy to accidentally conflate the two. Note that in the definition of almost sure convergence the probability measure appears outside of the limit, 
+This is certainly related to almost sure convergence, and I find it quite easy to accidentally conflate the two. Note that in the definition of almost sure convergence the probability measure appears outside of the limit, 
 while here it appears inside of the limit. To better understand the difference, we consider manipulating the above definition. 
 Plugging in the standard definition of a limit, we obtain the equivalent 
 definition that for any $\epsilon > 0$,
@@ -281,7 +281,7 @@ Notice that in this proof we were able to replace the random variable $S_N^\prim
 \subsection{What happens when the mean is infinite?}
 In the previous section we showed that even without the finite variance assumption, the tails of the $X_k$ decayed sufficiently fast to still conclude the WLLN. The natural next question is whether the finite mean assumption 
 is necessary for this to hold, or if this assumption is also unnecessary? It turns out that the finite mean assumption is indeed necessary to prove the WLLN in general, but that there are examples where the WLLN holds despite 
-the mean being infinite. To better understand the implications of infinite mean, we explore to examples: 1.) an example where the mean is infinite and the WLLN is not even close to holding, and 2.) an example where the mean is 
+the mean being infinite. To better understand the implications of infinite mean, we explore two examples: 1.) an example where the mean is infinite and the WLLN is not even close to holding, and 2.) an example where the mean is 
 infinite but the WLLN still holds. 
 
 \subsubsection{Example: WLLN Fails with Infinite Mean}
@@ -435,7 +435,7 @@ be the \textit{Kolmogorov Three Series theorem}, which provides sufficient and n
 If, in addition, $\sum_{k = 1}^{\infty} \mu_k$ converges then $\sum_{k = 1}^{\infty} X_k$ converges almost surely. 
 \end{thm}
 I emphasize again that convergence of infinite series here should be interpreted as convergence of the sequence of partial sums. This result again makes intuitive sense, since the assumption 
-$\sum_{k = 1}^{\infty} \sigma_k^2 < \infty$ essentially means that the variance eventually $0$, which implies that $X_k$ tends towards its mean so that $X_k - \mu_k$ tends towards $0$. So eventually 
+$\sum_{k = 1}^{\infty} \sigma_k^2 < \infty$ essentially means that the variance is eventually $0$, which implies that $X_k$ tends towards its mean so that $X_k - \mu_k$ tends towards $0$. So eventually 
 nothing is being added to the partial sums so they converge. To make this a little more precise, it is important to think about the sufficient condition $\sum_{k = 1}^{\infty} \sigma_k^2 < \infty$. In particular, 
 this condition implies that $\sigma_k^2 \to 0$ and that the $\sigma_k^2$ are uniformly bounded. However, these two facts are not enough to guarantee almost sure convergence of $\sum_{k = 1}^{\infty} (X_k - \mu_k)$. 
 The condition $\sum_{k = 1}^{\infty} \sigma_k^2 < \infty$ is much stronger, as it essentially ensures that the $\sigma_k^2$ converge to $0$ ``fast enough''. Indeed, the Cauchy convergence criterion states that 
@@ -547,7 +547,7 @@ A natural question is then: can we make any probabilistic statements about \text
 Loosely speaking, the CLT states that as $n$ grows large, the distribution of $S_n$ gets closer and closer to a Gaussian. Naturally, the distribution of $S_n$ can shift and spread out 
 as $n$ gets larger. Thus, by properly normalizing the distributions to have mean zero and unit variance, we can make the following statement: 
 \[\frac{S_n - \E[S_n]}{\text{SD}(S_n)} = \frac{S_n - n\mu}{\sigma \sqrt{n}} \overset{d}{\to} N(0, 1)\]
-Expanding the sum, we can equivalently as
+Expanding the sum, we can equivalently write this as
 \[\frac{1}{\sigma \sqrt{n}} \sum_{k = 1}^{n} (X_k - \mu) \overset{d}{\to} N(0, 1)\]
 or in terms of the empirical mean as
 \[\frac{\sqrt{n}}{\sigma} (\overline{X}_n - \mu) \overset{d}{\to} N(0, 1)\]
@@ -600,7 +600,7 @@ Let $\{X_k\}$ be independent random variables with finite means $\mu_k$ and fini
 \end{enumerate}
 \end{thm}
 What should be immediately clear is that the second Lindeberg condition is sufficient for the CLT to hold. However, the statement of the converse leaves open the possibility that 
-it is not strictly necessary; i.e. there are weird cases where the CLT holds despite the second Lindeberg condition failing. The first Lindeberg condition excludes this weird cases. To better
+it is not strictly necessary; i.e. there are weird cases where the CLT holds despite the second Lindeberg condition failing. The first Lindeberg condition excludes these weird cases. To better
 understand this, let's consider some implications of the first Lindeberg condition. Clearly $L_1(n) \to 0$ implies $s_n^2 \to \infty$. If the first Lindeberg condition doesn't hold, this leaves open 
 the possibility that $s_n^2$ converges; that is, 
 \[\sum_{k = 1}^{\infty} \sigma_k^2 < \infty\]

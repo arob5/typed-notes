@@ -561,8 +561,21 @@ Note that for sub-martingales, $\E X_m \geq \E X_n$ for $m > n$ so that the righ
 martingale then the statement can be made stronger by replacing $X_k$ with $\abs{X_k}$ inside the probability measure. There are many other useful inequalities as well. 
 
 \subsubsection{Convergence}
-The following theorem is a famous convergence result, and one of the most important theorems in martingale theory. 
+Before discussing convergence of martingales, let's recall some concepts more generally regarding the notion of convergence. Loosely speaking, there are two reasons why 
+convergence can fail: 1.) a sequence goes to $+\infty$ or $-\infty$ or 2.) a sequence oscillates. It is common to consider the extended real numbers that include 
+$\{+\infty, -\infty\}$ so that convergence to infinity is no longer considered divergence. A common assumption to exclude the oscillating behavior (and thus guarantee convergence)
+is to assume the sequence is monotone (nondecreasing or nonincreasing). A basic result from real analysis, says that an nondecreasing sequence of real numbers 
+that is bounded above must converge. By using the extending real numbers, we can remove the ``bounded above'' part since $+\infty$ acts as the upper bound. The monotone 
+convergence theorem (MCT) is similar for random variables, stating that if $\{X_n\}$ increases to a limit $X$, then $\E X_n$ increases to a limit $\E X$ (which may be infinite). 
+So once again, monotonicity provides a useful condition to guarantee convergence, this time convergence of expectations. 
 
+Returning to martingales, we know that submartingales possess a certain flavor of monotonicity; they are nondecreasing in a particular sense. Specifically, 
+for $m > n$ they satisfy $\E[X_m | \mathcal{F}_n] \geq X_n$ and in particular, $\E X_m \geq \E X_n$. In contrast to the MCT for random variables, this is monotonicity 
+of expectations, whereas in that case the monotonicity assumption was on the random variables themselves, a stronger condition. Given this monotonicity property, it is 
+natural to wonder if it can be utilized to demonstrate some sort of convergence result. In this case, the result we are after is almost sure convergence of the martingale 
+$\{X_n\}$, a very strong result. To achieve such a result, what is currently missing is some notion of boundedness to complement the monotonicity. 
+
+The following theorem is a famous convergence result, and one of the most important theorems in martingale theory. 
 \begin{thm}
 Let $\{X_n\}$ be a submartingale that satisfies 
 \[\sup_n \E X_n^+ < \infty\]
@@ -570,7 +583,9 @@ Then $X_n$ converges almost surely.
 \end{thm}
 Note that the result holds in particular for martingales. 
 
-
+\bigskip
+\textbf{TODO}: discuss upcrossings proof and its financial interpretation. e.g. see the intuition in the Wikipedia article:
+https://en.wikipedia.org/wiki/Doob%27s_martingale_convergence_theorems
 
 \end{document}
 
