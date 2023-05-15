@@ -1,0 +1,201 @@
+---
+title: "Experimental Design for GPs"
+author: "Andrew Roberts"
+date: '2023-05-15'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(plgp)
+```
+
+## Model-Based Design for GPs 
+While space-filling designs like latin hypercube or maximim are agnostic to the model being fit to the data, another approach is to develop design strategies that are tailored to the specific model being used - in our case, a GP. 
+
+We begin with the following setup. Suppose we are interesting in fitting a GP 
+
+$$ y(\cdot) \sim \mathcal{GP}(0, k(\cdot, \cdot))$$
+
+over a $D$-dimensional input space. Let $\tilde{\mathbf{X}}$ denote the $M \times D$ matrix containing a set of input points $\tilde{\mathbf{x}}_1, \dots, \tilde{\mathbf{x}}_M$. From these $M$ inputs, we seek to choose an $N \times D$ design $\mathbf{X}$ consisting of inputs $\mathbf{x}_1, \dots, \mathbf{x}_N$ that is "optimal" in some sense.
+
+It will be helpful to establish some notation here. First let $\overline{\mathbf{X}}$ be the $(M - N) \times D$ matrix contain the points not selected in the design $\mathbf{X}$. I will denote the kernel matrices by $\mathbf{K} := k(\mathbf{X})$, $\mathbf{\tilde{K}} := k(\mathbf{\tilde{X}})$, $\mathbf{\overline{K}} := k(\overline{\mathbf{X}})$ and the random vectors $\mathbf{y} := y(\mathbf{X})$, $\mathbf{\tilde{y}} := y(\mathbf{\tilde{X}})$, $\overline{\mathbf{y}} := y(\overline{\mathbf{X}})$. 
+
+Note that once we have selected $\mathbf{X}$, then conditioning on the observed $\mathbf{y}$ yields the standard GP predictive distribution over the unobserved points. 
+
+$$ \mathbf{\overline{y}}|\mathbf{y}, \mathbf{X}, \mathbf{\overline{X}} \sim \mathcal{N}_{M - N}\left(\mu_{\mathbf{X}}(\overline{\mathbf{X}}), k_{\mathbf{X}}(\overline{\mathbf{X}})  \right)$$
+
+where 
+
+$$
+\begin{align*}
+\mu_{\mathbf{X}}(\overline{\mathbf{X}}) &= k\left(\overline{\mathbf{X}}, \mathbf{X}\right) \mathbf{K}^{-1} \mathbf{y} \\
+k_{\mathbf{X}}(\overline{\mathbf{X}}) &= k\left(\overline{\mathbf{X}}\right) - k\left(\overline{\mathbf{X}}, \mathbf{X}\right) \mathbf{K}^{-1} k\left(\mathbf{X}, \overline{\mathbf{X}}\right)
+\end{align*}
+$$
+
+I will let $\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}$ denote the random vector with this predictive distribution. 
+
+
+### Maximum Entropy Design
+Intuitively, we seek to select $\mathbf{X}$ such that it yields the most information about the predictive distribution over the unobserved points; that is, the selection that makes $\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}$ as uncertain as possible. As our measure of uncertainty, we will first consider Shannon's entropy
+
+$$ H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right) = -\mathbb{E}\left[\log p_{\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}}\left(\overline{\mathbf{y}}\right)\right]$$
+
+where the expectation is with respect to the $(M - N)$-dimensional Gaussian distribution of $\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}$. The negative of entropy is called *information*, and hence minimizing entropy to equivalent to maximizing information 
+
+$$ I_{\overline{\mathbf{X}}|\mathbf{X}} := -H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)$$
+
+ Since everything is Gaussian here, the formula for entropy of a Gaussian distribution will come up a lot. This is derived in the appendix for reference. Applying that formula to $\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}$, we find that the entropy of the predictive distribution over the outputs at the unobserved locations is given by 
+ 
+$$
+\begin{align*}
+H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right) &= \frac{1}{2}\log\det\left(2\pi e k_{\mathbf{X}}(\overline{\mathbf{X}})\right) \\
+&= \frac{1}{2}\log\det\left(2\pi e \left[k\left(\overline{\mathbf{X}}\right) - k\left(\overline{\mathbf{X}}, \mathbf{X}\right) \mathbf{K}^{-1} k\left(\mathbf{X}, \overline{\mathbf{X}}\right) \right] \right)
+\end{align*}
+$$
+
+Now, as mentioned above, the goal is to select $\mathbf{X}$ to minimize $H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)$. Notice that the entropy of Gaussian distributions does not depend on the mean of the distributions. Since the GP predictive covariance $k_{\mathbf{X}}$ does not depend on $\mathbf{y}$ (the observed valued being conditioned on), this implies that 
+$H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)$ does not actually depend on $\mathbf{y}$. The relation to $\mathbf{y}$ is captured entirely through the kernel. In more general non-Gaussian settings this is not the case, and hence it is typical to instead consider minimizing $\mathbb{E} H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)$, where the expectation is with respect to the prior on $\mathbf{y}$. Again, this is not required here but I state this in the interest of providing a more general picture. 
+ 
+We will now show that minimizing $H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)$ is equivalent to maximizing $H(\mathbf{y})$; that is, the optimal design is to choose input points $\mathbf{X}$ corresponding to the locations that are *most uncertain* under the GP prior. To verify this claim, we show that the prior entropy $H(\tilde{\mathbf{y}})$ can be decomposed as a sum of the prior entropy at the selected inputs $H(\mathbf{y})$ and the entropy of the predictive distribution at the remaining inputs $H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)$. To this end, note that the entropy of the prior at locations $\tilde{\mathbf{X}}$ is 
+
+$$ H(\tilde{\mathbf{y}}) = \frac{1}{2} \log\det\left(2\pi e \tilde{\mathbf{K}} \right) = \frac{N + M}{2} \log(2\pi e) + \frac{1}{2} \log\det(\tilde{\mathbf{K}})$$
+
+where $\tilde{\mathbf{K}}$ can be written in block form as 
+
+$$\tilde{\mathbf{K}} = \begin{pmatrix} \mathbf{K} & k(\mathbf{X}, \overline{\mathbf{X}}) \\ 
+k(\overline{\mathbf{X}}, \mathbf{X}) & \overline{\mathbf{K}} \end{pmatrix} $$
+
+We can re-write the determinant $\det(\tilde{\mathbf{K}})$ in terms of each block using the formula for determinants of block matrices; see e.g., $\href{https://math.stackexchange.com/questions/1905652/proofs-of-determinants-of-block-matrices}{this}$ StackExchange post. 
+
+$$
+\begin{align*}
+\det(\tilde{\mathbf{K}}) &= \det(\mathbf{K}) \cdot \det\left(\overline{\mathbf{K}} - k(\overline{\mathbf{X}}, \mathbf{X}) \mathbf{K}^{-1} k(\mathbf{X}, \overline{\mathbf{X}})\right) \\
+&= \det(\mathbf{K}) \cdot \det(k_{\mathbf{X}}(\overline{\mathbf{X}}))
+\end{align*}
+$$
+
+Plugging this back into the expression for $H(\tilde{\mathbf{y}})$, we obtain
+$$
+\begin{align*}
+H(\tilde{\mathbf{y}}) &= \left\{\frac{N}{2} \log(2\pi e) + \log\det(\mathbf{K}) \right\} + \left\{\frac{M}{2} \log(2\pi e) + \log\det(k_{\mathbf{X}}(\overline{\mathbf{X}})) \right\} \\
+&= H(\mathbf{y}) + H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)
+\end{align*}
+$$
+
+Since the lefthand side - the entropy of the prior at locations $\tilde{\mathbf{X}}$ - is fixed, then we see that minimizing $H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)$ is equivalent to maximizing $H(\mathbf{y})$. This sort of entropy decomposition shows up in a variety of contexts; I emphasize that the decomposition is typically of the form 
+
+$$ H(\tilde{\mathbf{y}}) = H(\mathbf{y}) + \mathbb{E}_{\overline{\mathbf{y}}} H\left(\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}\right)$$ 
+
+where the expectation is with respect to the prior, but that in this special Gaussian setting the equality holds without the expectation. The *maximum entropy (maxent) design* of size $N$ is thus the set of input locations satisfying
+
+$$ 
+\begin{align*}
+\mathbf{X} &= \text{argmax} H(\mathbf{y}) \\
+           &= \text{argmax} \log\det(\mathbf{K}) \\
+           &= \text{argmax} \det(\mathbf{K})
+\end{align*}
+$$
+
+This is good and all, but there is a glaring problem. The kernel matrix $\mathbf{K}$ depends on the kernel hyperparameters. The whole point of what we're doing here is to choose a design well-suited to learning the kernel hyperparameters, so we've run into a circular issue here. To address this, one reasonable solution is to first initialize a small space-filling design (e.g. LHS or maximin), learn the kernel hyperparameters from this design, then append to this design in a sequential fashion using the maxent strategy. 
+
+
+The following function *maxent* assumes the hyperparameters have already been estimated, and performs the sequential maxent procedure to refine the design. The implementation below is as simple as possible, and certainly not efficient. The sequential procedure proceeds by randomly selecting a design point to update, proposing a new design point uniformly at random, and then accepting the proposal if the objective function (the determinant of the kernel matrix at the design points) has increased. This will naturally lead to many rejections.  
+```{r}
+
+maxent <- function(N, D, theta = 0.01, g = 0.01, N_itr = 100000) {
+  
+  if(length(theta) == 1) theta <- rep(theta, D)
+  X <- matrix(runif(N*D), ncol = D) # Initial design is generated uniformly at random. 
+  K <- covar.sep(X, d=theta, g=g) # Correlation matrix plus nugget. 
+  ldetK <- determinant(K, logarithm = TRUE)$modulus # Current value of objective function. 
+  
+  for(itr in 1:N_itr) {
+    row <- sample(1:N, 1) # Randomly sample design point to update. 
+    x_curr <- X[row,]
+    X[row,] <- runif(D) # Generate new proposed design point uniformly at random. 
+    K_prop <- covar.sep(X, d=theta, g=g)
+    ldetK_prop <- determinant(K_prop, logarithm = TRUE)$modulus
+    if(ldetK_prop > ldetK) {
+      ldetK <- ldetK_prop
+    } else {
+      X[row,] <- x_curr
+    }
+    
+  }
+  
+  return(X)
+  
+}
+
+```
+
+
+We test the function below, simply consider the hyperparameters to be fixed at their default values, rather than estimating their values from an initial design. We run the function for differnt numbers of iterations. When running for fewer iterations, we still see the "clumpiness" resulting from the uniform random initialization, but for higher numbers of iterations the maxent procedure removes this clumpiness and spreads the points out. 
+
+```{r}
+N_itr <- 1
+X <- maxent(N = 25, D = 2, N_itr = N_itr)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
+```
+
+```{r}
+N_itr <- 100
+X <- maxent(N = 25, D = 2, N_itr = N_itr)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
+```
+
+```{r}
+N_itr <- 1000
+X <- maxent(N = 25, D = 2, N_itr = N_itr)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
+```
+
+```{r}
+N_itr <- 10000
+X <- maxent(N = 25, D = 2, N_itr = N_itr)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
+```
+
+Notice that the results are much more reminiscent of a maximin, rather than LHS, design. In particular, the marginal distributions look quite clumpy; the one-dimensional projections tend to cluster at a handful of values, rather than being spread out. What if we instead initialized the kernel hyperparameters with anisitropic lengthscales? If a lengthscale is much longer in, say, dimension 1 then dimension 2, then this expresses a prior belief that the underlying function is much more wiggly in dimension 2 than dimension 1. We would therefore expect that the resulting design would place points closer together in dimension 2 to allow for a finer grain view of the function, while in dimension 1 we could get away with points more spaced out. This is indeed the behavior we see in the below example. 
+```{r}
+N_itr <- 10000
+X <- maxent(N = 25, D = 2, N_itr = N_itr, theta = c(0.1, 0.8))
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
+```
+
+
+
+
+# Appendix 
+
+## Information and Entropy of multivariate Gaussian
+Here we derive the Shannon information content of a multivariate Gaussian 
+
+$$ X \sim \mathcal{N}_D(\mu, \Sigma)$$
+
+We have 
+$$
+\begin{align*}
+I(X) &= \mathbb{E}\left[\log p_X(X) \right] \\
+     &= -\frac{1}{2}\log\det(2\pi \Sigma) - \frac{1}{2} \mathbb{E}\left[(X - \mu)^T \Sigma^{-1} (X - \mu) \right] \\
+     &= -\frac{1}{2}\log\det(2\pi \Sigma) - \frac{1}{2} \mu^T \Sigma^{-1}\mu - \frac{1}{2}\mathbb{E}\left[X^T \Sigma^{-1} X \right] + \mathbb{E}\left[X^T \Sigma^{-1} \mu \right] \\
+     &= -\frac{1}{2}\log\det(2\pi \Sigma) - \frac{1}{2} \mu^T \Sigma^{-1}\mu - \frac{1}{2}\left[\text{tr}(\Sigma^{-1}\Sigma) + \mu^T \Sigma^{-1} \mu \right] + \mu^T \Sigma^{-1} \mu \\
+     &= -\frac{1}{2}\log\det(2\pi \Sigma) - \frac{1}{2} \mu^T \Sigma^{-1}\mu - \frac{D}{2} - \frac{1}{2}\mu^T \Sigma^{-1} \mu + \mu^T \Sigma^{-1} \mu \\
+     &= -\frac{1}{2}\log\det(2\pi \Sigma) - \frac{D}{2} \\
+     &= -\frac{1}{2}\log\det(2\pi e \Sigma)
+\end{align*}
+$$
+
+The entropy is thus 
+$$ H(X) = -I(X) = \frac{1}{2}\log\det(2\pi e \Sigma)$$
+
+
+
+
+
+
+
+
