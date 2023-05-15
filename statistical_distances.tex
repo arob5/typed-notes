@@ -64,7 +64,7 @@
 \section{Introduction}
 In this document I consider notions of distance (loosely speaking) or ``discrepancy'' between two probability measures $P$ and $Q$, each defined over the same measurable space $(\Omega, \mathcal{F})$. I will use the notation 
 $p$ and $q$ to denote the densities (i.e. Radon-Nikodym derivatives) of the respective measures with respect to the Lebesgue measure $\lambda$. I will typically present the notions of discrepancy in their general, 
-measure-theoretic formulation, but will primarily focus the discussions on the case where densities exist. 
+measure-theoretic formulation, but will primarily focus the discussions on the case where densities exist. We suppose these densities are defined over some subset $\mathcal{D} \subset \R^D$. 
 
 It will often be useful to think of $P$ as the ``true distribution'' and $Q$ as an 
 approximation to $P$, although this distinction will not always be relevant. Some of the distances considered here will be legitimate distances, meaning they satisfy the mathematical definition of a distance \textit{metric}. 
@@ -74,6 +74,10 @@ TODO
 Others may violate this definition, often by failing to satisfy symmetry or the triangle inequality. Given that I have chosen to designate $P$ as some true distribution, and $Q$ as an approximation to $Q$, then it is not surprising 
 that this asymmetry would yield reasonable notions of discrepancy that violate symmetry. 
 
+It is common to abstract away the specifics of different statistical distances, and view them as special cases of more generic notions. To this end, the notion of an \textit{f-divergence} was defined, which encompasses almost 
+all of the distances considered here. An alternative route is to consider this distances to be defined as the supremum of differences in expectations of test functions, where choosing different families of test functions results 
+in different distances. Metrics defined in this way are called \textit{integral probability metrics}. Both of these abstractions are discussed in detail below. 
+
 \section{Total Variation Distance}
 Total variation distance (TV) is a natural candidate to start with, and we will use it to motivate some of the other distances. The TV distance simply asks the question: what is the largest difference in 
 probabilities that can occur when measuring the probability according to $P$ versus $Q$? This is quite natural. One nice way to think about this is to sample from the 
@@ -81,7 +85,7 @@ two distributions. If $P$ and $Q$ are very similar then we expect the samples ge
 different then we might only need a few samples to distinguish between them with high confidence. The TV distance considers the ``worst-case'' event $A \in \mathcal{F}$, in the sense that $A$ is the event 
 on which $P$ and $Q$ disagree the most. Mathematically, the definition is given by 
 \begin{align*}
-\text{TV}(P, Q) := \sup_{A} \abs{P(A) - Q(A)}
+\text{TV}(P, Q) := \sup_{A \in \mathcal{F}} \abs{P(A) - Q(A)}
 \end{align*}
 where the supremum is taken over all measurable sets $A$. Since $P(A)$ and $Q(A)$ take values in $[0, 1]$ then 
 \[0 \leq \text{TV}(P, Q) \leq 1\]
@@ -153,7 +157,18 @@ Recalling that $\text{TV}(p, q)$ takes values in $[0, 1]$, then we see that
 so the two distances $\text{TV}(p, q)$ and $\norm{p - q}_{L_1^\lambda}$ are measuring the same exact thing, just on a different scale. 
 
 To review, we started with the very natural definition of TV distance as the largest possible difference in probabilities that the two measures could assign to any given set $A$. We then showed that this notion could be equivalently defined (up to a multiplicative constant) as the $L_1$ distance between the densities of the measures. One way to see that this makes sense is to consider that the density functions $p$ and $q$ are unit vectors with respect to $\norm{\cdot}_{L_1^\lambda}$ (since they have to integrate to $1$ by definition). Therefore, the distance 
-$\norm{p - q}_{L_1^\lambda}$ is not affected by ``size'' of $p$ or $q$. We would not, for example, want to calculate the $L_1$ distance between unnormalized densities, since arbitrarily scaling the densities would change the notion of distance, even though the underlying probability distribution would remain the same. 
+$\norm{p - q}_{L_1^\lambda}$ is not affected by ``size'' of $p$ or $q$. We would not, for example, want to calculate the $L_1$ distance between unnormalized densities, since arbitrarily scaling the densities would change the notion of distance, even though the underlying probability distribution would remain the same. We formalize this notion of invariance below. 
+\begin{prop}
+Let $T: \mathcal{D} \to \mathcal{D}$ be a smooth, one-to-one mapping. Consider random variables $X_P$, $X_Q$ with distributions $P, Q$ and corresponding densities $p, q$. Define the random variables $Y_P = T(X_P)$ and $Y_Q = T(X_Q)$ and 
+let $\tilde{p}, \tilde{q}$ be their respective densities. Then, 
+\[\norm{p - q}_{L_1^{\lambda}} = \norm{\tilde{p} - \tilde{q}}_{L_1^{\lambda}}\]
+\end{prop}
+
+\begin{proof}
+\textbf{TODO}
+\end{proof}
+
+
 
 \section{Kullback-Leibler }
 
@@ -176,6 +191,7 @@ $\abs{\frac{\frac{p(\theta)}{Z_1}}{\frac{q(\theta)}{Z_2}}} = \frac{Z_2}{Z_1} \fr
 \begin{enumerate}
 \item Show $\ell_1$ distance is invariant to changes in scale (show using the fact that it is equivalent to TV distance). 
 \item Show that $\ell_2$ distance is not invariant to changes in scale. 
+\item Larry Wasserstein's intermediate statistics notes https://www.stat.cmu.edu/~larry/=stat705/Lecture27.pdf have a lot of good content, including MMD, integral probability metrics, f-divergences. 
 \end{enumerate}
 
 
