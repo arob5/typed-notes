@@ -168,13 +168,8 @@ let $\tilde{p}, \tilde{q}$ be their respective densities. Then,
 \textbf{TODO}
 \end{proof}
 
-
-
-\section{Kullback-Leibler }
-
-
 \section{Hellinger Distance}
-The Hellinger distance is perhaps the most popularly used measure of distance between probability distributions in the Bayesian inverse problem literature, for reasons that will be discussed below. I will motivate this motion of distance using the $\text{TV}$/$L_1$ notions discussed previously. We established that $L_1$ notions of distance between probability densities yields a reasonable interpretation of the distance between two probability measures. It is natural to wonder: would replacing $L_1$ with $L_2$ also give us something useful? In short, not really. As mentioned in the previous section, the $L_1$ notion was reasonable since $p$ and $q$ are unit vectors with respect to $L_1$. However, $p$ and $q$ are \textit{not} unit vectors with respect to $L_2$. We see that 
+The Hellinger distance is perhaps the most popularly used measure of distance between probability distributions in the Bayesian inverse problem literature, for reasons that will be discussed below. I will motivate this notion of distance using the $\text{TV}$/$L_1$ notions discussed previously. We established that $L_1$ notions of distance between probability densities yields a reasonable interpretation of the distance between two probability measures. It is natural to wonder: would replacing $L_1$ with $L_2$ also give us something useful? In short, not really. As mentioned in the previous section, the $L_1$ notion was reasonable since $p$ and $q$ are unit vectors with respect to $L_1$. However, $p$ and $q$ are \textit{not} unit vectors with respect to $L_2$. We see that 
 \[\norm{p - q}_{L_2^\lambda} = \int (p(\theta) - q(\theta))^2 d\theta = \int p^2(\theta) d\theta + \int q^2(\theta) d\theta - 2\int p(\theta)q(\theta) d\theta\]
 so changes in the first two terms will affect the distance, which is not a desirable property. But what if we just dropped those terms and considered a our notion of distance to be the inner product 
 \[- 2\int p(\theta)q(\theta) d\theta\]
@@ -183,17 +178,45 @@ But this still doesn't make sense at all. Consider the two cases
 \item $p(0) = \frac{1}{10} \text{ and } q(0) = \frac{2}{10}$
 \item $p(0) = \frac{9}{10} \text{ and } q(0) = 1$
 \end{enumerate}
-If we sampled from these distributions, then in the first case we would expect to observe the sample $0$ about twice as much from the second distribution compared to the first, while $0$ would appear with pretty similar frequency in the second example. The relevant terms in the inner product would be $\frac{1}{10} \cdot \frac{2}{10} = \frac{2}{100}$ and $\frac{9}{10} \cdot 1 = \frac{90}{100}$, so we would actually be \textit{penalizing} the first distribution for being closer, the opposite of what we want. To flip this around, it seems we would actually want to consider the quotient $\frac{p(\theta)}{q(\theta)}$ rather than the product of the densities, which is exactly what many notions of distance between probability measures considers (e.g. KL divergence). Obviously considering the quotient instead abandons the idea of $L_2$ distance. However, it turns out that with a slight tweak we can still define an $L_2$ measure that actually makes sense. 
+If we sampled from these distributions, then in the first case we would expect to observe the sample $0$ about twice as much from the second distribution compared to the first, while $0$ would appear with pretty similar frequency in the second example. The relevant terms in the inner product would be $\frac{1}{10} \cdot \frac{2}{10} = \frac{2}{100}$ and $\frac{9}{10} \cdot 1 = \frac{90}{100}$, so we would actually be \textit{penalizing} the second distribution for being closer, the opposite of what we want. To flip this around, it seems we would actually want to consider the quotient $\frac{p(\theta)}{q(\theta)}$ rather than the product of the densities, which is exactly what many notions of distance between probability measures considers (e.g. KL divergence). Obviously considering the quotient instead abandons the idea of $L_2$ distance. However, it turns out that with a slight tweak we can still define an $L_2$ measure that actually makes sense. 
 \textbf{Also discuss difference vs quotient wrt normalizing constants:} e.g. $\abs{\frac{p(\theta)}{Z_1} - \frac{q(\theta)}{Z_2}}$ (norm constants affect results). vs. 
 $\abs{\frac{\frac{p(\theta)}{Z_1}}{\frac{q(\theta)}{Z_2}}} = \frac{Z_2}{Z_1} \frac{p(\theta)}{q(\theta)}$ so norm constants will just scale the integral which is fine. 
+
+The idea is to transform the densities $p$ and $q$ so that they actually are unit vectors with respect to $L_2$. The transformation that accomplishes this is the square root function, since 
+\[\norm{\sqrt{p}}^2_{L_2^\lambda} = \int \sqrt{p(\theta)}^2 d\theta =  \int p(\theta) d\theta = 1 \]
+Applying this idea yields the Hellinger dinstance:
+\begin{align}
+d_H(P, Q) = \left(\frac{1}{2} \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 \right)^{1/2}
+\end{align} 
+As we will show below, the scaling by $\frac{1}{2}$ ensures that 
+\[0 \leq d_H(P, Q) \leq 1\]
+which means it is on the same scale as $d_{TV}(P, Q)$. 
+
+\begin{proposition}
+The Hellinger distance satisfies 
+\[0 \leq d_H(P, Q) \leq 1\]
+\end{proposition}
+
+\begin{proof}
+Clearly, 
+\end{proof}
+
+
+\section{Kullback-Leibler }
+\begin{itemize}
+\item Show equivalence to MLE
+\item Show sensitivity to tails 
+\end{itemize}
+
+
 
 \section{TODOs:}
 \begin{enumerate}
 \item Show $\ell_1$ distance is invariant to changes in scale (show using the fact that it is equivalent to TV distance). 
 \item Show that $\ell_2$ distance is not invariant to changes in scale. 
 \item Larry Wasserstein's intermediate statistics notes https://www.stat.cmu.edu/~larry/=stat705/Lecture27.pdf have a lot of good content, including MMD, integral probability metrics, f-divergences. 
+\item Good posts of TV and Hellinger distance: https://djalil.chafai.net/blog/2010/10/14/back-to-basics-total-variation-distance/
 \end{enumerate}
-
 
 \end{document}
 

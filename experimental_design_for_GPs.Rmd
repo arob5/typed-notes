@@ -37,6 +37,12 @@ $$
 
 I will let $\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}$ denote the random vector with this predictive distribution. 
 
+Throughout I will assume a squared exponential kernel, following the parameterization utilized in Gramacy's *Surrogates* book. 
+$$ k(\mathbf{x}_i, \mathbf{x}_j) = \tau^2 \left(c(\mathbf{x_i}, \mathbf{x}_j) + g \mathbb{1}_{ij} \right)$$
+where 
+$$c(\mathbf{x}_i, \mathbf{x}_j) = \exp\left(-\sum_{d = 1}^{D} \frac{(\mathbf{x}_{id} - \mathbf{x}_{jd})^2}{\theta_d} \right)$$
+Here, $\tau^2$ is the *marginal variance*, $g$ the *nugget*, and $\theta_1, \dots, \theta_d$ the *lengthscales*.  
+
 
 ### Maximum Entropy Design
 Intuitively, we seek to select $\mathbf{X}$ such that it yields the most information about the predictive distribution over the unobserved points; that is, the selection that makes $\overline{\mathbf{y}}_{\overline{\mathbf{X}}|\mathbf{X}}$ as uncertain as possible. As our measure of uncertainty, we will first consider Shannon's entropy
@@ -166,7 +172,16 @@ X <- maxent(N = 25, D = 2, N_itr = N_itr, theta = c(0.1, 0.8))
 plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
 ```
 
-
+### Predictive Uncertainty Design
+We now consider an alternative criterion; instead of minimizing the entropy of the predictive distribution at unobserved points, 
+we consider minimizing the predictive uncertainty over these unobserved points. Recall that the predictive GP variance at at unobserved point $\mathbf{x}$ is given by
+by 
+$$ k_{\mathbf{X}}(\mathbf{x}) = k(\mathbf{x}) - k(\mathbf{x}, \mathbf{X})\mathbf{K}^{-1}k(\mathbf{X}, \mathbf{x})$$
+By definition of variance, this is equivalent to 
+$$ k_{\mathbf{X}}(\mathbf{x}) = \mathbb{E}\left[\left(y(\mathbf{x}) - \mu_{\mathbf{X}}(\mathbf{x}) \right)^2 | \mathbf{X}, \mathbf{y} \right]$$
+For this reason, the predictive variance is also often called the *mean-squared prediction error (MSPE)*. The MSPE is the average squared deviation between the GP prediction and its mean at the input point $\mathbf{x}$. We can then consider averaging the MSPE over the input space $\mathcal{X}$. We might consider a simple average that treats all input points $\mathbf{x}$ as equally important, or alternative consider a density $w(\mathbf{x})$ on $\mathbf{X}$ that designates certain inputs as more important than others. An *integrated MSPE (IMSPE)* criterion (as a function of the design $\mathbf{X}$) might then look like
+$$ J(\mathbf{X}) = \int_{\mathcal{X}} \frac{k_{\mathbf{X}}(\mathbf{x})}{\tau^2} w(\mathbf{x}) d\mathbf{x}$$
+where $\tau^2$ is the prior marginal variance of the GP. The division by $\tau^2$ is not that important; it simply normalizes the predictive variance by the prior variance. 
 
 
 # Appendix 
