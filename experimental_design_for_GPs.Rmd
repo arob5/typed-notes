@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(plgp)
+library(hetGP)
 ```
 
 ## Model-Based Design for GPs 
@@ -142,27 +143,13 @@ maxent <- function(N, D, theta = 0.01, g = 0.01, N_itr = 100000) {
 We test the function below, simply consider the hyperparameters to be fixed at their default values, rather than estimating their values from an initial design. We run the function for differnt numbers of iterations. When running for fewer iterations, we still see the "clumpiness" resulting from the uniform random initialization, but for higher numbers of iterations the maxent procedure removes this clumpiness and spreads the points out. 
 
 ```{r}
-N_itr <- 1
-X <- maxent(N = 25, D = 2, N_itr = N_itr)
-plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
-```
 
-```{r}
-N_itr <- 100
-X <- maxent(N = 25, D = 2, N_itr = N_itr)
-plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
-```
+N_itr_vec <- c(1, 100, 1000, 10000)
 
-```{r}
-N_itr <- 1000
-X <- maxent(N = 25, D = 2, N_itr = N_itr)
-plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
-```
-
-```{r}
-N_itr <- 10000
-X <- maxent(N = 25, D = 2, N_itr = N_itr)
-plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
+for(N_itr in N_itr_vec) {
+  X <- maxent(N = 25, D = 2, N_itr = N_itr)
+  plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr = ", N_itr))
+}
 ```
 
 Notice that the results are much more reminiscent of a maximin, rather than LHS, design. In particular, the marginal distributions look quite clumpy; the one-dimensional projections tend to cluster at a handful of values, rather than being spread out. What if we instead initialized the kernel hyperparameters with anisitropic lengthscales? If a lengthscale is much longer in, say, dimension 1 then dimension 2, then this expresses a prior belief that the underlying function is much more wiggly in dimension 2 than dimension 1. We would therefore expect that the resulting design would place points closer together in dimension 2 to allow for a finer grain view of the function, while in dimension 1 we could get away with points more spaced out. This is indeed the behavior we see in the below example. 
@@ -176,12 +163,108 @@ plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("maxent design; N_itr
 We now consider an alternative criterion; instead of minimizing the entropy of the predictive distribution at unobserved points, 
 we consider minimizing the predictive uncertainty over these unobserved points. Recall that the predictive GP variance at at unobserved point $\mathbf{x}$ is given by
 by 
-$$ k_{\mathbf{X}}(\mathbf{x}) = k(\mathbf{x}) - k(\mathbf{x}, \mathbf{X})\mathbf{K}^{-1}k(\mathbf{X}, \mathbf{x})$$
+$$ k_{\mathbf{X}}(\mathbf{x}) = k(\mathbf{x}) - k(\mathbf{x}, \mathbf{X})\mathbf{K}^{-1}k(\mathbf{X}, \mathbf{x}) = \tau^2\left(1 + g - c(\mathbf{x}, \mathbf{X})\mathbf{C}^{-1}c(\mathbf{X}, \mathbf{x}) \right)$$
 By definition of variance, this is equivalent to 
 $$ k_{\mathbf{X}}(\mathbf{x}) = \mathbb{E}\left[\left(y(\mathbf{x}) - \mu_{\mathbf{X}}(\mathbf{x}) \right)^2 | \mathbf{X}, \mathbf{y} \right]$$
 For this reason, the predictive variance is also often called the *mean-squared prediction error (MSPE)*. The MSPE is the average squared deviation between the GP prediction and its mean at the input point $\mathbf{x}$. We can then consider averaging the MSPE over the input space $\mathcal{X}$. We might consider a simple average that treats all input points $\mathbf{x}$ as equally important, or alternative consider a density $w(\mathbf{x})$ on $\mathbf{X}$ that designates certain inputs as more important than others. An *integrated MSPE (IMSPE)* criterion (as a function of the design $\mathbf{X}$) might then look like
 $$ J(\mathbf{X}) = \int_{\mathcal{X}} \frac{k_{\mathbf{X}}(\mathbf{x})}{\tau^2} w(\mathbf{x}) d\mathbf{x}$$
-where $\tau^2$ is the prior marginal variance of the GP. The division by $\tau^2$ is not that important; it simply normalizes the predictive variance by the prior variance. 
+where $\tau^2$ is the prior marginal variance of the GP. The division by $\tau^2$ is not that important; it simply normalizes the predictive variance by the prior variance. While this integral typically requires numerical methods, it is available in closed-form for simple cases, where
+$\mathcal{X}$ is a simple domain such as a hypercube and the covariance function is isotropic or separable Gaussian or Matern 
+(see Binois et al, 2019 for derivations). Below we utilize the ISMPE function implemented in *hetGP*. This function is implemented more generally to work with heteroskedastic noise, so we define a wrapper that simplifies it to our setting. 
+
+```{r}
+imspe_criteria <- function(X, theta, g, ...) {
+  IMSPE(X, theta=theta, Lambda=diag(g, nrow(X)), covtype="Gaussian", mult=rep(1, nrow(X)), nu=1) 
+}
+```
+
+Given this, we can simply replace the log determinant objective (derived from the maxent criterion) with the IMSPE objection, noting that we must slightly adjust the code to minimize instead of maximize. 
+
+```{r}
+
+min_IMSPE <- function(N, D, theta = 0.1, g = 0.01, N_itr = 100000, ...) {
+  
+  if(length(theta) == 1) theta <- rep(theta, D)
+  X <- matrix(runif(N*D), ncol = D) # Initial design is generated uniformly at random. 
+  IMSPE_curr <- imspe_criteria(X, theta, g, ...) # Current value of objective function.
+  
+  for(itr in 1:N_itr) {
+    row <- sample(1:N, 1) # Randomly sample design point to update. 
+    x_curr <- X[row,]
+    X[row,] <- runif(D) # Generate new proposed design point uniformly at random. 
+    IMSPE_prop <- imspe_criteria(X, theta, g, ...)
+    if(IMSPE_prop < IMSPE_curr) {
+      IMSPE_curr <- IMSPE_prop
+    } else {
+      X[row,] <- x_curr
+    }
+    
+  }
+  
+  return(X)
+  
+}
+
+```
+
+We now run this on the same examples as before, increasing the number of iterations each time. 
+
+```{r}
+
+N_itr_vec <- c(1, 100, 1000, 10000)
+
+for(N_itr in N_itr_vec) {
+  X <- min_IMSPE(N = 25, D = 2, N_itr = N_itr)
+  plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design; N_itr = ", N_itr))
+}
+```
+And the example with non-isotropic covariance. 
+```{r}
+N_itr <- 10000
+X <- min_IMSPE(N = 25, D = 2, N_itr = N_itr, theta = c(0.1, 0.8))
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design; N_itr = ", N_itr))
+```
+The results look pretty similar to the maxent design; however, the min IMSPE design tends to shy away from the boundaried of the input space more. The effect is minimal in two dimensions but will become much more prominent as the dimension increases. This is due to the fact that the criterion for choosing a single point $\mathcal{x}$ takes into account the error averaged over the entire input space. Choosing more central points will tend to have a greater effect than boundary points in reducing error averaged over the whole space, so IMSPE tends to favor interior points.
+
+#### Extending to cases where IMSPE is not analytically tractable 
+There are many cases that might break analytic tractability; in particular, here we consider the case of non-uniform weights $w(x)$ or the case where $\mathcal{X}$ is non-rectangular. The obvious solution here is to simply consider a Monte Carlo estimate of the 
+integral, 
+
+$$ J(\mathbf{X}) \approx \frac{1}{T} \sum_{t = 1}^{T} \frac{k_{\mathbf{X}}(\mathbf{x}_t)}{\tau^2} w(\mathbf{x}_t), \text{ where } \mathbf{x}_t \sim \mathcal{U}(\mathcal{X})$$
+
+or 
+
+$$ J(\mathbf{X}) \approx \frac{1}{T} \sum_{t = 1}^{T} \frac{k_{\mathbf{X}}(\mathbf{x}_t)}{\tau^2}, \text{ where } \mathbf{x}_t \sim w $$
+
+Alternatively, we might consider a numerical integration or quadrature-based scheme. For example, instead of uniformly sampling points from $\mathcal{X}$ we might instead fix a grid of points and then average the integrand over these fixed points to estimate the integral. Such an appraoch is suitable in low dimensions, as in the two-dimensional example we have been considering. Let's apply such a grid-based scheme to this example, and compare the result to the result produced using the closed-form expression for the integral.  
+
+
+```{r}
+# Grid approximation of IMSPE. 
+imspe_criteria <- function(X, theta, g, X_grid) {
+  C <- covar.sep(X, d=theta, g=g) 
+  C_inv <- solve(C)
+  C_cross <- covar.sep(X_grid, X, d=theta, g=0)
+  integrand_evaluations <- 1 + g - diag(C_cross %*% C_inv %*% t(C_cross))
+  
+  return(mean(integrand_evaluations))
+}
+```
+
+
+Note that this function overloads the previously defined *imspe_criteria()*. However, the latter also takes an ellipsis as an argument, so the *min_IMSPE()* function can now be run using either the closed-form or grid approximated criterion, depending on how it is called. The ellipsis will contain the *X_grid* argument to *imspe_criteria()* when the grid approximation is desired. We now test the grid approximation. In addition to the sampled design points, the fixed grid points are plotted as small gray dots. 
+
+```{r}
+X_grid <- as.matrix(expand.grid(seq(0, 1, length=10), seq(0, 1, length=10)))
+X <- min_IMSPE(N = 25, D = 2, N_itr = 10000, X_grid = X_grid)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design grid approx; N_itr = ", N_itr))
+points(X_grid, pch=20, cex=0.25, col="gray")
+```
+
+The approximate result looks pretty good. Let's think about what kind of error the grid approximation might induce. At each iteration, as new design point $\mathbf{x}$ is proposed as a replacement for a current one. The criterion that determines whether it is replaced or not is 
+$$ \frac{1}{T} \sum_{t = 1}^{T} \frac{k_{\mathbf{X}}(\mathbf{x}_t)}{\tau^2} $$
+where $\mathbf{x}_1, \dots, \mathbf{x}_T$ are the fixed grid points. 
+
 
 
 # Appendix 
@@ -207,7 +290,8 @@ $$
 The entropy is thus 
 $$ H(X) = -I(X) = \frac{1}{2}\log\det(2\pi e \Sigma)$$
 
-
+# References 
+Binois, M, J Huang, RB Gramacy, and M Ludkovski. 2019. “Replication or Exploration? Sequential Design for Stochastic Simulation Experiments.” Technometrics 27 (4): 808–21. https://doi.org/10.1080/00401706.2018.1469433.
 
 
 
