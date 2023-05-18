@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+library(lhs)
+library(laGP)
 library(plgp)
 library(hetGP)
 ```
@@ -308,6 +310,76 @@ X_grid <- rbind(X_grid_1, X_grid_2)
 X <- min_IMSPE(N = 25, D = 2, N_itr = 10000, X_grid = X_grid)
 plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design Monte Carlo approx; N_itr = ", N_itr))
 points(X_grid, pch=20, cex=0.25, col="gray")
+```
+
+# Sequential Design/Active Learning
+We have currently entertained the notion of *batch design*; that is, selecting the $N$ design points $\mathbf{X}$ in one fell swoop. An alternative, often very practical approach, is to choose that points one at a time - at each iteration selecting the next point based on the criterion 
+$J(\mathbf{x})$. The general idea is as follows:
+
+1. Start with a small design $\mathbf{X}_{N_0}$ consisting of $N_0$ inputs typically chosen via some sort of model-free, space-filling design 
+(e.g. LHS). Run the forward model at these inputs and fit the GP on this initial dataset $\mathcal{D}_{N_0}$ (e.g. estimate the hyperparameters via MLE). 
+Set $n := N_0$. 
+2. Select the next design point via 
+$$ \mathbf{x}_{n + 1} := \text{argmax}_{\mathbf{x}} J(\mathbf{x})|\mathcal{D}_n$$
+Augment the design $\mathbf{X}_{n + 1} := \mathbf{X}_n \cup \mathbf{x}_{n + 1}$ and run the forward model at the new input point. Denote the 
+new augmented dataset $\mathcal{D}_{n + 1}$. Re-fit the GP on the new dataset. 
+3. Repeat step 2 until a desired number of design points $N$ is reached. 
+
+There are many optimization tricks and pitfalls when considering such sequential schemes. For example, one might not update the MLE GP fit every iteration to save on computation, but this could potentially lead to unsatisfactory results. It is also common to *warm start* the MLE hyperparameter 
+optimization but setting the initial values in the optimization to the values of the hyperparameters that were optimized in the previous step. 
+
+Perhaps the simplest sequential design criterion is to choose the point that maximizes the predictive variance. The idea is that if the predictive variance is very high at a point, then the GP is very uncertain about the latent function at that point so we should run the model at that point to 
+reduce that uncertainty. The objective thus looks like
+$$ \mathbf{x}_{n + 1} := \text{argmax}_{\mathbf{x}} J(\mathbf{x})|\mathcal{D}_n = \text{argmax}_{\mathbf{x}} k_{\mathbf{X}_n}(\mathbf{x})$$
+This method is known as *Active Learning MacKay (ALM)*, after David MacKay, who explored this notion of design for neural networks and argued that this sequential design strategy tends to approximate a maxent design. 
+
+Let's consider a toy example with 2D input space. The below chode chunk defines the latent function we seek to learn. The function is a scaled 
+and shifted version of 
+$$ f(x_1, x_2) = x_1 \exp(-x_1^2 - x_2^2)$$
+A heat map provides a visualization of this function below. 
+
+```{r}
+f <- function(X, sd=0.01) {
+  X[,1] <- (X[,1] - 0.5)*6 + 1
+  X[,2] <- (X[,2] - 0.5)*6 + 1
+  f_vals <- X[,1] * exp(-X[,1]^2 - X[,2]^2)
+  y_vals <- f_vals + rnorm(nrow(X), sd=sd)
+  
+  return(list(f = f_vals, y = y_vals))
+}
+```
+
+
+```{r}
+# Evaluate function at initial space-filling design.
+N0 <- 12
+X <- randomLHS(N0, 2)
+f_list <- f(X)
+f_vals <- f_list$f
+y <- f_list$y
+
+# Also evaluate at dense grid for plotting. 
+X_grid <- as.matrix(expand.grid(seq(0, 1, length=51), seq(0, 1, length=51)))
+f_grid <- f(X_grid)$f
+```
+
+```{r}
+cols <- heat.colors(128)
+
+# Latent function, noiseless evaluations. 
+image(seq(0, 1, length=51), seq(0, 1, length=51), matrix(f_grid, ncol=51), 
+      xlab="x1", ylab="x2", main = "Noiseless evaluations of f(), and initial design points.", col=cols)
+points(X[,1], X[,2])
+```
+
+We observe that this is a tricky function, with a steep peak right next to a deep trough. Beyond these two modes, the function is quite flat. So there are separate regimes of the input space, corresponding to sub-domains on which the function is highly non-linear and the remaining sub-domain on which the function is flat. 
+
+We now fit a GP using the *laGP* package on this initial design. 
+```{r}
+g <- garg(list(mle=TRUE, max=1), y)
+d <- darg(list(mle=TRUE, max=0.25), X)
+gp0 <- newGP(X, y, d=d$start, g=g$start, dK=TRUE)
+mle <- jmleGP(gp0, c(d$min, d$max), c(g$min, g$max), d$ab, g$ab)
 ```
 
 
