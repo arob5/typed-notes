@@ -186,13 +186,13 @@ min_IMSPE <- function(N, D, theta = 0.1, g = 0.01, N_itr = 100000, ...) {
   
   if(length(theta) == 1) theta <- rep(theta, D)
   X <- matrix(runif(N*D), ncol = D) # Initial design is generated uniformly at random. 
-  IMSPE_curr <- imspe_criteria(X, theta, g, ...) # Current value of objective function.
+  IMSPE_curr <- imspe_criteria(X = X, theta = theta, g = g, ...) # Current value of objective function.
   
   for(itr in 1:N_itr) {
     row <- sample(1:N, 1) # Randomly sample design point to update. 
     x_curr <- X[row,]
     X[row,] <- runif(D) # Generate new proposed design point uniformly at random. 
-    IMSPE_prop <- imspe_criteria(X, theta, g, ...)
+    IMSPE_prop <- imspe_criteria(X = X, theta = theta, g = g, ...)
     if(IMSPE_prop < IMSPE_curr) {
       IMSPE_curr <- IMSPE_prop
     } else {
@@ -242,6 +242,13 @@ Alternatively, we might consider a numerical integration or quadrature-based sch
 ```{r}
 # Grid approximation of IMSPE. 
 imspe_criteria <- function(X, theta, g, X_grid) {
+  
+  # Closed-form method.
+  if(missing(X_grid)) {
+    return(IMSPE(X, theta=theta, Lambda=diag(g, nrow(X)), covtype="Gaussian", mult=rep(1, nrow(X)), nu=1))
+  }
+  
+  # Grid approximation. 
   C <- covar.sep(X, d=theta, g=g) 
   C_inv <- solve(C)
   C_cross <- covar.sep(X_grid, X, d=theta, g=0)
@@ -251,8 +258,7 @@ imspe_criteria <- function(X, theta, g, X_grid) {
 }
 ```
 
-
-Note that this function overloads the previously defined *imspe_criteria()*. However, the latter also takes an ellipsis as an argument, so the *min_IMSPE()* function can now be run using either the closed-form or grid approximated criterion, depending on how it is called. The ellipsis will contain the *X_grid* argument to *imspe_criteria()* when the grid approximation is desired. We now test the grid approximation. In addition to the sampled design points, the fixed grid points are plotted as small gray dots. 
+We now test the grid approximation. In addition to the sampled design points, the fixed grid points are plotted as small gray dots. 
 
 ```{r}
 X_grid <- as.matrix(expand.grid(seq(0, 1, length=10), seq(0, 1, length=10)))
@@ -261,9 +267,48 @@ plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design gri
 points(X_grid, pch=20, cex=0.25, col="gray")
 ```
 
-The approximate result looks pretty good. Let's think about what kind of error the grid approximation might induce. At each iteration, as new design point $\mathbf{x}$ is proposed as a replacement for a current one. The criterion that determines whether it is replaced or not is 
+The approximate result looks pretty good. Let's think about what kind of error the grid approximation might induce. At each iteration, a new design point $\mathbf{x}$ is proposed as a replacement for a current one. The criterion that determines whether it is replaced or not is 
 $$ \frac{1}{T} \sum_{t = 1}^{T} \frac{k_{\mathbf{X}}(\mathbf{x}_t)}{\tau^2} $$
-where $\mathbf{x}_1, \dots, \mathbf{x}_T$ are the fixed grid points. 
+where $\mathbf{x}_1, \dots, \mathbf{x}_T$ are the fixed grid points. Since the mean squared prediction error is only considered at the grid points $\mathbf{x}_t$ then naturally this method will tend to favor design points that are close to the grid points. When the number of grid points is large this might not be a big deal, but this error may become very noticeable when the number of grid points is small. Let's consider an example with a much smaller number of grid points. 
+```{r}
+X_grid <- as.matrix(expand.grid(seq(0, 1, length=3), seq(0, 1, length=3)))
+X <- min_IMSPE(N = 25, D = 2, N_itr = 10000, X_grid = X_grid)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design grid approx; N_itr = ", N_itr))
+points(X_grid, pch=20, cex=0.25, col="gray")
+```
+
+Indeed, we observe that the design points are clustered around the grid points. Trying to approximate the IMSPE integral over a two-dimensional input space with 9 grid points unsurprisingly results in a poor approximation. Another interesting consequence 
+of this grid approximation is that design points will tend to be pulled to the boundaries, whereas we noticed that the exact IMSPE results tended to shy away from the boundaries. This is due to the nature of selecting a grid. The ratio of the number of grid points on the boundaries vs. the number of interior points is much higher than the ratio of the "volume" of the boundaries vs. the volume of the interior. Thus, the boundary grid points will pull design points towards the boundaries moreso than the exact solution. 
+
+We now return to the denser grid, but entertain increasing the lengthscale. Intuitively, we expect a longer lengthscale to yield even more spread out points. However, this will come into conflict with the tendency for design points to want to stay close to the grid points. We present results for the closed-form and grid approximated solutions below. We observe some odd behavior from the grid approximation. 
+
+```{r}
+X <- min_IMSPE(N = 25, D = 2, theta = 0.5, N_itr = 10000)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design closed-form; N_itr = ", N_itr))
+points(X_grid, pch=20, cex=0.25, col="gray")
+```
+
+```{r}
+X_grid <- as.matrix(expand.grid(seq(0, 1, length=10), seq(0, 1, length=10)))
+X <- min_IMSPE(N = 25, D = 2, theta = 0.5, N_itr = 10000, X_grid = X_grid)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design grid approx; N_itr = ", N_itr))
+points(X_grid, pch=20, cex=0.25, col="gray")
+```
+
+Gramacy presents an interesting example illustrating the case where the approximate solution allows sampling desing points on irregularly shaped domains; in particular, he presents an example where the domain consists of two intersecting ellipsoids. 
+In essence, his example boils down to assuming the density $w(\mathbf{x})$ weighting the input space is a mixture of Gaussians. 
+$$ w(\mathbf{x}) = \frac{1}{2}\mathcal{N}_2(\mathbf{x}|\mathbf{\mu}_1, \mathbf{\Sigma}_1) + \frac{1}{2}\mathcal{N}_2(\mathbf{x}|\mathbf{\mu}_2, \mathbf{\Sigma}_2)$$
+The below code more-or-less samples from $\mathbf{w}(\mathbf{x})$ (instead of randomly choosing which Gaussian to sample from, 
+it simply chooses equal sample sizes from each) to construct the grid, and then proceeds as before. 
+```{r}
+X_grid_1 <- rmvnorm(100, mean=c(0.25, 0.25), sigma=0.005*rbind(c(2, 0.35), c(0.35, 0.1)))
+X_grid_2 <- rmvnorm(100, mean=c(0.25, 0.25), sigma=0.005*rbind(c(0.1, -0.35), c(-0.35, 2)))
+X_grid <- rbind(X_grid_1, X_grid_2)
+
+X <- min_IMSPE(N = 25, D = 2, N_itr = 10000, X_grid = X_grid)
+plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design Monte Carlo approx; N_itr = ", N_itr))
+points(X_grid, pch=20, cex=0.25, col="gray")
+```
 
 
 
