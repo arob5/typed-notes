@@ -66,6 +66,8 @@ In this document I consider notions of distance (loosely speaking) or ``discrepa
 $p$ and $q$ to denote the densities (i.e. Radon-Nikodym derivatives) of the respective measures with respect to the Lebesgue measure $\lambda$. I will typically present the notions of discrepancy in their general, 
 measure-theoretic formulation, but will primarily focus the discussions on the case where densities exist. We suppose these densities are defined over some subset $\mathcal{D} \subset \R^D$. 
 
+\textbf{TODO:} need to update this; in the discussions below I often consider $P$ and $Q$ being distributions over $\mathcal{D}$, not $\Omega$. 
+
 It will often be useful to think of $P$ as the ``true distribution'' and $Q$ as an 
 approximation to $P$, although this distinction will not always be relevant. Some of the distances considered here will be legitimate distances, meaning they satisfy the mathematical definition of a distance \textit{metric}. 
 \begin{definition}
@@ -195,7 +197,7 @@ which means it is on the same scale as $d_{TV}(P, Q)$.
 \begin{prop}
 The Hellinger distance satisfies 
 \[0 \leq d_H(P, Q) \leq 1\]
-Moreover, the $d_H(P, Q) = 0$ if and only if the supports of $P$ and $Q$ are disjoint.  
+Moreover,  $d_H(P, Q) = 0$ if and only if the supports of $P$ and $Q$ are disjoint.  
 \end{prop}
 
 \begin{proof}
@@ -208,10 +210,18 @@ Clearly, $d_H(P, Q) \geq 0$. For the upper bound, we have
 \end{align*} 
 which implies $d_H(P, Q) \leq 1$. Notice that the equality holds iff
 \[\int \sqrt{p(\theta) q(\theta)} d\theta = 0\]
-If there is a measurable set $A \in \mathcal{F}$ satisfying $P(A) > 0$ and $Q(A) > 0$ then the above integral will be strictly positive. 
+If there is a measurable set $A \subset \mathcal{D}$ satisfying $P(A) > 0$ and $Q(A) > 0$ then the above integral will be strictly positive. 
 Thus, it must be the case that $P(A) = 0$ or $Q(A) = 0$ for all $A$; that is, the supports of the two distributions must be disjoint. 
 \end{proof}
 
+\begin{prop} 
+Let $\mathcal{H}$ be the space of probability measures on $\mathcal{D}$. Then $d_H(\cdot, \cdot): \mathcal{H} \times \mathcal{H} \to [0, 1]$ forms a bounded metric on this space. 
+\end{prop}
+
+\begin{proof}
+From the previous proposition we have $d_H(P, Q) \geq 0$ and already showed that $d_H$ is bounded. Clearly, $d_H(P, Q) = d_H(Q, P)$ and 
+$d_H(P, Q) = 0 \iff P = Q$. \textbf{TODO: } show triangle inequality. 
+\end{proof}
 
 \section{Kullback-Leibler }
 \begin{itemize}
