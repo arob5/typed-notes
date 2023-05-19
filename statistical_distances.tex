@@ -186,19 +186,30 @@ The idea is to transform the densities $p$ and $q$ so that they actually are uni
 \[\norm{\sqrt{p}}^2_{L_2^\lambda} = \int \sqrt{p(\theta)}^2 d\theta =  \int p(\theta) d\theta = 1 \]
 Applying this idea yields the Hellinger dinstance:
 \begin{align}
-d_H(P, Q) = \left(\frac{1}{2} \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 \right)^{1/2}
+d_H(P, Q) = \left(\frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 d\theta \right)^{1/2} 
 \end{align} 
 As we will show below, the scaling by $\frac{1}{2}$ ensures that 
 \[0 \leq d_H(P, Q) \leq 1\]
 which means it is on the same scale as $d_{TV}(P, Q)$. 
 
-\begin{proposition}
+\begin{prop}
 The Hellinger distance satisfies 
 \[0 \leq d_H(P, Q) \leq 1\]
-\end{proposition}
+Moreover, the $d_H(P, Q) = 0$ if and only if the supports of $P$ and $Q$ are disjoint.  
+\end{prop}
 
 \begin{proof}
-Clearly, 
+Clearly, $d_H(P, Q) \geq 0$. For the upper bound, we have 
+\begin{align*}
+2d^2_H(P, Q) &= \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 d\theta \\
+		      &= \int \left[ p(\theta) + q(\theta) - 2\sqrt{p(\theta) q(\theta)} \right] d\theta \\
+		      &\leq \int \left[ p(\theta) + q(\theta) \right] d\theta \\
+		      &= 2
+\end{align*} 
+which implies $d_H(P, Q) \leq 1$. Notice that the equality holds iff
+\[\int \sqrt{p(\theta) q(\theta)} d\theta = 0\]
+If there is a measurable set $A \in \mathcal{F}$ satisfying $P(A) > 0$ and $Q(A) > 0$ then the above integral will be strictly positive. 
+Thus, it must be the case that $P(A) = 0$ or $Q(A) = 0$ for all $A$; that is, the supports of the two distributions must be disjoint. 
 \end{proof}
 
 
