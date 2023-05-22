@@ -186,9 +186,9 @@ $\abs{\frac{\frac{p(\theta)}{Z_1}}{\frac{q(\theta)}{Z_2}}} = \frac{Z_2}{Z_1} \fr
 
 The idea is to transform the densities $p$ and $q$ so that they actually are unit vectors with respect to $L_2$. The transformation that accomplishes this is the square root function, since 
 \[\norm{\sqrt{p}}^2_{L_2^\lambda} = \int \sqrt{p(\theta)}^2 d\theta =  \int p(\theta) d\theta = 1 \]
-Applying this idea yields the Hellinger dinstance:
+Applying this idea yields the Hellinger distance:
 \begin{align}
-d_H(P, Q) = \left(\frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 d\theta \right)^{1/2} 
+d_H(P, Q) = \left(\frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 d\theta \right)^{1/2} = \frac{1}{\sqrt{2}} \norm{\sqrt{p} - \sqrt{q}}_{L_2^\lambda}
 \end{align} 
 As we will show below, the scaling by $\frac{1}{2}$ ensures that 
 \[0 \leq d_H(P, Q) \leq 1\]
@@ -222,6 +222,45 @@ Let $\mathcal{H}$ be the space of probability measures on $\mathcal{D}$. Then $d
 From the previous proposition we have $d_H(P, Q) \geq 0$ and already showed that $d_H$ is bounded. Clearly, $d_H(P, Q) = d_H(Q, P)$ and 
 $d_H(P, Q) = 0 \iff P = Q$. \textbf{TODO: } show triangle inequality. 
 \end{proof}
+
+\subsection{Equivalence of Hellinger and Total Variation Distance}
+We now prove bounds relating TV and Hellinger distance, showing they are \textit{equivalent} metrics (in the topological sense). 
+
+\begin{lemma} 
+For densities $p$ and $q$, 
+\[\frac{1}{\sqrt{2}} d_{TV}(p, q) \leq d_H(p, q) \leq \sqrt{d_{TV}(p, q)}\]
+\end{lemma}
+
+\begin{proof}
+For the lower bound on $d_H$, consider 
+\begin{align*}
+d_{TV}(p, q) &= \frac{1}{2} \int \abs{p(\theta) - q(\theta)} d\theta \\
+		    &= \frac{1}{2} \int \abs{\left(\sqrt{p(\theta)} - \sqrt{q(\theta)}\right) \left(\sqrt{p(\theta)} + \sqrt{q(\theta)}\right)} d\theta \\
+		    &= \frac{1}{2} \int \langle \abs{\sqrt{p} - \sqrt{q}}, \abs{\sqrt{p} + \sqrt{q}} \rangle_{L_2^\lambda} \\
+		    &\leq \frac{1}{\sqrt{2}} \norm{\sqrt{p} - \sqrt{q}}_{L_2^\lambda} \cdot \frac{1}{\sqrt{2}} \norm{\sqrt{p} + \sqrt{q}}_{L_2^\lambda} && \text{Cauchy-Schwarz} \\
+		    &= d_H(p, q) \cdot \frac{1}{\sqrt{2}} \norm{\sqrt{p} + \sqrt{q}}_{L_2^\lambda} 
+\end{align*}
+To bound the second term, we expand the squared sum and apply the AM-GM inequality. 
+\begin{align*}
+ \norm{\sqrt{p} + \sqrt{q}}_{L_2^\lambda}  &= \left[ \int (\sqrt{p} + \sqrt{q})^2 d\theta  \right]^{1/2} \\
+ 							        &=  \left[ 2 + 2\int \sqrt{p(\theta)q(\theta)}  d\theta  \right]^{1/2} \\
+							        &\leq \left[ 2 + \int (p(\theta) + q(\theta)) d\theta  \right]^{1/2} && \text{AM-GM} \\
+							        &= \left[2 +  2 \right]^{1/2} = 2
+\end{align*}
+Plugging this back in, we obtain
+\[d_{TV}(p, q) \leq \sqrt{2} d_H(p, q)\]
+For the other bound, consider 
+\begin{align*}
+d^2_{H}(p, q) &= \frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 d\theta \\
+		     &=  \frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}} \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}} d\theta \\
+		     &\leq \frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}} \abs{\sqrt{p(\theta)} + \sqrt{q(\theta)}} d\theta  && \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}  \leq \abs{\sqrt{p(\theta)} + \sqrt{q(\theta)}} \\
+		     &\leq \frac{1}{2} \int \abs{p(\theta) - q(\theta)} d\theta \\
+		     &= d_{TV}(p, q)
+\end{align*}
+
+\end{proof}
+
+
 
 \section{Kullback-Leibler }
 \begin{itemize}
