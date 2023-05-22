@@ -170,6 +170,28 @@ let $\tilde{p}, \tilde{q}$ be their respective densities. Then,
 \textbf{TODO}
 \end{proof}
 
+\subsection{Variational Characterization}
+Here we derive a so-called \textit{variational} characterization of TV distance, where $d_{TV}$ is shown to be equivalent to the supremum taken over a set of test functions of the difference in expectations. 
+We begin by establishing a bound that states that if two distributions are close in TV distance, then expectations computed with respect to the distributions will also be close. 
+\begin{lemma} 
+Let $f$ be a bounded function (i.e. $\norm{f}_\infty = \sup_{\theta} \abs{f(\theta)} < \infty$). Then, 
+\[\abs{\E_p(f) - \E_q(f)} \leq 2\norm{f}_\infty d_{\text{TV}}(p, q)\]
+\end{lemma}
+
+\begin{proof}
+\begin{align*}
+\abs{\E_p(f) - \E_q(f)} &= \abs{\int f(\theta)[p(\theta) - q(\theta)] d\theta} \\
+				 &\leq \int \abs{f(\theta)} \abs{p(\theta) - q(\theta)} d\theta \\
+				 &\leq \norm{f}_{\infty} \int  \abs{p(\theta) - q(\theta)} d\theta \\
+				 &\leq 2\norm{f}_{\infty} d_{TV}(p, q)
+\end{align*}
+\end{proof}
+
+Now for the variational characterization. 
+\begin{thm} 
+\[d_{TV}(p, q) = \frac{1}{2} \sup_{\norm{f}_\infty \leq 1} \abs{\E_p(f) - \E_q(f)}\]
+\end{thm}
+
 \section{Hellinger Distance}
 The Hellinger distance is perhaps the most popularly used measure of distance between probability distributions in the Bayesian inverse problem literature, for reasons that will be discussed below. I will motivate this notion of distance using the $\text{TV}$/$L_1$ notions discussed previously. We established that $L_1$ notions of distance between probability densities yields a reasonable interpretation of the distance between two probability measures. It is natural to wonder: would replacing $L_1$ with $L_2$ also give us something useful? In short, not really. As mentioned in the previous section, the $L_1$ notion was reasonable since $p$ and $q$ are unit vectors with respect to $L_1$. However, $p$ and $q$ are \textit{not} unit vectors with respect to $L_2$. We see that 
 \[\norm{p - q}_{L_2^\lambda} = \int (p(\theta) - q(\theta))^2 d\theta = \int p^2(\theta) d\theta + \int q^2(\theta) d\theta - 2\int p(\theta)q(\theta) d\theta\]
@@ -253,7 +275,7 @@ For the other bound, consider
 \begin{align*}
 d^2_{H}(p, q) &= \frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 d\theta \\
 		     &=  \frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}} \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}} d\theta \\
-		     &\leq \frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}} \abs{\sqrt{p(\theta)} + \sqrt{q(\theta)}} d\theta  && \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}  \leq \abs{\sqrt{p(\theta)} + \sqrt{q(\theta)}} \\
+		     &\leq \frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}} \abs{\sqrt{p(\theta)} + \sqrt{q(\theta)}} d\theta  && \left(\abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}  \leq \abs{\sqrt{p(\theta)} + \sqrt{q(\theta)}}\right) \\
 		     &\leq \frac{1}{2} \int \abs{p(\theta) - q(\theta)} d\theta \\
 		     &= d_{TV}(p, q)
 \end{align*}
