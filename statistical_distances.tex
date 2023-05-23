@@ -170,7 +170,7 @@ let $\tilde{p}, \tilde{q}$ be their respective densities. Then,
 \textbf{TODO}
 \end{proof}
 
-\subsection{Variational Characterization}
+\subsection{Variational Characterization and Bounding Differences in Expectations}
 Here we derive a so-called \textit{variational} characterization of TV distance, where $d_{TV}$ is shown to be equivalent to the supremum taken over a set of test functions of the difference in expectations. 
 We begin by establishing a bound that states that if two distributions are close in TV distance, then expectations computed with respect to the distributions will also be close. 
 \begin{lemma} 
@@ -187,6 +187,14 @@ Let $f$ be a bounded function (i.e. $\norm{f}_\infty = \sup_{\theta} \abs{f(\the
 \end{align*}
 \end{proof}
 
+Thus, small TV distance between distributions implies small distance between expectations calculated using those distributions. 
+However, it is important to note that the result only holds for bounded functions $f$, which represents a very strong assumption. For example, if we wanted to compare 
+the means of the two distributions, this would correspond to choosing $f(\theta) = \theta$, which is unbounded and thus excluded from the previous result. Note also, that it 
+is quite natural that the bounds scales with $\norm{f}_{\infty}$. ``Bigger'' $f$ imply larger expectations, and hence naturally the absolute deviations between the two expectations can 
+be larger. We can also think of this bound as stating that the difference in expectations, normalized by the size of $f$, has the upper bound
+\[\frac{\abs{\E_p(f) - \E_q(f)} }{\norm{f}_\infty} \leq 2d_{TV}(p, q)\]
+
+\noindent
 Now for the variational characterization. 
 \begin{thm} 
 \[d_{TV}(p, q) = \frac{1}{2} \sup_{\norm{f}_\infty \leq 1} \abs{\E_p(f) - \E_q(f)}\]
@@ -294,8 +302,26 @@ d^2_{H}(p, q) &= \frac{1}{2} \int \abs{\sqrt{p(\theta)} - \sqrt{q(\theta)}}^2 d\
 		     &\leq \frac{1}{2} \int \abs{p(\theta) - q(\theta)} d\theta \\
 		     &= d_{TV}(p, q)
 \end{align*}
+\end{proof}
+
+\subsection{Bounding Differences in Expectations}
+We prove an analog of the result for TV distance, in which closeness of the distributions implies closeness of expectations computed using those distributions. The 
+result below establishes such a result for the class of functions $f$ that have finite second moments with respect to both distributions. This result applies much more broadly 
+than the analog for TV distance, which only applied to the class of bounded functions $f$. Recall that this restriction excluded, in particular, the function $f(\theta) = \theta$, which 
+is the function used for a comparison of means of the two distributions. In the Hellinger result, this function will be included so long as the two distributions in question have 
+finite variance. 
+
+\begin{lemma} 
+Suppose $f$ satisfies $C := \sqrt{\E_p\abs{f}^2 + \E_q\abs{f}^2} < \infty$. Then 
+\[\abs{\E_p(f) - \E_q(f)} \leq 2C d_H(p, q)\]
+\end{lemma}
+
+\begin{proof}
 
 \end{proof}
+
+Note that the analogous constant $C$ in the TV case is $\norm{f}_\infty$. In this case, $C$ is a sort of sum of the $L_2$ size of $f$ under the two distributions. 
+
 
 
 
