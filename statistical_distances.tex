@@ -192,6 +192,21 @@ Now for the variational characterization.
 \[d_{TV}(p, q) = \frac{1}{2} \sup_{\norm{f}_\infty \leq 1} \abs{\E_p(f) - \E_q(f)}\]
 \end{thm}
 
+\begin{proof}
+If $\norm{f}_\infty \leq 1$, then the above result shows
+\[\frac{1}{2} \abs{\E_p(f) - \E_q(f)} \leq d_{TV}(p, q)\]
+which implies 
+\[\frac{1}{2} \sup_{\norm{f}_\infty \leq 1} \abs{\E_p(f) - \E_q(f)} \leq d_{TV}(p, q)\]
+To show the reverse inequality (and hence the desired inequality) it suffices to show the existence of an $f$ with $\norm{f}_\infty = 1$ that satisfies 
+\[\frac{1}{2} \abs{\E_p(f) - \E_q(f)} = d_{TV}(p, q)\]
+Notice that 
+\[\E_p(f) - \E_q(f) = \int f(\theta)\left(p(\theta) - q(\theta) \right) d\theta\]
+so the strategy is to choose $f$ such that $f(\theta)$ matches the sign of $p(\theta) - q(\theta)$, hence hence making the integrand as large as possible. 
+To this end, let $f(\theta) := \text{sign}\left(p(\theta) - q(\theta)\right)$. Then 
+\[\E_p(f) - \E_q(f) = \int f(\theta)\left(p(\theta) - q(\theta) \right) d\theta = \int \abs{p(\theta) - q(\theta)} d\theta = 2d_{TV}(p, q)\]
+This achieves the desired inequality and hence proves the result. 
+\end{proof}
+
 \section{Hellinger Distance}
 The Hellinger distance is perhaps the most popularly used measure of distance between probability distributions in the Bayesian inverse problem literature, for reasons that will be discussed below. I will motivate this notion of distance using the $\text{TV}$/$L_1$ notions discussed previously. We established that $L_1$ notions of distance between probability densities yields a reasonable interpretation of the distance between two probability measures. It is natural to wonder: would replacing $L_1$ with $L_2$ also give us something useful? In short, not really. As mentioned in the previous section, the $L_1$ notion was reasonable since $p$ and $q$ are unit vectors with respect to $L_1$. However, $p$ and $q$ are \textit{not} unit vectors with respect to $L_2$. We see that 
 \[\norm{p - q}_{L_2^\lambda} = \int (p(\theta) - q(\theta))^2 d\theta = \int p^2(\theta) d\theta + \int q^2(\theta) d\theta - 2\int p(\theta)q(\theta) d\theta\]
