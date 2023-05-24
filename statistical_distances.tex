@@ -317,7 +317,25 @@ Suppose $f$ satisfies $C := \sqrt{\E_p\abs{f}^2 + \E_q\abs{f}^2} < \infty$. Then
 \end{lemma}
 
 \begin{proof}
+We utilize the standard strategy for these sort of Hellinger proofs--writing $p(\theta) - q(\theta) = \left(\sqrt{p(\theta)} + \sqrt{q(\theta)} \right) \left(\sqrt{p(\theta)} - \sqrt{q(\theta)} \right)$ and then applying 
+the Cauchy-Schwarz inequality. 
+\begin{align*}
+\abs{\E_p(f) - \E_q(f)}^2 &= \abs{\int f(\theta) \left(p(\theta) - q(\theta)\right) d\theta}^2 \\
+				     &= \abs{\int f(\theta) \left(\sqrt{p(\theta)} + \sqrt{q(\theta)} \right) \left(\sqrt{p(\theta)} - \sqrt{q(\theta)} \right) d\theta}^2 \\
+				     &\leq \norm{\sqrt{p} - \sqrt{q}}_{L_2^\lambda}^2 \norm{(\sqrt{p} + \sqrt{q})f}_{L_2^\lambda}^2 \\
+				     &= d^2_H(p, q) \norm{(\sqrt{p} + \sqrt{q})f}_{L_2^\lambda}^2
+\end{align*}
 
+In order to establish the bound on $\norm{(\sqrt{p} + \sqrt{q})f}_{L_2^\lambda}^2$, first note that 
+\[\left(\sqrt{p(\theta)} + \sqrt{q(\theta)}\right)^2 = p(\theta) + q(\theta) + 2\sqrt{p(\theta)q(\theta)} \leq p(\theta) + q(\theta) + 2\frac{p(\theta) + q(\theta)}{2} = 2\left[p(\theta) + q(\theta) \right]\]
+where the inequality applies the AM-GM inequality. We thus have, 
+\begin{align*}
+\norm{(\sqrt{p} + \sqrt{q})f}_{L_2^\lambda}^2 &= \int \left(\sqrt{p(\theta) }+ \sqrt{q(\theta)}\right)^2 f(\theta)^2 d\theta \\
+								    &\leq 2 \int \left[p(\theta) + q(\theta) \right] f(\theta)^2 d\theta \\
+								    &= 2 \left[\E_p\abs{f}^2 + \E_q\abs{f}^2 \right] \\
+								    &= 2C^2
+\end{align*}
+Taking square roots then yields the desired inequality. \textbf{TODO:} I'm getting factor of $\sqrt{2}$ in my bound, rather than 2 as in the book. 
 \end{proof}
 
 Note that the analogous constant $C$ in the TV case is $\norm{f}_\infty$. In this case, $C$ is a sort of sum of the $L_2$ size of $f$ under the two distributions. 
