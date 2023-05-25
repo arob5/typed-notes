@@ -349,6 +349,41 @@ Note that the analogous constant $C$ in the TV case is $\norm{f}_\infty$. In thi
 \item Show sensitivity to tails 
 \end{itemize}
 
+\section{Scoring Rules}
+
+\subsection{Introduction to Scoring Rules}
+We now consider the related topic of evaluating probabilistic forecasts. This is a tricky business; for example, if a weather forecasters predicts a 10\% chance of rain tomorrow and then it rains, did the forecaster do a poor 
+job or did they just get unlucky. After all, they did say there was a non-zero chance of rain. Another application arises from statistical and machine learning models whose predictions are themselves distributions. For example, 
+the prediction of a Gaussian process (GP) at some test point is a Gaussian distribution. We could ignore the distribution and simply measure the error of the prediction relative to the mean of the GP, but this would fail to take 
+into account much of the information in a GP prediction. How to incorporate the whole distribution into a measure of error is not at all obvious. 
+
+The toolkit that has been developed to deal with situations such as these are known as \textit{scoring rules}. Loosely speaking, a scoring rule is a function that takes as arguments 1.) a distribution (the forecaster's prediction) and 
+2.) the outcome that actually occurred and it returns a value that can be thought of as ``reward'' or ``utility''. A higher value should mean the forecaster did a better job. Although much of the early literature on scoring rules was focused 
+on the case of discrete distributions, we only focus on the continuous case here. In particular, we will consider a set $\mathcal{P}$ of possible probability densities over a space $\Omega$. The forecaster makes a prediction $p \in \mathcal{P}$ which we will 
+refer to as the \textit{predictive density}. For example, this could be a GP predictive density. If the true realized outcome is $x \in \Omega$ then the scoring rule compares the predictive density $p$ with the outcome $x$ and returns a score. More formally, 
+a scoring rule is a function
+\[S: \mathcal{P} \times \Omega \to \R \cup \{-\infty, +\infty\}\]
+meaning that the forecaster would be assigned score $S(p, x)$. An intuitive first guess at a good scoring rule might be 
+\[S(p, x) = p(x)\]
+After all, if the forecaster assigned high probability density $p(x)$ to the realized outcome $x$ then it should be rewarded, and vice versa. It turns out, as we will see later, that despite its intuitive appeal this so-called \textit{linear scoring rule} 
+actually has some undesirable properties. Before discussing this, we discuss the basic properties that we would like a scoring rule to satisfy. 
+
+\subsection{(Strictly) Proper Scoring Rules}
+If we imagine that we are actually compensating a forecaster based on their evaluation by the criterion $S(p, x)$ then we want to ensure that the incentives of the scoring rule are actually encouraging the behavior we would want. 
+In particular, if the forecaster believes the true distribution is $p$ then the scoring rule should incentivize them to actually report this distribution. What we don't want is a scoring rule that can be gamed by the forecaster; i.e. a rule that 
+incentivizes them to report some other distribution $q \in \mathcal{P}$ that does not align with their true beliefs, but will nonetheless allow them to yield more reward. In order to define this more formally, we need to define what objective 
+function the forecaster is actually trying to maximize. We suppose the forecaster cares about their expected score 
+\[\max_{q \in \mathcal{P}}\E_{x \sim p}\left[S(q, x) \right] \] 
+where the expectation is taken with respect to the forecaster's true belief $p$. We want to design rules $S(p, x)$ that encourage honesty
+\[p = \text{argmax}_{q \in \mathcal{P}}\E_{x \sim p}\left[S(q, x) \right] \]
+Such scoring rules are known as \textit{strictly proper}. 
+
+\begin{definition}
+A scoring rule $S(p, x)$ is called \textbf{proper} if 
+\[\E_{x \sim p}\left[S(p, x) \right] \geq \E_{x \sim p}\left[S(q, x) \right] \text{ for all } q  \in \mathcal{P}\]
+It is called \textbf{strictly proper} if equality holds only when $q = p$. 
+\end{definition}
+
 
 
 \section{TODOs:}
