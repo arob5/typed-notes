@@ -531,9 +531,6 @@ prog <- solns$val[m]
 
 
 
-
-
-
 # Sequential Design for Bayesian Inverse Problems
 The model-based design strategies discussed above seek to select a point $\mathbf{x}_{n+1}$ that is optimal in some sense for improving the GP fit. These strategies have presumed that we care about the GP fit uniformly across the input space. However, in the setting of Bayesian inverse problems it is common that 
 the posterior distribution is highly concentrated in the input space. Thus, in most of the input space the posterior will effectively be zero, so we care much less about GP predictive performance in these regions. Instead, we would like a design strategy that produces design points in the region of actual importance; that is, the region of significant posterior mass. This is yet another chicken-and-egg type problem, since the ultimate goal of solving a Bayesian inverse problem is to characterize the posterior distribution, which is unknown in advance. However, each time we run the forward model at a new design points $\mathbf{x}_n$ we can also evaluate (up to a normalizing constant) the posterior density; thus, as sequential design proceeds we get more and more information about the posterior. We can thus try for an active learning approach, which chooses $\mathbf{x}_{n + 1}$ based on an approximation to the posterior constructed using 

@@ -67,6 +67,45 @@
 \item Discuss the two perspectives on stochastic processes; random function vs. collection of random variables. 
 \end{itemize}
 
+\section{Introduction to Markov Chains}
+
+\subsection{Finite State Space}
+\textbf{TODO}
+\begin{align}
+\Prob(X_k = j) = \sum_{i = 1}^{I} \Prob(X_k = j|X_{k - 1} = i)\Prob(X_{k - 1} = i)
+\end{align}
+
+Define $P(i, j) = \Prob(X_{k+1} = j|X_k = i)$ and $\mu^{(k)}_j = \Prob(X_k = j)$. This can then be re-written as 
+\begin{align}
+\mu^{(k)}_j = \sum_{i = 1}^{I} P(i, j) \mu^{(k-1)}_i \label{discrete_transition}
+\end{align}
+
+\subsection{General State Space}
+If the transition dynamics can be described by probability densities $p(x, \cdot)$ for each $x \in \mathcal{X}$ (where $p(x, y)$ is the density of transitioning from $x$ to $y$) then the 
+density $\mu_k$ describing the distribution at time $k$ is given by applying the law of total probability:
+\begin{align*}
+\mu_k(y) = \int p(x, y) \mu_{k-1}(x) dx \label{continuous_transition}
+\end{align*}
+This is the continuous analog of \ref{discrete_transition}. Having to write separate formulas for the discrete and continuous cases is annoying and not amenable to developing a general 
+theory. Note that there could also be Markov chains with transitions that are not purely discrete nor continuous, but rather a mixture of the two. The concept of a probability measure allows 
+us to write down a general expression that encompasses both \ref{discrete_transition} and \ref{continuous_transition}. 
+\begin{align}
+\mu_k(A) = \mu_{k - 1}P(A) := \int P(x, A)\mu_{k - 1}(dx) \label{general_transition}
+\end{align}
+The notation $\mu_{k - 1}P$ is very reminiscent of the left-multiplication of a row vector with the transition matrix in the finite state space case. Matrix multiplication (a linear operation) has 
+been replaced with integration (another linear operation), but the basic intuition is the same. The concept of an invariant (i.e. stationary) distribution also has a natural generalization. A 
+distribution $\mu$ is invariant if $\mu P = \mu$; that is, if the distribution is unchanged one time step in the future (and hence unchanged for all future times). By plugging in 
+\ref{general_transition}, we see that $\mu P = \mu$ is really shorthand for 
+\begin{align*}
+\mu(A) = \int P(x, A) \mu(dx) \text{ for all } A \in \mathcal{F}
+\end{align*}
+Note that the ``for all $A \in \mathcal{F}$'' is essential; for the two distributions $\mu$ and $\mu P$ to be equal they must assign the same probability to every set $A$. 
+
+
+\begin{itemize}
+\item Should the probability in example 3.4 be divided by $\Prob(X_{k-1} = x_{k-1})$? Or rather the density $f_{X_{k-1}}(x_{k-1})$? 
+\end{itemize}
+
 
 
 % SDEs
