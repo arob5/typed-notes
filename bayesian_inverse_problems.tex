@@ -62,6 +62,7 @@
 \tableofcontents
 \newpage
 
+% General Framework
 \section{The General Framework}
 
 \subsection{Introduction to Finite Dimensional Inverse Problems}
@@ -202,16 +203,75 @@ To better understand this definition, note that $\Sigma_\epsilon$ is positive de
 \end{align*}
 so we see the weighted metric can be thought equivalently as applying the standard $L_2$ metric to the difference $y - f(\theta)$ that is first pre-multiplied by $\left(\Sigma_\epsilon^{-1/2}\right)^T$. 
 
-\section{Surrogate Models}
-TODO: consider example in Teckentrup paper where forward model $f$ is emulated and results in approximate inverse problem 
-
-\section{The Gaussian Linear Model}
+% Linear Gaussian Model
+\section{The Linear Gaussian Model}
 To include: 
 \begin{itemize}
 \item Notes from Youssef's class
 \item Example 2.1 from Inverse Problems: A Bayesian Perspective and the following example. These examples consider the effect of noise-free models on the posterior, which depends on whether or not the system is over or under determined. 
 \end{itemize}
 
+The linear Gaussian model is a special case of a Bayesian inverse problem where the forward model is linear (i.e., $G(\theta) = G\theta$), the prior distribution on $\theta$ is Gaussian, and the likelihood is Gaussian. 
+\begin{align}
+y &= G\theta + \epsilon \label{linear_Gaussian} \\
+\theta &\sim \mathcal{N}_D(\mu_0, \Sigma_0) \nonumber \\
+\epsilon &\sim \mathcal{N}_N(0, \Sigma_\epsilon) \nonumber
+\end{align}
+Under these assumptions, the posterior $p(\theta|y)$ is available in closed-form, and is shown below to also be Gaussian. Before proceeding with the details, note that the posterior has the general form 
+\begin{align*}
+p(\theta|y) &\propto \mathcal{N}_N(y|G\theta, \Sigma_\epsilon)\mathcal{N}_D(\theta|\mu_0, \Sigma_0) \\
+		&\propto \exp\left\{-\frac{1}{2} \norm{y - G\theta}^2_{\Sigma_\epsilon} - \frac{1}{2} \norm{\theta - \mu_0}^2_{\Sigma_0} \right\} \\
+		&= \exp\left\{-J(\theta) \right\}
+\end{align*}
+where 
+\begin{align} 
+J(\theta) = \frac{1}{2} \norm{y - G\theta}^2_{\Sigma_\epsilon} + \frac{1}{2} \norm{\theta - \mu_0}^2_{\Sigma_0} \label{regularized_LS}
+\end{align}
+Since $p(\theta|y)$ is proportional to the exponential of a quadratic function of $\theta$ then we know it must be Gaussian. Writing the posterior in this form also provides a nice connection to the optimization approach to 
+inverse problems, since \ref{regularized_LS} is a regularized least squares objective. Instead of minimizing this objective, the Bayesian approach converts it into a probability distribution via $\exp\left\{-J(\theta) \right\}$, thus 
+allowing a more complete accounting of uncertainty. We now derive the mean and covariance matrix to complete the characterization of the posterior. 
+\begin{thm}
+The linear Gaussian model \ref{linear_Gaussian} has posterior 
+\[p(\theta|y) = \mathcal{N}_D(\theta|\mu, \Sigma)\]
+where 
+\begin{align} 
+\mu &= \Sigma \left[G^T \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1} \mu_0 \right] \\
+\Sigma &= \left[G^T \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1} \right]^{-1}
+\end{align}
+\end{thm}
+\begin{proof} 
+As noted above, $p(\theta|y)$ is Gaussian, which means $J(\theta)$ must have the form 
+\begin{align}
+J(\theta) = \frac{1}{2} \norm{\theta - \mu}^2_{\Sigma} + C \label{posterior_structure}
+\end{align}
+where $C$ is a constant with respect to $\theta$. Perhaps the easiest way to derive $\mu$ and $\Sigma$ is to compare this expression to \ref{regularized_LS} and match up the terms. 
+Expanding the latter expression yields 
+\begin{align*}
+J(\theta) &\propto \frac{1}{2} \theta^T G^T \Sigma_{\epsilon}^{-1} G\theta - y^T \Sigma_{\epsilon}^{-1} G\theta + \frac{1}{2} \theta^T \Sigma_0^{-1} \theta - \mu_0^T \Sigma_0^{-1} \theta \\ 
+&= \frac{1}{2} \theta^T \left[G^T \Sigma_\epsilon^{-1} G + \Sigma_0^{-1} \right] \theta - \left[y^T \Sigma_{\epsilon}^{-1} G + \mu_0^T \Sigma_0^{-1} \right] \theta
+\end{align*}
+Anything not dependent on $\theta$ is dropped in the proportionality symbol, as these terms are simply absorbed in the constant $C$.  
+Now we similarly multiply out \ref{posterior_structure} and compare the two. 
+\begin{align*}
+J(\theta) &\propto \frac{1}{2} \theta^T \Sigma^{-1} \theta - \mu^T \Sigma^{-1} \theta
+\end{align*}
+Setting the two expressions equal and matching up the terms yields
+\begin{align*}
+\Sigma^{-1} &= G^T \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1} \\
+\mu^T \Sigma^{-1} &= y^T \Sigma_{\epsilon}^{-1} G + \mu_0^T \Sigma_0^{-1}
+\end{align*}
+Inverting the first line yields the form of the posterior covariance matrix. For the second line, we take the transpose of each side, then multiple 
+each side by $\Sigma$, yielding an expression for the posterior mean in terms of the posterior covariance matrix. 
+\begin{align*}
+\Sigma &= \left[G^T \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1} \right]^{-1} \\
+\mu &= \Sigma \left[G^T \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1} \mu_0 \right]
+\end{align*}
+ 
+\end{proof} 
+
+
+\section{Surrogate Models}
+TODO: consider example in Teckentrup paper where forward model $f$ is emulated and results in approximate inverse problem 
 
 \section{Quantifying Posterior Approximation Error}
 In classical optimization-based inverse problems, we want to be able to measure the sensitivity of the solution $\hat{\theta}$ of the inverse problem to the observed data. When this sensitivity is high we might call the 
