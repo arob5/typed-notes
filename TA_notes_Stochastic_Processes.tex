@@ -83,9 +83,9 @@ Define $P(i, j) = \Prob(X_{k+1} = j|X_k = i)$ and $\mu^{(k)}_j = \Prob(X_k = j)$
 \subsection{General State Space}
 If the transition dynamics can be described by probability densities $p(x, \cdot)$ for each $x \in \mathcal{X}$ (where $p(x, y)$ is the density of transitioning from $x$ to $y$) then the 
 density $\mu_k$ describing the distribution at time $k$ is given by applying the law of total probability:
-\begin{align*}
+\begin{align}
 \mu_k(y) = \int p(x, y) \mu_{k-1}(x) dx \label{continuous_transition}
-\end{align*}
+\end{align}
 This is the continuous analog of \ref{discrete_transition}. Having to write separate formulas for the discrete and continuous cases is annoying and not amenable to developing a general 
 theory. Note that there could also be Markov chains with transitions that are not purely discrete nor continuous, but rather a mixture of the two. The concept of a probability measure allows 
 us to write down a general expression that encompasses both \ref{discrete_transition} and \ref{continuous_transition}. 
@@ -93,7 +93,24 @@ us to write down a general expression that encompasses both \ref{discrete_transi
 \mu_k(A) = \mu_{k - 1}P(A) := \int P(x, A)\mu_{k - 1}(dx) \label{general_transition}
 \end{align}
 The notation $\mu_{k - 1}P$ is very reminiscent of the left-multiplication of a row vector with the transition matrix in the finite state space case. Matrix multiplication (a linear operation) has 
-been replaced with integration (another linear operation), but the basic intuition is the same. The concept of an invariant (i.e. stationary) distribution also has a natural generalization. A 
+been replaced with integration (another linear operation), but the basic intuition is the same. 
+
+To be absolutely clear here, let's establish the connection between the general expression \ref{general_transition} and the continuous case densities exist. Recalling that integrating densities over 
+a set yields the probability of the set, we have 
+\[\Prob(X_k \in A) = \mu_k(A) = \int_A p_k(y) dy\]
+The same exact logic applies to the transition probability $P(x, A)$:
+\[\Prob(X_k \in A|X_{k - 1} = x) = P(x, A) = \int_A p(x, y) dy \]
+Putting these together, \ref{general_transition} becomes,
+\[\Prob(X_k \in A) = \int \left[ \int_A p(x, y) dy \right] d\mu_{k-1}(x)\]
+Finally we note when densities exist, integrating a function $f(x)$ with respect to the measure $\mu_{k-1}$ can be realized by integrating with respect to the density $p_{k-1}$:
+\[\int f(x) \mu_{k-1}(dx) = \int f(x) p_{k-1}(x) dx\]
+In our current setting, the function we are integrating is $f(x) = \int_A p(x, y) dy$. Thus, plugging this in we obtain 
+\[\Prob(X_k \in A) = \int \left[ \int_A p(x, y) dy \right] d\mu_{k-1}(x) = \int \left[ \int_A p(x, y) dy \right] p_{k-1}(x) dx\]
+Note that the outer integral is over the entire state space $\mathcal{X}$. Perhaps a more insightful way to write this is 
+\[\Prob(X_k \in A)  = \int_A \int_{\mathcal{X}} p(x, y) p_{k-1}(x) dx dy\]
+
+
+The concept of an invariant (i.e. stationary) distribution also has a natural generalization. A 
 distribution $\mu$ is invariant if $\mu P = \mu$; that is, if the distribution is unchanged one time step in the future (and hence unchanged for all future times). By plugging in 
 \ref{general_transition}, we see that $\mu P = \mu$ is really shorthand for 
 \begin{align*}
@@ -101,7 +118,7 @@ distribution $\mu$ is invariant if $\mu P = \mu$; that is, if the distribution i
 \end{align*}
 Note that the ``for all $A \in \mathcal{F}$'' is essential; for the two distributions $\mu$ and $\mu P$ to be equal they must assign the same probability to every set $A$. 
 
-
+\subsection{Questions}
 \begin{itemize}
 \item Should the probability in example 3.4 be divided by $\Prob(X_{k-1} = x_{k-1})$? Or rather the density $f_{X_{k-1}}(x_{k-1})$? 
 \end{itemize}
