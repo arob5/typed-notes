@@ -118,6 +118,20 @@ distribution $\mu$ is invariant if $\mu P = \mu$; that is, if the distribution i
 \end{align*}
 Note that the ``for all $A \in \mathcal{F}$'' is essential; for the two distributions $\mu$ and $\mu P$ to be equal they must assign the same probability to every set $A$. 
 
+\subsection{Product Distribution, Detailed Balance, Reversibility}
+We will find it useful to talk about the joint distribution between current and subsequent states, $X_{k-1}$ and $X_k$. In other words, we want to answer questions like: 
+what is the probability that $X_{k -1}$ is in $A$ and $X_k$ is in $B$? Realizing this event requires 1.) already being in $A$ at the $k^{\text{th}}$ time step and, 2.) transitioning 
+from $A$ to $B$ in the next time step. Let's consider the case where densities exist for a moment. In this case, from introductory probability we know that 
+the probability that $X_{k-1}$ is in $A$ and $X_k$ is in $B$ can be found by integrating the \textit{joint density} $p_{X_k, X_{k-1}}(x, y)$ over the set $A \times B$. 
+\begin{align*}
+\Prob(X_{k-1} \in A, X_k \in B) &= \int_{A \times B} p_{X_k, X_{k-1}}(x, y) dx dy =  \int_B \int _A p_{X_k, X_{k-1}}(x, y) dx dy 
+\end{align*}
+In this case, the joint density factors as 
+\[p_{X_k, X_{k-1}}(x, y) = p(x, y)p_{k-1}(x)\]
+which makes perfect sense since $p_{k-1}(x)$ captures starting in $A$ and $p(x, y)$ captures the transition from $A$ to $B$. 
+
+% int_B \int _A p(x, y)p_{k-1}(x) dx dy 
+
 \subsection{Questions}
 \begin{itemize}
 \item Should the probability in example 3.4 be divided by $\Prob(X_{k-1} = x_{k-1})$? Or rather the density $f_{X_{k-1}}(x_{k-1})$? 
