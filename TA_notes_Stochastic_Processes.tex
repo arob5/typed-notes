@@ -231,9 +231,31 @@ The theoretical ideal would be having the ability to answer the question posed e
 as a function of $k$. This very powerful notion is referred to as \textbf{quantitative convergence} and can be written as 
 \[\norm{P^k(x, \cdot) - \pi(\cdot)}_{\text{TV}} \leq f(x, k)\]
 where $f$ is some \textit{known} function of the initial condition $x$ and the time step $k$. 
-
-
 \end{enumerate}
+
+% Ergodic Theory for Markov Chains
+\section{Ergodic Theory for Markov Chains}
+We begin by addressing questions 2 and 3 from the MCMC roadmap in the previous section. Recall that these are really the bare minimum any MCMC algorithm should satisfy. We repeat these two questions 
+here, as well as a sketch of the answers that will be produced for each question. 
+
+\bigskip
+\noindent
+\textbf{Question 2:} Does the chain converge to $\pi$? Does it converge for all starting points/initial conditions? \\
+\textbf{Answer:} Under some assumptions, we will show that the chain converges in distribution to $\pi$: 
+\[\lim_{k \to \infty} P^k(x, A) = \pi(A)\]
+Note that $P^{k}(x, A)$ is the distribution of $X_k$, the state of the chain at step $k$. Thus, if we let $X \sim \pi$ denote a random variable distributed according to the target distribution, then we can re-phrase this
+statement as 
+\[\lim_{k \to \infty} \Prob(X_k \in A|X_0 = x) = \Prob(X \in A)\]
+which perhaps makes it more clear that this is the very familiar notion of convergence in distribution. 
+As to the question of whether this holds for all starting points, we will show that this statement holds \textit{almost surely}; that is, the set of $x$ for which it holds has probability $1$.
+
+\bigskip
+\noindent
+\textbf{Question 3:} Can we use samples from the chain to estimate expectations? \\
+\textbf{Answer:} Under the same assumptions as required to answer question 1, we will show that 
+\[\lim_{k \to \infty} \frac{1}{k} \sum_{\ell = 1}^{k} \phi(X_\ell) = \pi(\phi) \text{ a.s.}\]
+That is, the Monte Carlo estimate converges almost surely to the true expectation $\pi(\phi)$. Note that this statement is an analog to the law of large numbers (LLN) in the simple Monte Carlo setting, which required the 
+assumption of independence. Here, the $X_k$ are not independent, but under a few additional assumptions we are still able to establish a LLN. 
 
 
 \subsubsection{To include:}
