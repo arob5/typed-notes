@@ -130,12 +130,126 @@ In this case, the joint density factors as
 \[p_{X_k, X_{k-1}}(x, y) = p(x, y)p_{k-1}(x)\]
 which makes perfect sense since $p_{k-1}(x)$ captures starting in $A$ and $p(x, y)$ captures the transition from $A$ to $B$. 
 
-% int_B \int _A p(x, y)p_{k-1}(x) dx dy 
+\subsubsection{A note on exercise 3.4}
+The result that is proved as exercise 3.4,
+\begin{align}
+(\mu P_1)P_2 = \mu P_1 P_2 \label{associativity}
+\end{align}
+is not very surprising. In fact, we specifically defined $\mu P$ and $P_1 P_2$ so that this would work. If we defined these notions and found that associativity did not hold, then 
+we would definitely want to reconsider those definitions/notation. It is helpful to think about the finite state space case, in which case $\mu$ is a row vector and $P_1$, $P_2$ are 
+matrices. The statement \ref{associativity} is identical to the finite state space analog from a notational standpoint, so what we have done is cleverly define things in the general state 
+space setting so that the same notation applies here (i.e. we have overloaded the notation). 
+
 
 \subsection{Questions}
 \begin{itemize}
 \item Should the probability in example 3.4 be divided by $\Prob(X_{k-1} = x_{k-1})$? Or rather the density $f_{X_{k-1}}(x_{k-1})$? 
 \end{itemize}
+
+
+% Introduction to MCMC
+\section{Introduction to Markov Chain Monte Carlo}
+
+\subsection{Sampling from Probability Distributions: Motivation}
+\begin{itemize}
+\item Why important?
+\item Bayesian statistics (e.g. linear regression)
+\item The Ising model 
+\item Approximating integrals. A bunch of different ways to write expectations: 
+\[\pi(\phi) = \E_{X \sim \pi}\left[\phi(X)\right] = \E_{\pi}\left[\phi(X) \right] = \int \phi(x) \pi(dx) \]
+\item Emphasis on the fact that the normalizing constant is unknown; intuitively we should not need the normalizing constant for sampling. 
+\end{itemize}
+
+\subsection{Simple Monte Carlo}
+\begin{itemize}
+\item See Youssef's notes 
+\item Why not just use deterministic numerical integration? 
+\item Apparent immunity to the curse of dimensionality; and where the curse of dimensionality comes in. 
+\item Rejection sampling. 
+\end{itemize}
+
+\subsection{Markov Chain Monte Carlo}
+\subsubsection{The Big Idea}
+Discuss the departure from independent sampling, the idea of using a Markov chain, and invariant/stationary distribution. Introduce notation that $h_\pi$ is the density of $\pi$. 
+
+\subsubsection{Metropolis-Hastings}
+Metropolis-Hastings (MH) is a class of MCMC algorithms, and is far and away the most common MCMC method. Recall that designing an MCMC algorithm comes down to 
+specifying the structure of the Markov chain used in the algorithm. Since homogenous Markov chains are fully defined by an initial condition and a transition kernel $P$, then 
+essentially the only design freedom is in the choice of $P$. The class of MH algorithms is thus defined by choosing a specific form for $P$. In particular, the MH transition operator
+is composed of two steps. Suppose the current state is $X_k$. The MH Markov chain determines the next state $X_{k + 1}$ by 
+\begin{enumerate}
+\item \textit{Proposing} a new state $X_{k + 1}^\prime$ by sampling from a specified \textit{proposal distribution} $Q(X_k, \cdot)$; i.e.,  $X_{k + 1} \sim Q(X_k, \cdot)$. 
+\item Either accepting or rejecting the proposal (based on a criterion discussed below). The proposal is accepted with probability $\alpha(X_k, X_{k + 1})$, in which case the 
+new state is set to the proposed state $X_{k + 1} := X_{k+1}^\prime$. If rejected, the new state is set to the current state $X_{k + 1} := X_k$. 
+\end{enumerate}
+Recall that we require the target distribution $\pi$ to be a stationary distribution of the Markov chain. Therefore, the above procedure will only be useful if this is true. It may seem like there 
+are now two main design choices in MH algorithms: 1.) the proposal distribution $Q$, and 2.) the criterion for accepting or rejecting the samples. However, the accept-reject criterion is chosen 
+precisely so that $\pi$ is a stationary distribution, no matter what proposal distribution $Q$ is chosen. Therefore, at a high level the only design freedom in a MH algorithm is in the proposal distribution. 
+Therefore, let us first discuss what the accept-reject criterion \textit{has to be}, given the constraint that $\pi$ must be a stationary distribution of the chain. Recall that verifying stationarity directly is 
+a difficult task, but we proved that \textit{detailed balance} (i.e. reversibility)--which is conveniently much easier to check--implies stationarity. Therefore, we will use this sufficient condition to derive the 
+MH accept-reject criterion.  
+
+Suppose the proposal distribution $Q(x, \cdot)$ has density $q(x, \cdot)$. Recall that $h_\pi$ is the density of the target distribution $\pi$. We seek to determine the acceptance probability $\alpha(X_k, X_{k + 1})$. 
+
+\subsubsection{Gibbs Sampling}
+
+\subsubsection{Roadmap for MCMC Theory}
+\begin{enumerate}
+\item \textbf{Does the chain have $\pi$ as a stationary distribution?} \\
+We have already answered this question above. For MH algorithms, this holds by definition. 
+
+\item \textbf{Does the chain converge to $\pi$? Does it converge for all starting points/initial conditions?} \\
+In other words, does the distribution of $X_k$ approach $\pi$ as $k$ grows large? In what sense does it converge? 
+
+\item \textbf{Can we use samples from the chain to estimate expectations?} \\
+In other words, does the Monte Carlo estimate $\hat{\pi}(\phi) = \sum_{\ell = 1}^{k} \phi(X_\ell)$ converge to $\pi(\phi) = \int \phi(x) \pi(dx)$? If so, in what sense does it converge? 
+
+\bigskip
+\textit{These three questions represent the bare minimum in addressing our goals. The whole motivation for utilizing MCMC was to develop a scalable scheme to sample from a target distribution 
+and use those samples to estimate expectations with respect to the target distribution. Thus, if it turned out that suitable convergence results failed to hold, then MCMC wouldn't really be useful 
+at all. However, once we have established these basic results, there remain many important unanswered questions. The above three questions make no mention of the rate of convergence. In practice, 
+we of course can only run the chain for a finite number of steps, so it is vital to ensure that the chain converges fast enough to be practically useful
+They also fail to give a sense of the influence of the starting distribution. In practice, we typically only simulate a Markov chain from a single (or maybe a few) different initial conditions, so this 
+question is also of great practical importance. The below items offer more ``quantitative'' viewpoints that seek to address these questions.}
+
+\item \textbf{Does the chain converge at a uniform geometric rate?} \\
+This property is known as \textbf{uniform ergodicity} and means there exist constants $M$ and $\rho > 1$ such that 
+\[\norm{P^k(x, \cdot) - \pi(\cdot)}_{\text{TV}} \leq M\rho^{-k}\]
+This says that each iteration $k$ gets the distribution a factor of $\rho$ closer to the desired distribution $\pi$. This is a very strong notion of convergence, and is very difficult to guarantee. The reason it 
+is such a strong notion is due to the fact that $M$ is not a function of the starting location $x$ (hence, ``uniform''); i.e. this says that the same rate of convergence holds no matter where you start. Another thing to note is that 
+in practice we typically do not know $M$. Thus, this is more of an asymptotic result in that it establishes a rate of convergence, but doesn't give any sort of finite-time guarantees. In other words, it does 
+not answer questions like: after $k$ time steps how far is the chain from the target distribution? 
+
+\item \textbf{Does the chain converge at a (perhaps not uniform) geometric rate?} \\
+\textbf{Geometric ergodicity} relaxes the notion of ergodicity above by allowing $M$ to depend on the initial condition $x$. 
+\[\norm{P^k(x, \cdot) - \pi(\cdot)}_{\text{TV}} \leq M(x)\rho^{-k}\]
+Thus, geometric ergodicity allows the rate of convergence to depend on the starting location. As opposed to uniform ergodicity, geometric ergodicity is a much easier condition to satisfy, and indeed 
+a condition that almost all reasonable MCMC schemes should satisfy. 
+
+\item \textbf{Can we compute a finite-time error bound?} \\
+The theoretical ideal would be having the ability to answer the question posed earlier: after $k$ time steps how far is the chain from the target distribution? In other words, having a explicit bound on the error 
+as a function of $k$. This very powerful notion is referred to as \textbf{quantitative convergence} and can be written as 
+\[\norm{P^k(x, \cdot) - \pi(\cdot)}_{\text{TV}} \leq f(x, k)\]
+where $f$ is some \textit{known} function of the initial condition $x$ and the time step $k$. 
+
+
+\end{enumerate}
+
+
+\subsubsection{To include:}
+\begin{itemize}
+\item The departure from independent sampling. The cost of using correlated samples. 
+\item MCMC tool that Youssef shared. 
+\end{itemize}
+
+\subsection{Resources}
+\begin{itemize}
+\item MCMC tool that Youssef shared. 
+\end{itemize}
+
+% Ergodic theory for Markov Chains 
+\section{Ergodic Theory for Markov Chains}
+
 
 
 
@@ -144,7 +258,7 @@ which makes perfect sense since $p_{k-1}(x)$ captures starting in $A$ and $p(x, 
 \begin{itemize}
 \item Motivate as follows: we can move from non-random discrete dynamical systems (e.g. difference equations) to things like Markov Chains by introducing randomness. We can do the 
 same to move from continuous-time dynamical systems (e.g. ODEs) to continuous-time stochastic dynamical systems (SDEs) 
-\item Include discussion of random vs stochastic DEs (see Staurt)
+\item Include discussion of random vs stochastic DEs (see Stuart)
 \end{itemize}
 
 
