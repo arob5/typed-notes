@@ -204,9 +204,9 @@ We now consider an alternative criterion; instead of minimizing the entropy of t
 we consider minimizing the predictive uncertainty over these unobserved points. Recall that the predictive GP variance at at unobserved point $\mathbf{x}$ is given by
 by 
 $$ k_{\mathbf{X}}(\mathbf{x}) = k(\mathbf{x}) - k(\mathbf{x}, \mathbf{X})\mathbf{K}^{-1}k(\mathbf{X}, \mathbf{x}) = \tau^2\left(1 + g - c(\mathbf{x}, \mathbf{X})\mathbf{C}^{-1}c(\mathbf{X}, \mathbf{x}) \right)$$
-By definition of variance, this is equivalent to 
+By definition of the variance, this is equivalent to 
 $$ k_{\mathbf{X}}(\mathbf{x}) = \mathbb{E}\left[\left(y(\mathbf{x}) - \mu_{\mathbf{X}}(\mathbf{x}) \right)^2 | \mathbf{X}, \mathbf{y} \right]$$
-For this reason, the predictive variance is also often called the *mean-squared prediction error (MSPE)*. The MSPE is the average squared deviation between the GP prediction and its mean at the input point $\mathbf{x}$. We can then consider averaging the MSPE over the input space $\mathcal{X}$. We might consider a simple average that treats all input points $\mathbf{x}$ as equally important, or alternative consider a density $w(\mathbf{x})$ on $\mathbf{X}$ that designates certain inputs as more important than others. An *integrated MSPE (IMSPE)* criterion (as a function of the design $\mathbf{X}$) might then look like
+For this reason, the predictive variance is also often called the *mean-squared prediction error (MSPE)*. The MSPE is the average squared deviation between the GP prediction and its mean at the input point $\mathbf{x}$. We can then consider averaging the MSPE over the input space $\mathcal{X}$. We might consider a simple average that treats all input points $\mathbf{x}$ as equally important, or alternatively consider a density $w(\mathbf{x})$ on $\mathbf{X}$ that designates certain inputs as more important than others. An *integrated MSPE (IMSPE)* criterion (as a function of the design $\mathbf{X}$) might then look like
 $$ J(\mathbf{X}) = \int_{\mathcal{X}} \frac{k_{\mathbf{X}}(\mathbf{x})}{\tau^2} w(\mathbf{x}) d\mathbf{x}$$
 where $\tau^2$ is the prior marginal variance of the GP. The division by $\tau^2$ is not that important; it simply normalizes the predictive variance by the prior variance. While this integral typically requires numerical methods, it is available in closed-form for simple cases, where
 $\mathcal{X}$ is a simple domain such as a hypercube and the covariance function is isotropic or separable Gaussian or Matern 
@@ -264,7 +264,7 @@ N_itr <- 10000
 X <- min_IMSPE(N = 25, D = 2, N_itr = N_itr, theta = c(0.1, 0.8))
 plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design; N_itr = ", N_itr))
 ```
-The results look pretty similar to the maxent design; however, the min IMSPE design tends to shy away from the boundaried of the input space more. The effect is minimal in two dimensions but will become much more prominent as the dimension increases. This is due to the fact that the criterion for choosing a single point $\mathcal{x}$ takes into account the error averaged over the entire input space. Choosing more central points will tend to have a greater effect than boundary points in reducing error averaged over the whole space, so IMSPE tends to favor interior points.
+The results look pretty similar to the maxent design; however, the min IMSPE design tends to shy away from the boundaries of the input space more. The effect is minimal in two dimensions but will become much more prominent as the dimension increases. This is due to the fact that the criterion for choosing a single point $\mathcal{x}$ takes into account the error averaged over the entire input space. Choosing more central points will tend to have a greater effect than boundary points in reducing error averaged over the whole space, so IMSPE tends to favor interior points.
 
 #### Extending to cases where IMSPE is not analytically tractable 
 There are many cases that might break analytic tractability; in particular, here we consider the case of non-uniform weights $w(x)$ or the case where $\mathcal{X}$ is non-rectangular. The obvious solution here is to simply consider a Monte Carlo estimate of the 
@@ -276,7 +276,7 @@ or
 
 $$ J(\mathbf{X}) \approx \frac{1}{T} \sum_{t = 1}^{T} \frac{k_{\mathbf{X}}(\mathbf{x}_t)}{\tau^2}, \text{ where } \mathbf{x}_t \sim w $$
 
-Alternatively, we might consider a numerical integration or quadrature-based scheme. For example, instead of uniformly sampling points from $\mathcal{X}$ we might instead fix a grid of points and then average the integrand over these fixed points to estimate the integral. Such an appraoch is suitable in low dimensions, as in the two-dimensional example we have been considering. Let's apply such a grid-based scheme to this example, and compare the result to the result produced using the closed-form expression for the integral.  
+Alternatively, we might consider a numerical integration or quadrature-based scheme. For example, instead of uniformly sampling points from $\mathcal{X}$ we might instead fix a grid of points and then average the integrand over these fixed points to estimate the integral. Such an approach is suitable in low dimensions, as in the two-dimensional example we have been considering. Let's apply such a grid-based scheme to this example, and compare the result to the result produced using the closed-form expression for the integral.  
 
 
 ```{r}
@@ -318,7 +318,7 @@ points(X_grid, pch=20, cex=0.25, col="gray")
 ```
 
 Indeed, we observe that the design points are clustered around the grid points. Trying to approximate the IMSPE integral over a two-dimensional input space with 9 grid points unsurprisingly results in a poor approximation. Another interesting consequence 
-of this grid approximation is that design points will tend to be pulled to the boundaries, whereas we noticed that the exact IMSPE results tended to shy away from the boundaries. This is due to the nature of selecting a grid. The ratio of the number of grid points on the boundaries vs. the number of interior points is much higher than the ratio of the "volume" of the boundaries vs. the volume of the interior. Thus, the boundary grid points will pull design points towards the boundaries moreso than the exact solution. 
+of this grid approximation is that design points will tend to be pulled to the boundaries, whereas we noticed that the exact IMSPE results tended to shy away from the boundaries. This is due to the nature of selecting a grid. The ratio of the number of grid points on the boundaries vs. the number of interior points is much higher than the ratio of the "volume" of the boundaries vs. the volume of the interior. Thus, the boundary grid points will pull design points towards the boundaries more so than the exact solution. 
 
 We now return to the denser grid, but entertain increasing the lengthscale. Intuitively, we expect a longer lengthscale to yield even more spread out points. However, this will come into conflict with the tendency for design points to want to stay close to the grid points. We present results for the closed-form and grid approximated solutions below. We observe some odd behavior from the grid approximation. 
 
@@ -335,7 +335,7 @@ plot(X[,1], X[,2], xlab = "X1", ylab = "X2", main = paste0("min_IMSPE design gri
 points(X_grid, pch=20, cex=0.25, col="gray")
 ```
 
-Gramacy presents an interesting example illustrating the case where the approximate solution allows sampling desing points on irregularly shaped domains; in particular, he presents an example where the domain consists of two intersecting ellipsoids. 
+Gramacy presents an interesting example illustrating the case where the approximate solution allows sampling design points on irregularly shaped domains; in particular, he presents an example where the domain consists of two intersecting ellipsoids. 
 In essence, his example boils down to assuming the density $w(\mathbf{x})$ weighting the input space is a mixture of Gaussians. 
 $$ w(\mathbf{x}) = \frac{1}{2}\mathcal{N}_2(\mathbf{x}|\mathbf{\mu}_1, \mathbf{\Sigma}_1) + \frac{1}{2}\mathcal{N}_2(\mathbf{x}|\mathbf{\mu}_2, \mathbf{\Sigma}_2)$$
 The below code more-or-less samples from $\mathbf{w}(\mathbf{x})$ (instead of randomly choosing which Gaussian to sample from, 
@@ -351,7 +351,7 @@ points(X_grid, pch=20, cex=0.25, col="gray")
 ```
 
 # Sequential Design/Active Learning
-We have currently entertained the notion of *batch design*; that is, selecting the $N$ design points $\mathbf{X}$ in one fell swoop. An alternative, often very practical approach, is to choose that points one at a time - at each iteration selecting the next point based on the criterion 
+We have currently entertained the notion of *batch design*; that is, selecting the $N$ design points $\mathbf{X}$ in one fell swoop. An alternative, often very practical approach, is to choose the points one at a time - at each iteration selecting the next point based on the criterion 
 $J(\mathbf{x})$. The general idea is as follows:
 
 1. Start with a small design $\mathbf{X}_{N_0}$ consisting of $N_0$ inputs typically chosen via some sort of model-free, space-filling design 
@@ -364,14 +364,14 @@ new augmented dataset $\mathcal{D}_{n + 1}$. Re-fit the GP on the new dataset.
 3. Repeat step 2 until a desired number of design points $N$ is reached. 
 
 There are many optimization tricks and pitfalls when considering such sequential schemes. For example, one might not update the MLE GP fit every iteration to save on computation, but this could potentially lead to unsatisfactory results. It is also common to *warm start* the MLE hyperparameter 
-optimization but setting the initial values in the optimization to the values of the hyperparameters that were optimized in the previous step. 
+optimization by setting the initial values in the optimization to the values of the hyperparameters that were optimized in the previous step. 
 
 Perhaps the simplest sequential design criterion is to choose the point that maximizes the predictive variance. The idea is that if the predictive variance is very high at a point, then the GP is very uncertain about the latent function at that point so we should run the model at that point to 
 reduce that uncertainty. The objective thus looks like
 $$ \mathbf{x}_{n + 1} := \text{argmax}_{\mathbf{x}} J(\mathbf{x})|\mathcal{D}_n = \text{argmax}_{\mathbf{x}} k_{\mathbf{X}_n}(\mathbf{x})$$
 This method is known as *Active Learning MacKay (ALM)*, after David MacKay, who explored this notion of design for neural networks and argued that this sequential design strategy tends to approximate a maxent design. 
 
-Let's consider a toy example with 2D input space. The below chode chunk defines the latent function we seek to learn. The function is a scaled 
+Let's consider a toy example with 2D input space. The below code chunk defines the latent function we seek to learn. The function is a scaled 
 and shifted version of 
 $$ f(x_1, x_2) = x_1 \exp(-x_1^2 - x_2^2)$$
 A heat map provides a visualization of this function below. 
@@ -397,7 +397,9 @@ f_vals <- f_list$f
 y <- f_list$y
 
 # Also evaluate at dense grid for plotting. 
-X_grid <- as.matrix(expand.grid(seq(0, 1, length=51), seq(0, 1, length=51)))
+x1_grid <- seq(0, 1, length=51)
+x2_grid <- seq(0, 1, length=51)
+X_grid <- as.matrix(expand.grid(x1_grid, x2_grid))
 f_grid <- f(X_grid)$f
 ```
 
@@ -405,7 +407,7 @@ f_grid <- f(X_grid)$f
 cols <- heat.colors(128)
 
 # Latent function, noiseless evaluations. 
-image(seq(0, 1, length=51), seq(0, 1, length=51), matrix(f_grid, ncol=51), 
+image(x1_grid, x2_grid, matrix(f_grid, ncol=51), 
       xlab="x1", ylab="x2", main = "Noiseless evaluations of f(), and initial design points.", col=cols)
 points(X[,1], X[,2])
 ```
@@ -424,7 +426,7 @@ Now, let's turn to the sequential design problem with ALM objective (i.e. activa
 $$ \mathbf{x}_{n + 1} := \text{argmax}_{\mathbf{x}} k_{\mathbf{X}_n}(\mathbf{x})$$
 This problem may be challenging in and of itself. Recall that predictive GP variances $k_{\mathbf{X}_n}(\mathbf{x})$ form a sort of "sausage" shape, shrinking at the observed locations and increasing as $\mathbf{x}$ moves away from observed locations. This means that the objective $k_{\mathbf{X}_n}(\mathbf{x})$ may have many local minima, in particular on the order of the number of observed locations. This presents a challenge for local optimization methods. To deal with this challenge, a common approach is to run a local optimizer multiple times initialized at different starting locations. The minimum of all the different runs can then be taken as $\mathbf{x}_{n + 1}$. The choice of starting locations for the optimizer is a whole design problem in its own right. Intuitively, we don't want 1.) starting locations to be close to each other and 2.) two starting locations to both be close to the same local minimum. In particular, imagine in a 1d problem that two starting locations are placed on the same "sausage"; we then expect the local minimizers both to converge to the same local minima. Thus, it seems that the ideal starting locations are those corresponding to large predictive variances; that is, the "fat" parts of the sausage. To this end, a space-filling design such as maximin seems a reasonable choice for the starting locations. 
 
-The below code implements the ALM objective, as well as a solution to the ALM search for $\mathbf{x}_{n + 1}$. 
+The below code implements the ALM objective, as well as a solution to the ALM search for $\mathbf{x}_{n + 1}$. Note the negative sign, which means we seek to minimize, not maximize, `obj_alm`, to align with the R function `optim`. However, in `xnp1_2d_search` we negate the value of the objective, so that we can again view things as a maximization problem to align with the exposition above. 
 
 ```{r}
 # Note that `optim()` minimizes by default, hence the negative. 
@@ -461,8 +463,7 @@ We now feed the initial LHS design to the one-step search function, and observe 
 
 ```{r}
 solns <- xnp1_2d_search(X, gp0)
-image(seq(0, 1, length=51), seq(0, 1, length=51), matrix(f_grid, ncol=51), 
-      xlab="x1", ylab="x2", col=cols)
+image(x1_grid, x2_grid, matrix(f_grid, ncol=51), xlab="x1", ylab="x2", col=cols)
 points(X, xlab="x1", ylab="x2", xlim=c(0,1), ylim=c(0,1))
 arrows(solns$init1, solns$init2, solns$optim1, solns$optim2, length=0.1)
 m <- which.max(solns$optim_val)
@@ -500,33 +501,48 @@ objective_value <- vector(mode = "numeric", length = N-N0)
 for(n in seq(1, N - N0)) {
   
   # Optimize ALM to get new point. 
-  solns <- xnp1_2d_search(X, gp)
+  solns <- xnp1_2d_search(X, gp, obj = obj_alm)
   m <- which.max(solns$optim_val)
-  objective_value[n] <- solns$val[m]
-  x_new <- matrix(solns[m, c("optim1", "optim2")], nrow = 1)
+  objective_value[n] <- solns$optim_val[m]
+  x_new <- as.matrix(solns[m, c("optim1", "optim2")], nrow = 1)
   
   # Run forward model at new point and augment dataset. 
-  y_new <- f(x_new)
+  y_new <- f(x_new)$y
   X <- rbind(X, x_new)
   y <- c(y, y_new)
   
+  # GP predictions over grid, for plotting below. 
+  gp_pred <- predGP(gp, X_grid, lite = TRUE)
+  
   # Update GP hyperparameter fit. 
   updateGP(gp, x_new, y_new)
-  mle <- rbind(mle, jmleGP(gpi, c(d$min, d$max), c(g$min, g$max), d$ab, g$ab))
+  mle <- rbind(mle, jmleGP(gp, c(d$min, d$max), c(g$min, g$max), d$ab, g$ab))
   
 }
 
+```
 
 
+The below plot shows the true response surface and overlays the design points obtained from the above procedure. The points constitute the initial space-filling design, while the numbers mark the points selected during the sequential design phase, numbered in the order that they were chosen. 
+```{r}
+image(x1_grid, x2_grid, matrix(f_grid, ncol=51), xlab="x1", ylab="x2", col=cols)
+points(X[1:N0,1], X[1:N0,2])
+text(X[(N0+1):nrow(X),1], X[(N0+1):nrow(X),2], cex = 0.75)
+```
 
-image(seq(0, 1, length=51), seq(0, 1, length=51), matrix(f_grid, ncol=51), 
-      xlab="x1", ylab="x2", col=cols)
-points(X, xlab="x1", ylab="x2", xlim=c(0,1), ylim=c(0,1))
-arrows(solns$init1, solns$init2, solns$optim1, solns$optim2, length=0.1)
-m <- which.max(solns$optim_val)
-prog <- solns$val[m]
+We also plot the GP predictive mean and predictive standard deviation surfaces to compare ot the ground-truth above.
+```{r}
+par(mfrow=c(1,2))
 
+# Plot 1: predictive mean. 
+image(x1_grid, x2_grid, matrix(gp_pred$mean, ncol=length(x1_grid)), xlab="x1", ylab="x2", col=cols, main = "Predictive Mean")
+points(X[1:N0,1], X[1:N0,2])
+text(X[(N0+1):nrow(X),1], X[(N0+1):nrow(X),2], cex = 0.75)
 
+# Plot 2: predictive standard deviation. 
+image(x1_grid, x2_grid, matrix(sqrt(gp_pred$s2), ncol=length(x1_grid)), xlab="x1", ylab="x2", col=cols, main = "Predictive SD")
+points(X[1:N0,1], X[1:N0,2])
+text(X[(N0+1):nrow(X),1], X[(N0+1):nrow(X),2], cex = 0.75)
 ```
 
 
