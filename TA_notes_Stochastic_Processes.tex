@@ -257,6 +257,31 @@ As to the question of whether this holds for all starting points, we will show t
 That is, the Monte Carlo estimate converges almost surely to the true expectation $\pi(\phi)$. Note that this statement is an analog to the law of large numbers (LLN) in the simple Monte Carlo setting, which required the 
 assumption of independence. Here, the $X_k$ are not independent, but under a few additional assumptions we are still able to establish a LLN. 
 
+\subsection{Irreducibility}
+
+\subsubsection{Finite State Space Example}
+
+\subsubsection{Defining Irreducibility in General State Spaces}
+Notice that \textit{small set} is defined with respect to a particular distribution $\mu$. For concreteness, think about this being the MCMC target distribution $\pi$. Now, recall  that $C \in \mathcal{F}$ is a small set 
+if there exists $\beta \in (0, 1)$ satisfying
+\[P(x, A) \geq \beta \pi(A), \text{ for all } x \in C, A \in \mathcal{F}\]
+I find it helpful to rearrange this as 
+\[\frac{P(x, A)}{\pi(A)} \geq \beta\]
+provided that $\pi(A) > 0$ (note that if $\pi(A) = 0$ then the inequality trivially holds). We now see that in particular, for $C$ to be a small set there cannot exist $x \in C$ such that 
+$P(x, A) = 0$ and $\pi(A) > 0$, since then the lefthand side would be $0$. This makes a lot of sense. Since $\pi(A) > 0$ then $A$ is ``important'' with respect to the target distribution, in the sense that it has non-zero 
+probability. The above definition ensures that that probability of transitioning from any point in the small set to $A$ is strictly positive. From the perspective of MCMC this is good because we want to make sure we 
+are sampling from the set $A$. If the current state of the chain is in the small set $C$, then there is a guaranteed path to visit $A$ in the next step (i.e. there is a positive probability of doing so). Note that the definition 
+of small set is actually a little stronger than this though; not only does it guarantee a non-zero transition probability, but also provides a lower bound $\beta$ on the probability, relative to $\pi(A)$. This means that if 
+$\pi(A)$ is tiny then $P(x, A)$ could potentially be quite small and still satisfy the bound, but if $\pi(A)$ is quite large the bound will force $P(x, A)$ to be larger.
+
+So the small set intuitively provides a path between $C$ and any other set $A$ with $\pi(A) > 0$. However, this is not enough to guarantee that there are no ``islands'' that the chain won't be able to reach. While there 
+are no such islands if the chain is already in $C$ what if the chain never actually reaches $C$? The definition of irreducibility removes this possibility, thus excluding cases where such islands can exist. Indeed, recall 
+that the definition of irreducibility is that for all $x \in \mathcal{X}$, there exists $k(x) \in \mathbb{N}$ such that 
+\[P^{k(x)}(x, C) > 0\]
+In words: for any current state $x$, there is a positive probability of reaching the small set $C$ in a finite number of steps $k(x)$. Note that the number of steps required to reach the small set with a certain probability might 
+depend on the current state $x$, hence the notation $k(x)$.   
+
+
 
 \subsubsection{To include:}
 \begin{itemize}
@@ -273,8 +298,6 @@ assumption of independence. Here, the $X_k$ are not independent, but under a few
 \section{Ergodic Theory for Markov Chains}
 
 
-
-
 % SDEs
 \section{Continuous Time}
 \begin{itemize}
@@ -283,8 +306,21 @@ same to move from continuous-time dynamical systems (e.g. ODEs) to continuous-ti
 \item Include discussion of random vs stochastic DEs (see Stuart)
 \end{itemize}
 
+% Resources
+\section{Resources}
+\begin{itemize}
+\item Applied Stochastic Analysis (NYU)
+https://cims.nyu.edu/~holmes/teaching/asa2019.html
+Really nice notes on Markov Chains (good notes on detailed balance) and stochastic PDEs
+\item Stochastic modeling of scientific data (Washington Stat 516)
+http://faculty.washington.edu/yenchic/18A_stat516.html
+\item Markov Chain Monte Carlo Lecture Notes (Charles Geyer)
+https://www.stat.umn.edu/geyer/f05/8931/n1998.pdf
+\item Markov Chain Monte Carlo: Theory and Practical Applications (Douc and Corff)
+Also some very nice content on geometric ergodicity, total variation norm, etc.
+https://moodle.polytechnique.fr/pluginfile.php/219891/mod_resource/content/7/poly.pdf
 
-
+\end{itemize}
 
 
 

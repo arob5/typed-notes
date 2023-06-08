@@ -388,6 +388,21 @@ It turns out that our intuitively appealing linear scoring rule $S(p, x) = p(x)$
 by inflating the probability density at the modes of their true belief $p$. In the discrete case of distributions over finitely many outcomes, the forecaster's best strategy is actually to place all of the probability mass on the outcome that 
 they think is most likely, regardless of their true beliefs. 
 
+\subsection{Logarithmic Scoring Rule}
+
+\subsection{Continuous Ranked Probability Score}
+The continuous ranked probability score (CRPS) is a popular strictly proper scoring rule that applies to continuous random variables. It is defined as the $L^2$ error between the CDF $F$ of the predictive distribution and the 
+empirical distribution function (EDF) based on the observed outcome $x$. 
+\[\text{CRPS}(F, x) = -\int_{-\infty}^{\infty} \left(F(y) - 1\{x \leq y\} \right)^2 dy \]
+As opposed to the logarithmic scoring rule, the CRPS has the advantage of being defined in terms of the CDF instead of the density, making it much more amenable to estimation via samples. It also depends on the predictive 
+distribution over all $y$, not just the predictive distribution at the value $x$. This allows the CRPS to take into account the quality of nearby predictions when assessing the forecast, which may be a desirable property. It can be 
+shown that the above integral is equivalent to 
+\[\text{CRPS}(F, x) = \frac{1}{2} \E_F \abs{X - X^\prime} - \E_F \abs{X - x}\]
+where $X, X^\prime \overset{ind}{\sim} F$. The second term is simply the mean absolute error, meaning that large errors reduce the score (note the negative sign). The first term is a measure of spread in the forecast; this term 
+will be large when the spread in the forecast is small, rewarding confident predictions. Therefore, the CRPS can be seen as balancing prediction accuracy and confidence. 
+
+Closed-form expressions for CRPS: http://cran.nexr.com/web/packages/scoringRules/vignettes/crpsformulas.html
+
 
 
 \section{TODOs:}

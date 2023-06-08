@@ -266,9 +266,78 @@ each side by $\Sigma$, yielding an expression for the posterior mean in terms of
 \Sigma &= \left[G^T \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1} \right]^{-1} \\
 \mu &= \Sigma \left[G^T \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1} \mu_0 \right]
 \end{align*}
- 
+
 \end{proof} 
 
+\subsection{Small Noise Limit}
+We now parameterize the prior on the noise $\epsilon$ as $\epsilon \sim \mathcal{N}(0, \gamma^2 \Sigma_\epsilon)$ in order to study the effect on the posterior as the noise variance 
+decreases ($\gamma \to 0$). This is the so-called \textit{small noise limit}. Under this new parameterization, the posterior moments become 
+\begin{align*}
+\Sigma &=  \left[\frac{1}{\gamma^2} G^T \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1} \right]^{-1}  = \gamma^2 \left[G^T \Sigma_{\epsilon}^{-1} G + \gamma^2 \Sigma_0^{-1} \right]^{-1} \\
+\mu &= \left[G^T \Sigma_{\epsilon}^{-1} G + \gamma^2 \Sigma_0^{-1} \right]^{-1}  \left[G^T \Sigma_{\epsilon}^{-1}y + \gamma^2 \Sigma_0^{-1} \mu_0 \right]
+\end{align*}
+
+We follow Stuart et al and consider separately the overdetermined, underdetermined, and determined cases. Before proceeding, note the important fact that 
+weak convergence of Gaussian distributions is equivalent to the convergence of their means and covariances. In particular, if the covariance matrix converges 
+to the zero matrix, then the limiting distribution is a Dirac delta centered at the limiting mean. 
+
+\subsubsection{Overdetermined Case}
+We first consider the case $N > D$. This is the common regression scenario when there are more equations than unknowns ($G$ is skinny). This means that unless $y$ happens 
+to lie in the column space of $G$ then the system $y = G\theta$ has no solution. Note that if $G$ has full column rank then the null space of $G$ is $\{0\}$. In this case,
+we know there is a unique least-squares solution, and thus we would expect the posterior $p(\theta|y)$ to converge to this distribution as $\gamma \to 0^+$. This is indeed the case. 
+
+\begin{thm}
+Suppose that $N > D$ and $\text{null}(G) = \{0\}$. Then the posterior distribution $p(\theta|y)$ of the linear Gaussian model converges weakly to $\delta_{\theta_{\text{LS}}}$, where 
+$\theta_{\text{LS}}$ is the solution to the regularized least squares problem
+\[\theta_{\text{LS}} = \text{argmin}_{\theta \in \R^D} \norm{y - G\theta}_{\Sigma_0} \]
+\end{thm}
+
+\begin{proof} 
+We show that $\Sigma \to 0$ and $\mu \to \theta_{\text{LS}}$. In light of the above comments on convergence of Gaussians, this implies $p(\theta|y) \to \delta_{\theta_{\text{LS}}}$. 
+To show $\Sigma \to 0$, we prove that the eigenvalues of $\Sigma$ all converge to $0$. To this end, we first show that $\frac{1}{\gamma^2} G^T \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1}$
+is positive definite. Since $\Sigma_0^{-1}$ is positive definite and $\gamma > 0$, it suffices to show that $G^T \Sigma_{\epsilon}^{-1} G$ is positive definite. To this end let $\theta \neq 0$
+and consider 
+\[\langle G^T \Sigma_{\epsilon}^{-1}G \theta, \theta \rangle = \langle \Sigma_{\epsilon}^{-1/2}G \theta, \Sigma_{\epsilon}^{-1/2}G \theta \rangle = \norm{\Sigma_{\epsilon}^{-1/2}G \theta}_2^2 > 0 \]
+The inequality follows from the assumption $\text{null}(G) = \{0\}$, which implies $G\theta \neq 0$, and the fact that $\Sigma_{\epsilon}^{-1/2}$ is positive definite, which implies 
+$\Sigma_{\epsilon}^{-1/2}\left(G\theta \right) \neq 0$. This verifies that $\frac{1}{\gamma^2} G^T \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1}$ is positive definite and hence has positive 
+eigenvalues. Note that the eigenvalues converge to $+\infty$ as $\gamma \to 0^+$. Thus, the eigenvalues of $\Sigma = \left[\frac{1}{\gamma^2} G^T \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1}\right]^{-1}$
+converge to $0$ as $\gamma \to 0^+$. This verifies $\Sigma \to 0$. 
+
+For the convergence of the mean, consider 
+\begin{align*}
+\mu &= \Sigma \left[\frac{1}{\gamma^2} G^T \Sigma_{\epsilon}^{-1} y + \Sigma_0^{-1} \mu_0 \right] \\
+       &= \frac{1}{\gamma^2} \Sigma G^T \Sigma_{\epsilon}^{-1}y + \Sigma \Sigma_0^{-1} \mu_0 \\
+       &= \left[G^T \Sigma_{\epsilon}^{-1} G + \gamma^2 \Sigma_0^{-1}\right]^{-1} G^T \Sigma_{\epsilon}^{-1} y + \Sigma \Sigma_0^{-1} \mu_0 
+\end{align*}
+As $\gamma \to 0^+$ we see that the second term will vanish since $\Sigma \to 0$. Moreover, $\gamma^2 \Sigma_0^{-1} \to 0$. Therefore, 
+\[\lim_{\gamma \to 0^+} \mu = \left(G^T \Sigma_{\epsilon}^{-1} G \right)^{-1} G^T \Sigma_{\epsilon}^{-1} y\]
+We recognize the limit as the solution to the regularized least-squares problem $\theta_{\text{LS}}$. 
+\end{proof}
+The takeaway from this result is that in the overdetermined case, if the quantity of noise is very small then the Bayesian solution of the inverse problem is very similar to the 
+frequentist MLE approach. One can use this result to show that the posterior is consistent in the small-noise limit; in particular, the posterior concentrates around the true
+$\theta$ as $\gamma \to 0^+$ (see Stuart et al, theorem 2.7). 
+
+\subsubsection{Determined Case}
+In the determined case $D = N$, $G$ is a square matrix. If we continue with the assumption $\text{null}(G) = \{0\}$ then $G$ is invertible and the system $y = G\theta$ has 
+a unique solution given by $\theta^* = G^{-1}y$. In the small noise limit, we would hope that the posterior collapses on this solution; that is, 
+$p(\theta|y) \overset{w}{\to} \delta_{G^{-1}y}$. This is indeed the case. 
+
+\begin{thm}
+Suppose that $D = N$ and $\text{null}(G) = \{0\}$. Then the posterior distribution of the linear Gaussian model satisfies
+\[p(\theta|y) \overset{w}{\to} \delta_{G^{-1}y} \text{ as } \gamma \to 0^+\]
+\end{thm}
+
+\begin{proof}
+Under the same exact reasoning as in the overdetermined case, $\Sigma \to 0$ as $\gamma \to 0^+$ (since this just relied on $G$ having a trivial null space). In fact, the 
+same reasoning also holds for the mean convergence, so 
+\[\lim_{\gamma \to 0^+} \mu = \left(G^T \Sigma_{\epsilon}^{-1} G \right)^{-1} G^T \Sigma_{\epsilon}^{-1} y\]
+But in this case $G$ is invertible so 
+\[\left(G^T \Sigma_{\epsilon}^{-1} G \right)^{-1} G^T \Sigma_{\epsilon}^{-1} y = G^{-1} \Sigma_{\epsilon} \left(G^{T}\right)^{-1} G^T \Sigma_{\epsilon}^{-1} y = G^{-1}y\]
+which proves the result. 
+\end{proof}
+Therefore, the prior again plays no role in the small-noise limit as in the overdetermined case. Similarly, the posterior can be shown to contract on the true value in this case. 
+
+\subsubsection{Underdetermined Case}
 
 \section{Surrogate Models}
 TODO: consider example in Teckentrup paper where forward model $f$ is emulated and results in approximate inverse problem 
