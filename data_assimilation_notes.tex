@@ -1,0 +1,157 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Data Assimilation: Filtering and Smoothing}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% General Framework
+\section{The General Framework}
+
+\subsection{The Stochastic Dynamics Model}
+We consider the following stochastic dynamics model. 
+\begin{align}
+&x_{t + 1} = g(x_t) + \xi_t, && \xi_t \overset{iid}{\sim} \mathcal{N}(0, \Sigma_x) \label{stochastic_dynamics_model} \\
+&y_{t + 1} = h(x_{t+1}) + \epsilon_{t+1}, && \epsilon_t \overset{iid}{\sim} \mathcal{N}(0, \Sigma_\epsilon) \nonumber 
+\end{align}
+The first line describes a stochastic Markov dynamical system, while the second defines an observation model. Moreover, we assume a random initial condition 
+\[x_0 \sim \mathcal{N}(\mu_0, \Sigma_0)\]
+and assume independence $x_0 \perp \{\xi_t\} \perp \{\epsilon_t\}$. We suppose the states $x_t$ and observations $y_t$ are $P$ and $N$-dimensional vectors, respectively. 
+In large-scale settings, the case $D > N$ is quite common, as the state vector may be derived, for example, from a fine discretization of space. 
+
+\subsection{Filtering and Smoothing}
+I will follow Stuart et al's notation and denote $Y_t := \{y_1, y_2, \dots, y_t\}$. Given this notation, the \textit{filtering problem} is concerned with characterizing the following distribution:
+\[\pi_{t}(x_t) := p(x_t|Y_t)\]
+That is, the distribution of the current state given observations up through the current time. The primary goal of the filtering problem is to iteratively update the filtering distribution $\pi_t$ in 
+an efficient manner as new data arrives. When a new observation $y_{t + 1}$ arrives, we can think of this update as consisting of two steps. 
+\begin{enumerate}
+\item \textbf{Prediction:} Iterate the dynamical model one time step forward to obtain the predictive distribution $\hat{\pi}_{t+1}(x_{t+1}) := p(x_{t+1}|Y_t)$. We can think of this as applying 
+an operator $\mathcal{P}$ which transforms the current filtering distribution into the predictive distribution: $\hat{\pi}_{t+1} = \mathcal{P}\pi_t$. 
+\item \textbf{Analysis:} Incorporate the new observation $y_{t+1}$ via Bayes' rule to obtain the new filtering distribution $\pi_{t+1}(x_{t+1})$. This can be thought of again as 
+applying a map $\mathcal{A}_t$ (which in this case depends on $t$, since it depends on the data), so that $\pi_{t + 1} = \mathcal{A}_t \hat{\pi}_{t+1}$. 
+\end{enumerate}
+Putting these together, the main goal of filtering is to characterize the updated distribution 
+\[\pi_{t + 1} = \mathcal{A}_t \mathcal{P} \pi_t \]
+
+We now derive the form taken by the two operators. 
+
+\bigskip
+\noindent
+\textbf{Prediction.} The prediction step simply means iterating the stochastic dynamics forward. Thus, obtaining $\hat{\pi}_{t+1}(x_{t+1})$ requires marginalizing 
+over the current state $x_t$, weighted by the current filtering distribution $\pi_t(x_t)$. 
+\begin{align*}
+\hat{\pi}_{t+1}(x_{t+1}) &= p(x_{t+1}|Y_t) \\
+				   &= \int p(x_t, x_{t+1}|Y_t) dx_t \\ 
+				   &= \int p(x_{t+1}|x_t, Y_t) p(x_t|Y_t) dx_t \\
+				   &= \int p(x_{t+1}|x_t) p(x_t|Y_t) dx_t \\
+				   &= \int \mathcal{N}_P(x_{t+1}|g(x_t), \Sigma_g) \pi_t(x_t) dx_t
+\end{align*}
+Note that the fact that we need only integrate over the previous state $x_t$ depends completely on the Markov assumption in the dynamics model. Note also that this 
+step is independent of $t$ due to the assumption that the dynamical model is time-homogenous. 
+
+\bigskip
+\noindent
+\textbf{Analysis.} The analysis step entails combining the predictive distribution $\hat{\pi}_{t+1}(x_{t+1})$ with the observed data $y_{t+1}$. Hence, this step 
+is simply an application of Bayes' rule. The analysis operator $\mathcal{A}_t$ is thus a likelihood operator, as the predictive distribution is simply weighted by 
+the likelihood $p(y_{t+1}|x_{t+1})$. 
+\begin{align*}
+\pi_{t+1}(x_{t+1}) &= p(x_{t+1}|Y_{t+1}) \\
+			   &= p(x_{t+1}|Y_t, y_{t+1}) \\
+			   &= \frac{p(y_{t+1}|x_{t+1}, Y_t)p(x_{t+1}|Y_t)}{p(y_{t+1}|Y_t)} \\
+			   &= \frac{p(y_{t+1}|x_{t+1})p(x_{t+1}|Y_t)}{p(y_{t+1}|Y_t)} \\
+			   &= \frac{\mathcal{N}_N(y_{t+1}|h(x_{t+1}), \Sigma_{\epsilon}) \hat{\pi}_{t+1}(x_{t+1})}{p(y_{t+1}|Y_t)}
+\end{align*}
+Thus, $\mathcal{A}_t$ simply represents multiplication of $\hat{\pi}_{t+1}(x_{t+1})$ by the likelihood $\mathcal{N}_N(y_{t+1}|h(x_{t+1}), \Sigma_{\epsilon})$
+and then normalization in order to result in a valid probability distribution. 
+
+% The Linear Gaussian Model 
+\section{Linear Gaussian Model}
+The linear Gaussian model is the special case of the stochastic dynamics model \ref{stochastic_dynamics_model} where the one-step operator is linear 
+\[g(x_t) = Gx_t, \text{ where } G \in \R^{P \times P}\]
+as well as the observation operator 
+\[h(x_t) = Hx_t, \text{ where } H \in \R^{N \times P}\]
+
+\subsection{The Kalman Filter}
+Under the linear Gaussian assumptions here, the prediction $\mathcal{P}$ and analysis $\mathcal{A}_t$ operators preserve Gaussianity. This implies that 
+all of the predictive and filtering distributions are Gaussian. The Kalman filter is simply a recursive update that yields the updated mean and covariance matrix 
+of the filtering distribution when new data arrives. In particular, note that this means that in the linear Gaussian setting the filtering distributions are available in 
+closed-form. 
+
+\begin{thm}
+Under the linear Gaussian assumption, the filtering distributions $\{\pi_t\}_{t \in \mathbb{N}}$ and predictive distributions $\{\hat{\pi}_{t}\}_{t \in \mathbb{N}}$ are all 
+Gaussian. 
+\begin{align*}
+\hat{\pi}_{t+1}(x_{t+1}) &= p(x_{t+1}|Y_{t}) = \mathcal{N}_P(x_{t+1}|\hat{\mu}_{t+1}, \hat{\Sigma}_{t+1}) \\
+\pi_{t+1}(x_{t+1}) &= p(x_{t+1}|Y_{t+1}) = \mathcal{N}_P(x_{t+1}|\mu_{t+1}, \Sigma_{t+1})
+\end{align*}
+Moreover, the means and covariance matrices of these formulas satisfy the following recursions. 
+\begin{align*}
+\hat{\mu}_{t + 1} &= G \mu_{t} \\
+\hat{\Sigma}_{t + 1} &= G \Sigma_t G^\top + \Sigma_g \\
+\Sigma_{t + 1} &= \left[\hat{\Sigma}^{-1}_{t + 1} + H^\top \Sigma_{\epsilon} H \right]^{-1} \\
+\mu_{t + 1} &= \Sigma_{t + 1} \left[\hat{\Sigma}^{-1}_{t + 1}G \mu_t + H^\top \Sigma_{\epsilon}^{-1} y_{t+1} \right] 
+\end{align*}
+\end{thm}
+
+
+\end{document} 
+
+
+

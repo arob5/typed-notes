@@ -340,8 +340,14 @@ Therefore, the prior again plays no role in the small-noise limit as in the over
 \subsubsection{Underdetermined Case}
 In the underdetermined case $D > N$, $G$ is a ``fat'' matrix. In this setting, $G$ has a non-trivial null space, so if there exists a solution to the system $G\theta = y$ then there 
 is entire subspace of solutions. In this case, once a particular solution is found the subspace can be obtained by adding vectors in the null space to the particular solution. 
-We suppose that $G$ has full row rank, which implies that the columns span the co-domain so that there is indeed a subspace of solutions.
-It is perhaps not as clear what will happen in the small-noise limit in this case. It turns out that in this case the prior plays a role in the limit. This makes a certain amount of sense; 
+We suppose that $G$ has full row rank, which implies that the columns span the co-domain so that there is indeed a subspace of solutions. It can be shown that 
+\[\theta_{\text{LN}} := G^T (GG^T)^{-1}y\]
+is the solution with minimal norm (i.e. the least-norm solution). The matrix $G^T(G G^T)^{-1}$ is a special \textit{right inverse} of $G$ known as the \textit{Moore-Penrose pseudoinverse}. 
+Thus, every solution to the system $G\theta = y$ can be written in the form 
+\[\theta^* = \theta_{\text{LN}} + \theta_{\text{null}}, \text{ where } \theta_{\text{null}} \in \text{null}(G)\]
+
+We now return to the statistical setting. It is perhaps not as clear what will happen in the small-noise limit in this case. 
+It turns out that in this case the prior plays a role in the limit. This makes a certain amount of sense; 
 there is a subspace of solutions in the absence of noise, and the prior will favor some solutions in this subspace more than others. 
 
 The QR decomposition will prove very useful in studying this case. The QR decomposition 
@@ -364,6 +370,13 @@ Now we can define $L := R^{\top}$, $L_1 := R_1^{\top}$ so that
 \[
 G = L Q^{\top} = \begin{pmatrix} L_1 & 0 \end{pmatrix}  \begin{pmatrix} Q_1^{\top} \\ Q_2^{\top} \end{pmatrix} = L_1 Q^{\top}_1 
 \]
+The QR decomposition yields a nice simple representation of the Moore-Penrose pseudoinverse. Indeed, 
+\begin{align*}
+\theta_{\text{LN}} = G^T \left(G G^T \right)^{-1}y &= Q_1 L_1^T \left(L_1 Q_1^{\top} Q_1 L_1^{\top} \right)^{-1} y \\
+									 &= Q_1 L_1^T \left(L_1 I_N L_1^{\top} \right)^{-1} y \\
+									 &= Q_1 L_1^{\top} \left(L_1^{\top} \right)^{-1} L_1^{-1} y \\
+									 &= Q_1 L_1^{-1} y
+\end{align*}
 With this background established, we proceed with the main result. 
 
 \begin{thm}
@@ -375,8 +388,14 @@ where
 \Sigma^+ &= Q_2 \left(Q_2^\top \Sigma_0^{-1} Q_2 \right)^{-1} Q_2^\top
 \end{align*}
 \end{thm}
-Before proceeding to the proof, let's try to understand this result. 
-
+Before proceeding to the proof, let's try to understand this result. Note that the first term in the expression for $\mu^+$ looks a lot like the least-norm solution 
+from the non-statistical setting: $\theta_{\text{LN}} = Q_1 L_1^{-1} y$. The prior covariance $\Sigma_0$ complicates the expression but it certainly bears a close 
+resemblance to the least-norm solution. The second term is the analog of $\theta_{\text{null}}$ discussed above. An important observation is that the limiting posterior 
+covariance $\Sigma^+$ is not the zero matrix as in the previous cases; it depends on the prior covariance $\Sigma_0$ and the forward model $G$. In addition, this matrix 
+is not full rank. Indeed, 
+\[\text{rank}\left(\Sigma^+\right) = \text{rank}\left(Q_2 \left(Q_2^\top \Sigma_0^{-1} Q_2 \right)^{-1} Q_2^\top \right) = \text{rank}\left(Q_2 \right) = D - N < D\]
+This implies that the posterior collapses on a subspace of dimension $N$, but uncertainty in the posterior remains in a subspace of dimension $D - N$; the 
+precise form of this uncertainty depends on the prior. For the proof of the above theorem, see Stuart et al theorem 2.11. 
 
 
 \section{Surrogate Models}
