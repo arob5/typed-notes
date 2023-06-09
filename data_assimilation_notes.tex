@@ -96,13 +96,13 @@ We now derive the form taken by the two operators.
 \noindent
 \textbf{Prediction.} The prediction step simply means iterating the stochastic dynamics forward. Thus, obtaining $\hat{\pi}_{t+1}(x_{t+1})$ requires marginalizing 
 over the current state $x_t$, weighted by the current filtering distribution $\pi_t(x_t)$. 
-\begin{align*}
-\hat{\pi}_{t+1}(x_{t+1}) &= p(x_{t+1}|Y_t) \\
-				   &= \int p(x_t, x_{t+1}|Y_t) dx_t \\ 
-				   &= \int p(x_{t+1}|x_t, Y_t) p(x_t|Y_t) dx_t \\
-				   &= \int p(x_{t+1}|x_t) p(x_t|Y_t) dx_t \\
-				   &= \int \mathcal{N}_P(x_{t+1}|g(x_t), \Sigma_g) \pi_t(x_t) dx_t
-\end{align*}
+\begin{align}
+\hat{\pi}_{t+1}(x_{t+1}) &= p(x_{t+1}|Y_t) \nonumber \\
+				   &= \int p(x_t, x_{t+1}|Y_t) dx_t \nonumber \\ 
+				   &= \int p(x_{t+1}|x_t, Y_t) p(x_t|Y_t) dx_t \nonumber \\
+				   &= \int p(x_{t+1}|x_t) p(x_t|Y_t) dx_t \nonumber \\
+				   &= \int \mathcal{N}_P(x_{t+1}|g(x_t), \Sigma_g) \pi_t(x_t) dx_t \label{prediction_operator}
+\end{align}
 Note that the fact that we need only integrate over the previous state $x_t$ depends completely on the Markov assumption in the dynamics model. Note also that this 
 step is independent of $t$ due to the assumption that the dynamical model is time-homogenous. 
 
@@ -149,6 +149,37 @@ Moreover, the means and covariance matrices of these formulas satisfy the follow
 \mu_{t + 1} &= \Sigma_{t + 1} \left[\hat{\Sigma}^{-1}_{t + 1}G \mu_t + H^\top \Sigma_{\epsilon}^{-1} y_{t+1} \right] 
 \end{align*}
 \end{thm}
+
+\begin{proof} 
+We break the proof into the prediction and analysis steps. \\
+
+\noindent
+\textbf{Prediction}: For an inductive proof, suppose that $\pi_t = \mathcal{N}_P(\mu_t, \Sigma_t)$. We aim to show that 
+$\hat{\pi}_{t + 1} = \mathcal{N}_P(\hat{\mu}_{t + 1}, \hat{\Sigma}_{t + 1})$ and find explicit formulas for the mean and covariance 
+matrix in terms of $\mu_t$ and $\Sigma_t$. Recall from \ref{prediction_operator} that 
+\[\hat{\pi}_{t + 1}(x_{t+1}) = \int \mathcal{N}_P(x_{t+1}|Gx_t, \Sigma_g) \pi_t(x_t) dx_t = \int \mathcal{N}_P(x_{t+1}|Gx_t, \Sigma_g) \mathcal{N}_P(x_{t}|\mu_t, \Sigma_t) dx_t \]
+One way to approach this is to simply attempt to evaluate the integral. This would work, but is not the most efficient way. A simpler option 
+is to consider that the above integral is actually the normalizing constant for the posterior $p(x_{t+1}|x_t)$ of the following linear Gaussian model 
+\begin{align*}
+x_{t + 1} &= Gx_t + \xi_t \\
+x_t &\sim \mathcal{N}_P(\mu_t, \Sigma_t) \\
+\xi_t &\sim \mathcal{N}_N(0, \Sigma_\epsilon)
+\end{align*}
+where $x_t$ is viewed as the ``parameter'' in the model and $x_{t+1}$ the ``data''. The normalizing constant (model evidence) here is 
+$p(x_{t + 1}) = \hat{\pi}_{t + 1}(x_{t+1})$. But we see from the above model that $x_{t + 1}$ is simply a linear function of the Gaussian distributed 
+random variables $x_t$, $\xi_t$ and hence $\hat{\pi}_{t + 1}(x_{t+1})$ is Gaussian $\mathcal{N}_P(\hat{\mu}_{t + 1}, \hat{\Sigma}_{t + 1})$. 
+Moreover, the mean and covariance can be computed as 
+\begin{align*}
+\hat{\mu}_{t + 1} &= \E\left[Gx_t + \xi_t\right] = G\E[x_t] + 0 = G \mu_t \\
+\hat{\Sigma}_{t + 1} &= \Cov(Gx_t + \xi_t) = G \Cov(x_t) G^T + \Cov(\xi_t) = G \Sigma_t G^T + \Sigma_{g}
+\end{align*}
+which uses the independence of $x_t$ and $\xi_t$. This verifies the characterization of the predictive distributions $\{\hat{\pi}_t\}_{t \in \mathbb{N}}$. 
+
+\bigskip
+\noindent
+\textbf{Analysis}:
+
+\end{proof}
 
 
 \end{document} 
