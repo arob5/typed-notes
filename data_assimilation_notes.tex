@@ -111,13 +111,13 @@ step is independent of $t$ due to the assumption that the dynamical model is tim
 \textbf{Analysis.} The analysis step entails combining the predictive distribution $\hat{\pi}_{t+1}(x_{t+1})$ with the observed data $y_{t+1}$. Hence, this step 
 is simply an application of Bayes' rule. The analysis operator $\mathcal{A}_t$ is thus a likelihood operator, as the predictive distribution is simply weighted by 
 the likelihood $p(y_{t+1}|x_{t+1})$. 
-\begin{align*}
-\pi_{t+1}(x_{t+1}) &= p(x_{t+1}|Y_{t+1}) \\
-			   &= p(x_{t+1}|Y_t, y_{t+1}) \\
-			   &= \frac{p(y_{t+1}|x_{t+1}, Y_t)p(x_{t+1}|Y_t)}{p(y_{t+1}|Y_t)} \\
-			   &= \frac{p(y_{t+1}|x_{t+1})p(x_{t+1}|Y_t)}{p(y_{t+1}|Y_t)} \\
-			   &= \frac{\mathcal{N}_N(y_{t+1}|h(x_{t+1}), \Sigma_{\epsilon}) \hat{\pi}_{t+1}(x_{t+1})}{p(y_{t+1}|Y_t)}
-\end{align*}
+\begin{align}
+\pi_{t+1}(x_{t+1}) &= p(x_{t+1}|Y_{t+1}) \nonumber \\
+			   &= p(x_{t+1}|Y_t, y_{t+1}) \nonumber \\
+			   &= \frac{p(y_{t+1}|x_{t+1}, Y_t)p(x_{t+1}|Y_t)}{p(y_{t+1}|Y_t)} \nonumber \\
+			   &= \frac{p(y_{t+1}|x_{t+1})p(x_{t+1}|Y_t)}{p(y_{t+1}|Y_t)} \nonumber \\
+			   &= \frac{\mathcal{N}_N(y_{t+1}|h(x_{t+1}), \Sigma_{\epsilon}) \hat{\pi}_{t+1}(x_{t+1})}{p(y_{t+1}|Y_t)} \label{analysis_operator}
+\end{align}
 Thus, $\mathcal{A}_t$ simply represents multiplication of $\hat{\pi}_{t+1}(x_{t+1})$ by the likelihood $\mathcal{N}_N(y_{t+1}|h(x_{t+1}), \Sigma_{\epsilon})$
 and then normalization in order to result in a valid probability distribution. 
 
@@ -145,8 +145,8 @@ Moreover, the means and covariance matrices of these formulas satisfy the follow
 \begin{align*}
 \hat{\mu}_{t + 1} &= G \mu_{t} \\
 \hat{\Sigma}_{t + 1} &= G \Sigma_t G^\top + \Sigma_g \\
-\Sigma_{t + 1} &= \left[\hat{\Sigma}^{-1}_{t + 1} + H^\top \Sigma_{\epsilon} H \right]^{-1} \\
-\mu_{t + 1} &= \Sigma_{t + 1} \left[\hat{\Sigma}^{-1}_{t + 1}G \mu_t + H^\top \Sigma_{\epsilon}^{-1} y_{t+1} \right] 
+\Sigma_{t + 1} &= \left[\hat{\Sigma}^{-1}_{t + 1} + H^\top \Sigma_{\epsilon}^{-1} H \right]^{-1} \\
+\mu_{t + 1} &= \Sigma_{t + 1} \left[\hat{\Sigma}^{-1}_{t + 1}\hat{\mu}_{t + 1} + H^\top \Sigma_{\epsilon}^{-1} y_{t+1} \right] 
 \end{align*}
 \end{thm}
 
@@ -177,7 +177,48 @@ which uses the independence of $x_t$ and $\xi_t$. This verifies the characteriza
 
 \bigskip
 \noindent
-\textbf{Analysis}:
+\textbf{Analysis}: Now, given that $\hat{\pi}_{t + 1} = \mathcal{N}_P(\hat{\mu}_{t + 1}, \hat{\Sigma}_{t + 1})$ we seek to show that 
+$\pi_{t + 1} = \mathcal{N}_P(\mu_{t + 1}, \Sigma_{t + 1})$ and verify the recursive formulas for the mean and covariance. Recall from 
+\ref{analysis_operator} that the filtering distribution $\pi_{t + 1}$ is obtained from the predictive distribution $\hat{\pi}_{t + 1}$ via 
+multiplication by the likelihood. 
+\begin{align*}
+\pi_{t + 1}(x_{t + 1}) &\propto p(y_{t + 1}|x_{t + 1})\hat{\pi}_{t + 1}(x_{t+1}) \\
+			       &= \mathcal{N}_N(y_{t + 1}|H x_{t+1}, \Sigma_\epsilon) \mathcal{N}_P(x_{t + 1}|\hat{\mu}_{t + 1}, \hat{\Sigma}_{t + 1})
+\end{align*}
+We can again view this as a linear Gaussian inverse problem. In particular $\pi_{t + 1}(x_{t + 1})$ is the posterior distribution $p(x_{t+1}|y_{t+1})$
+of the following linear Gaussian model. 
+\begin{align*}
+y_{t + 1} &= Hx_{t + 1} + \epsilon \\
+x_{t + 1} &\sim \mathcal{N}_{P}(\hat{\mu}_{t+1}, \hat{\Sigma}_{t+1}) \\
+\epsilon &\sim \mathcal{N}_N(0, \Sigma_\epsilon)
+\end{align*} 
+Therefore, we immediately have that $\pi_{t + 1}(x_{t + 1})$ is Gaussian $\mathcal{N}_P(\mu_{t + 1}, \Sigma_{t + 1})$. The mean and covariance could 
+be derived by simply applying the well-known formulas for the posterior distribution in the Gaussian linear model. However, for the sake of completeness 
+I derive them from scratch here. By combining the exponentials in the two Gaussians being multiplied, we obtain 
+\begin{align*}
+\pi_{t + 1}(x_{t + 1}) \propto \exp\left(-\frac{1}{2} (y_{t+1} - Hx_{t+1})^T \Sigma_\epsilon^{-1} (y_{t+1} - Hx_{t+1}) - \frac{1}{2} (x_{t+1} - \hat{\mu}_{t+1})^T \hat{\Sigma}^{-1}_{t+1} (x_{t+1} - \hat{\mu}_{t+1}) ) \right)
+\end{align*}
+Since $\pi_{t + 1} = \mathcal{N}_P(\mu_{t + 1}, \Sigma_{t + 1})$ then it must be of the form 
+\[\pi_{t + 1}(x_{t + 1}) \propto \exp\left(-\frac{1}{2} (x_{t + 1} - \mu_{t + 1})^T \Sigma_{t+1}^{-1} (x_{t + 1} - \mu_{t + 1}) \right) \]
+Thus, to obtain $\mu_{t + 1}$ and $\Sigma_{t + 1}$ we set the two above expressions for $\pi_{t + 1}(x_{t+1})$ equal and match up the terms, dropping 
+terms without dependence on $x_{t+1}$ along the way. Expanding the two expressions yields
+\begin{align*}
+\pi_{t + 1}(x_{t + 1}) &\propto \exp\left(-\frac{1}{2} x_{t+1}^T\left[H^\top \Sigma_{\epsilon}^{-1}H + \hat{\Sigma}_{t+1}^{-1} \right] x_{t+1} + x_{t+1}^T \left[H^\top \Sigma_{\epsilon}^{-1}y_{t+1} + \hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1} \right] \right)
+\end{align*}
+and 
+\begin{align*}
+\pi_{t + 1}(x_{t + 1}) &\propto \exp\left(-\frac{1}{2} x_{t + 1}^\top \Sigma_{t+1}^{-1} x_{t+1} + x_{t+1}^\top \Sigma_{t+1}^{-1} \mu_{t+1} \right)
+\end{align*}
+respectively. Equating the coefficients on the quadratic and linear terms gives
+\begin{align*}
+\Sigma_{t + 1}^{-1} &= \hat{\Sigma}_{t+1}^{-1} + H^T \Sigma_{\epsilon}^{-1} H \\
+\Sigma_{t+1}^{-1} \mu_{t+1} &= H^\top \Sigma_{\epsilon}^{-1}y_{t+1} + \hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1}
+\end{align*}
+which then implies
+\begin{align*}
+\Sigma_{t+1} &= \left[\hat{\Sigma}_{t+1}^{-1} + H^T \Sigma_{\epsilon}^{-1} H \right]^{-1} \\
+\mu_{t + 1} &= \Sigma_{t+1} \left[\hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1} + H^T \Sigma_{\epsilon}^{-1}y_{t+1} \right]
+\end{align*}
 
 \end{proof}
 
