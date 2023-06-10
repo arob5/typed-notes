@@ -73,7 +73,8 @@ We consider the following stochastic dynamics model.
 \end{align}
 The first line describes a stochastic Markov dynamical system, while the second defines an observation model. Moreover, we assume a random initial condition 
 \[x_0 \sim \mathcal{N}(\mu_0, \Sigma_0)\]
-and assume independence $x_0 \perp \{\xi_t\} \perp \{\epsilon_t\}$. We suppose the states $x_t$ and observations $y_t$ are $P$ and $N$-dimensional vectors, respectively. 
+where $\Sigma_0$ is positive definite and assume independence $x_0 \perp \{\xi_t\} \perp \{\epsilon_t\}$. 
+We suppose the states $x_t$ and observations $y_t$ are $P$ and $N$-dimensional vectors, respectively. 
 In large-scale settings, the case $D > N$ is quite common, as the state vector may be derived, for example, from a fine discretization of space. 
 
 \subsection{Filtering and Smoothing}
@@ -219,8 +220,51 @@ which then implies
 \Sigma_{t+1} &= \left[\hat{\Sigma}_{t+1}^{-1} + H^T \Sigma_{\epsilon}^{-1} H \right]^{-1} \\
 \mu_{t + 1} &= \Sigma_{t+1} \left[\hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1} + H^T \Sigma_{\epsilon}^{-1}y_{t+1} \right]
 \end{align*}
-
 \end{proof}
+I consider some initial observations about the Kalman update formulas. The covariance update only depends on the forward model, 
+observation operator, and observation covariance, and \textit{not} on the observed data. This is analogous to the result that the 
+posterior covariance of the linear Gaussian model does not depend on the observed data. We also notice that the update formulae 
+for the mean are affine in both the prediction and analysis steps. The update formula for the covariance is affine in the prediction 
+step, but non-linear in the analysis step due to the inverse. The update formula for the precision matrix $\Sigma_{t+1}^{-1}$, however, 
+is affine. Also note that the update for $\Sigma_{t+1}$ requires the computation of the inverse of a $P \times P$ matrix. If the number of 
+states $P$ is very large, this can prove computationally intractable due to the $O(P^3)$ scaling. A more computationally efficient implementation 
+is discussed later in this section, and then next section discusses the ensemble Kalman filter, which can provide a more scalable sample-based 
+approximation to the Kalman update. 
+
+The next result establishes that the positive definiteness of the covariance of the filtering distribution is preserved by the Kalman updates. 
+
+\begin{lemma} 
+The covariances $\hat{\Sigma}_t$ and $\Sigma_t$ are positive definite for all $t = 0, 1, 2, \dots$. 
+\end{lemma}
+
+\begin{proof}
+By assumption, $\Sigma_0$ is positive definite. Proceeding inductively, suppose that $\Sigma_t$ is positive definite. We aim to show that $\hat{\Sigma}_{t+1}$
+and $\Sigma_{t + 1}$ are also positive definite. I will use the fact that the inverse of a positive definite matrix is positive definite. Let $0 \neq x \in \R^P$ 
+Beginning with $\hat{\Sigma}_{t+1}$, we have 
+\begin{align*}
+x^T \hat{\Sigma}_{t+1} x &= x^T \left[G \Sigma_t G^T + \Sigma_g \right] x \\
+				      &= x^T G \Sigma_t G^T x + x^T \Sigma_g x \\
+				      &= \norm{\Sigma_t^{1/2}G^\top x}_2^2 + x^\top \Sigma_g x \\
+				      &\geq x^\top \Sigma_g x \\
+				      &> 0
+\end{align*}
+where the last line uses the assumption that $\Sigma_g$ is positive definite. Continuing with $\Sigma_{t+1}$, I will show that $\Sigma^{-1}_{t+1}$
+is positive definite definite, which is sufficient to show that $\Sigma_{t+1}$ is positive definite as well. 
+\begin{align*}
+x^T \Sigma_{t + 1}^{-1} x &= x^T \left[\hat{\Sigma}^{-1}_{t+1} + H^T \Sigma_\epsilon^{-1}H \right] x \\
+				       &= x^T \hat{\Sigma}^{-1}_{t+1} x + x^T H^T \Sigma_\epsilon^{-1}H x \\
+				       &= x^T \hat{\Sigma}^{-1}_{t+1} x + \norm{\Sigma_\epsilon^{-1/2} H x}_2^2 \\
+				       &\geq x^T \hat{\Sigma}^{-1}_{t+1} x \\
+				       &> 0
+\end{align*}
+where the last step uses the above result that $\hat{\Sigma}^{-1}_{t+1}$ is positive definite. This concludes the proof. 
+\end{proof}
+
+\subsubsection{Computational Considerations}
+It turns out that the $O(P^3)$ matrix inversion discussed above can be avoided, and replaced by an $O(N^3)$ inversion. This can be quite advantageous 
+when the dimension of the state space is much larger than the dimension of the observed data. The alternate form of the update can be derived via an 
+application of the Woodbury matrix identity. 
+
 
 
 \end{document} 
