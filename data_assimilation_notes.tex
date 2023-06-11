@@ -135,7 +135,7 @@ all of the predictive and filtering distributions are Gaussian. The Kalman filte
 of the filtering distribution when new data arrives. In particular, note that this means that in the linear Gaussian setting the filtering distributions are available in 
 closed-form. 
 
-\begin{thm}
+\begin{thm} \label{Kalman_Filter}
 Under the linear Gaussian assumption, the filtering distributions $\{\pi_t\}_{t \in \mathbb{N}}$ and predictive distributions $\{\hat{\pi}_{t}\}_{t \in \mathbb{N}}$ are all 
 Gaussian. 
 \begin{align*}
@@ -172,7 +172,7 @@ random variables $x_t$, $\xi_t$ and hence $\hat{\pi}_{t + 1}(x_{t+1})$ is Gaussi
 Moreover, the mean and covariance can be computed as 
 \begin{align*}
 \hat{\mu}_{t + 1} &= \E\left[Gx_t + \xi_t\right] = G\E[x_t] + 0 = G \mu_t \\
-\hat{\Sigma}_{t + 1} &= \Cov(Gx_t + \xi_t) = G \Cov(x_t) G^T + \Cov(\xi_t) = G \Sigma_t G^T + \Sigma_{g}
+\hat{\Sigma}_{t + 1} &= \Cov(Gx_t + \xi_t) = G \Cov(x_t) G^{\top} + \Cov(\xi_t) = G \Sigma_t G^{\top} + \Sigma_{g}
 \end{align*}
 which uses the independence of $x_t$ and $\xi_t$. This verifies the characterization of the predictive distributions $\{\hat{\pi}_t\}_{t \in \mathbb{N}}$. 
 
@@ -197,14 +197,14 @@ Therefore, we immediately have that $\pi_{t + 1}(x_{t + 1})$ is Gaussian $\mathc
 be derived by simply applying the well-known formulas for the posterior distribution in the Gaussian linear model. However, for the sake of completeness 
 I derive them from scratch here. By combining the exponentials in the two Gaussians being multiplied, we obtain 
 \begin{align*}
-\pi_{t + 1}(x_{t + 1}) \propto \exp\left(-\frac{1}{2} (y_{t+1} - Hx_{t+1})^T \Sigma_\epsilon^{-1} (y_{t+1} - Hx_{t+1}) - \frac{1}{2} (x_{t+1} - \hat{\mu}_{t+1})^T \hat{\Sigma}^{-1}_{t+1} (x_{t+1} - \hat{\mu}_{t+1}) ) \right)
+\pi_{t + 1}(x_{t + 1}) \propto \exp\left(-\frac{1}{2} (y_{t+1} - Hx_{t+1})^{\top} \Sigma_\epsilon^{-1} (y_{t+1} - Hx_{t+1}) - \frac{1}{2} (x_{t+1} - \hat{\mu}_{t+1})^{\top} \hat{\Sigma}^{-1}_{t+1} (x_{t+1} - \hat{\mu}_{t+1}) ) \right)
 \end{align*}
 Since $\pi_{t + 1} = \mathcal{N}_P(\mu_{t + 1}, \Sigma_{t + 1})$ then it must be of the form 
-\[\pi_{t + 1}(x_{t + 1}) \propto \exp\left(-\frac{1}{2} (x_{t + 1} - \mu_{t + 1})^T \Sigma_{t+1}^{-1} (x_{t + 1} - \mu_{t + 1}) \right) \]
+\[\pi_{t + 1}(x_{t + 1}) \propto \exp\left(-\frac{1}{2} (x_{t + 1} - \mu_{t + 1})^{\top} \Sigma_{t+1}^{-1} (x_{t + 1} - \mu_{t + 1}) \right) \]
 Thus, to obtain $\mu_{t + 1}$ and $\Sigma_{t + 1}$ we set the two above expressions for $\pi_{t + 1}(x_{t+1})$ equal and match up the terms, dropping 
 terms without dependence on $x_{t+1}$ along the way. Expanding the two expressions yields
 \begin{align*}
-\pi_{t + 1}(x_{t + 1}) &\propto \exp\left(-\frac{1}{2} x_{t+1}^T\left[H^\top \Sigma_{\epsilon}^{-1}H + \hat{\Sigma}_{t+1}^{-1} \right] x_{t+1} + x_{t+1}^T \left[H^\top \Sigma_{\epsilon}^{-1}y_{t+1} + \hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1} \right] \right)
+\pi_{t + 1}(x_{t + 1}) &\propto \exp\left(-\frac{1}{2} x_{t+1}^{\top}\left[H^\top \Sigma_{\epsilon}^{-1}H + \hat{\Sigma}_{t+1}^{-1} \right] x_{t+1} + x_{t+1}^{\top} \left[H^\top \Sigma_{\epsilon}^{-1}y_{t+1} + \hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1} \right] \right)
 \end{align*}
 and 
 \begin{align*}
@@ -212,13 +212,13 @@ and
 \end{align*}
 respectively. Equating the coefficients on the quadratic and linear terms gives
 \begin{align*}
-\Sigma_{t + 1}^{-1} &= \hat{\Sigma}_{t+1}^{-1} + H^T \Sigma_{\epsilon}^{-1} H \\
+\Sigma_{t + 1}^{-1} &= \hat{\Sigma}_{t+1}^{-1} + H^{\top} \Sigma_{\epsilon}^{-1} H \\
 \Sigma_{t+1}^{-1} \mu_{t+1} &= H^\top \Sigma_{\epsilon}^{-1}y_{t+1} + \hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1}
 \end{align*}
 which then implies
 \begin{align*}
-\Sigma_{t+1} &= \left[\hat{\Sigma}_{t+1}^{-1} + H^T \Sigma_{\epsilon}^{-1} H \right]^{-1} \\
-\mu_{t + 1} &= \Sigma_{t+1} \left[\hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1} + H^T \Sigma_{\epsilon}^{-1}y_{t+1} \right]
+\Sigma_{t+1} &= \left[\hat{\Sigma}_{t+1}^{-1} + H^{\top} \Sigma_{\epsilon}^{-1} H \right]^{-1} \\
+\mu_{t + 1} &= \Sigma_{t+1} \left[\hat{\Sigma}_{t+1}^{-1}\hat{\mu}_{t+1} + H^{\top} \Sigma_{\epsilon}^{-1}y_{t+1} \right]
 \end{align*}
 \end{proof}
 I consider some initial observations about the Kalman update formulas. The covariance update only depends on the forward model, 
@@ -242,8 +242,8 @@ By assumption, $\Sigma_0$ is positive definite. Proceeding inductively, suppose 
 and $\Sigma_{t + 1}$ are also positive definite. I will use the fact that the inverse of a positive definite matrix is positive definite. Let $0 \neq x \in \R^P$ 
 Beginning with $\hat{\Sigma}_{t+1}$, we have 
 \begin{align*}
-x^T \hat{\Sigma}_{t+1} x &= x^T \left[G \Sigma_t G^T + \Sigma_g \right] x \\
-				      &= x^T G \Sigma_t G^T x + x^T \Sigma_g x \\
+x^{\top} \hat{\Sigma}_{t+1} x &= x^{\top} \left[G \Sigma_t G^{\top} + \Sigma_g \right] x \\
+				      &= x^{\top} G \Sigma_t G^{\top} x + x^{\top} \Sigma_g x \\
 				      &= \norm{\Sigma_t^{1/2}G^\top x}_2^2 + x^\top \Sigma_g x \\
 				      &\geq x^\top \Sigma_g x \\
 				      &> 0
@@ -251,10 +251,10 @@ x^T \hat{\Sigma}_{t+1} x &= x^T \left[G \Sigma_t G^T + \Sigma_g \right] x \\
 where the last line uses the assumption that $\Sigma_g$ is positive definite. Continuing with $\Sigma_{t+1}$, I will show that $\Sigma^{-1}_{t+1}$
 is positive definite definite, which is sufficient to show that $\Sigma_{t+1}$ is positive definite as well. 
 \begin{align*}
-x^T \Sigma_{t + 1}^{-1} x &= x^T \left[\hat{\Sigma}^{-1}_{t+1} + H^T \Sigma_\epsilon^{-1}H \right] x \\
-				       &= x^T \hat{\Sigma}^{-1}_{t+1} x + x^T H^T \Sigma_\epsilon^{-1}H x \\
-				       &= x^T \hat{\Sigma}^{-1}_{t+1} x + \norm{\Sigma_\epsilon^{-1/2} H x}_2^2 \\
-				       &\geq x^T \hat{\Sigma}^{-1}_{t+1} x \\
+x^{\top} \Sigma_{t + 1}^{-1} x &= x^{\top} \left[\hat{\Sigma}^{-1}_{t+1} + H^{\top} \Sigma_\epsilon^{-1}H \right] x \\
+				       &= x^{\top} \hat{\Sigma}^{-1}_{t+1} x + x^{\top} H^{\top} \Sigma_\epsilon^{-1}H x \\
+				       &= x^{\top} \hat{\Sigma}^{-1}_{t+1} x + \norm{\Sigma_\epsilon^{-1/2} H x}_2^2 \\
+				       &\geq x^{\top} \hat{\Sigma}^{-1}_{t+1} x \\
 				       &> 0
 \end{align*}
 where the last step uses the above result that $\hat{\Sigma}^{-1}_{t+1}$ is positive definite. This concludes the proof. 
@@ -265,6 +265,38 @@ It turns out that the $O(P^3)$ matrix inversion discussed above can be avoided, 
 when the dimension of the state space is much larger than the dimension of the observed data. The alternate form of the update can be derived via an 
 application of the Woodbury matrix identity. 
 
+\begin{prop} (Stuart et al, Lemma 8.6) \label{Woodbury}
+Let $A \in \R^{p \times p}$, $U \in \R^{p \times q}$, $B \in \R^{q \times q}$, $V \in \R^{q \times p}$. If $A$ and $B$ are positive definite then $A + UBV$ is invertible 
+and 
+\[(A + UBV)^{-1} = A^{-1} - A^{-1} U\left(B^{-1} + VA^{-1}U\right)VA^{-1}\]
+\end{prop}
+
+We now apply the Woodbury identity to the covariance update in the analysis step of the Kalman filter, which converts the $O(P^3)$ matrix inverse to a $O(N^3)$ 
+matrix inverse. 
+
+\begin{lemma} 
+The expression 
+\[\Sigma_{t + 1} = \left[\hat{\Sigma}^{-1}_{t + 1} + H^\top \Sigma_{\epsilon}^{-1} H \right]^{-1}\]
+from \ref{Kalman_Filter} can be re-written as 
+\[\Sigma_{t + 1} = \left(I_P - K_{t+1}H \right)\hat{\Sigma}_{t+1}\]
+where 
+\[K_{t+1} := \hat{\Sigma}_{t+1} H^{\top} \left[H\hat{\Sigma}_{t+1} H^\top + \Sigma_{\epsilon} \right]^{-1} \]
+\end{lemma}
+
+\begin{proof}
+Applying the Woodbury identity \ref{Woodbury}, 
+\begin{align*}
+\Sigma_{t + 1} &= \left[\hat{\Sigma}^{-1}_{t + 1} + H^\top \Sigma_{\epsilon}^{-1} H \right]^{-1} \\
+		       &= \hat{\Sigma}_{t + 1} - \hat{\Sigma}_{t + 1} H^T \left(\Sigma_{\epsilon} + H\hat{\Sigma}_{t + 1}H^\top \right)^{-1} H \hat{\Sigma}_{t + 1} \\
+		       &= \hat{\Sigma}_{t + 1} - K_{t+1} H \hat{\Sigma}_{t + 1} \\
+		       &= \left(I_P - K_{t+1}H \right)\hat{\Sigma}_{t+1}
+\end{align*}
+The matrix $K_{t + 1}$ is known as the \textbf{Kalman gain}, because it quantifies how much uncertainty is reduced after observing $y_{t+1}$. The matrix 
+ $I_P - K_{t+1}H$ can be viewed as an operator that transforms $\hat{\Sigma}_{t+1}$ into $\Sigma_{t + 1}$ by accounting for the new information obtained 
+ from the observation $y_{t+1}$. 
+
+
+\end{proof}
 
 
 \end{document} 
