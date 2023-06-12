@@ -287,7 +287,7 @@ where
 Applying the Woodbury identity \ref{Woodbury}, 
 \begin{align*}
 \Sigma_{t + 1} &= \left[\hat{\Sigma}^{-1}_{t + 1} + H^\top \Sigma_{\epsilon}^{-1} H \right]^{-1} \\
-		       &= \hat{\Sigma}_{t + 1} - \hat{\Sigma}_{t + 1} H^T \left(\Sigma_{\epsilon} + H\hat{\Sigma}_{t + 1}H^\top \right)^{-1} H \hat{\Sigma}_{t + 1} \\
+		       &= \hat{\Sigma}_{t + 1} - \hat{\Sigma}_{t + 1} H^{\top} \left(\Sigma_{\epsilon} + H\hat{\Sigma}_{t + 1}H^\top \right)^{-1} H \hat{\Sigma}_{t + 1} \\
 		       &= \hat{\Sigma}_{t + 1} - K_{t+1} H \hat{\Sigma}_{t + 1} \\
 		       &= \left(I_P - K_{t+1}H \right)\hat{\Sigma}_{t+1}
 \end{align*}
@@ -319,14 +319,25 @@ solutions for $\hat{\mu}_{t + 1} = \E[x_{t + 1}|Y_t]$ and $\hat{\Sigma}_{t+1} = 
 \E[x_{t + 1}|Y_t] &= \E\left[g(x_t) + \xi_t|Y_t\right] = \E\left[g(x_t)|Y_t\right] + \E[\xi_t|Y_t] = \E\left[g(x_t)|Y_t\right] \\
 \Cov(x_{t+1}|Y_t) &= \Cov\left(g(x_t) + \xi_t|Y_t]\right) = \Cov\left(g(x_t)|Y_t\right) + \Cov(\xi_t|Y_t) = \Cov\left(g(x_t)|Y_t\right) + \Sigma_g
 \end{align*}
-These derivations rely on the independence assumptions $\{\xi_t\} \perp \{\epsilon_t\} \perp x_0$. The mean and covariance can not be reduced further, as in the linear 
+These derivations rely on the independence assumptions $\{\xi_t\} \perp \{\epsilon_t\} \perp x_0$. The mean and covariance cannot be reduced further, as in the linear 
 case. Thus, we turn to approximations. For the mean, we suppose that the distribution $\pi_t$ is concentrated about its mean $\mu_t$ so that $g(x_t) \approx g(\mu_t)$. 
 Applying this approximation, we then obtain  
 \begin{align*}
 \E\left[g(x_t)|Y_t\right] \approx \E\left[g(\mu_t) |Y_t \right] = g(\mu_t)
 \end{align*}
-In other words, we set the predictive mean to the value obtained by simply propagating the previous mean $\mu_t$ forward one time step. 
-
+In other words, we set the predictive mean to the value obtained by simply propagating the previous mean $\mu_t$ forward one time step. For the covariance approximation, 
+we consider the linearization (i.e. first order Taylor series approximation) of the forward model $g(\cdot)$ centered at the point $\mu_t$: 
+\[g(x_t) - g(\mu_t) \approx Dg(\mu_t)\left(x_t - \mu_t \right) \]
+ Plugging this in, we have 
+ \begin{align*}
+ \Cov\left(g(x_t)|Y_t\right) &= \E\left[\left(g(x_t) - \E[g(x_t)|Y_t]\right)\left(g(x_t) - \E[g(x_t)|Y_t]\right)^{\top} | Y_t \right] \\
+ 				       &\approx \E\left[\left(g(x_t) - g(\mu_t)\right)\left(g(x_t) - g(\mu_t)\right)^{\top} | Y_t \right] \\
+				       &\approx \E\left[Dg(\mu_t)\left(x_t - \mu_t \right) \left(x_t - \mu_t \right)^{\top} Dg(\mu_t)^\top  | Y_t \right] \\
+				       &= Dg(\mu_t) \E\left[\left(x_t - \mu_t \right) \left(x_t - \mu_t \right)^{\top} | Y_t \right] Dg(\mu_t)^\top \\
+				       &= Dg(\mu_t) \Cov(x_t|Y_t) Dg(\mu_t)^\top \\
+				       &= Dg(\mu_t) \Sigma_t Dg(\mu_t)^\top
+ \end{align*}
+ The second line applies the same approximation $g(x_t) \approx g(\mu_t)$ as in the approximation used for the mean above. The third line inserts the linear approximation. 
 
 \end{document} 
 
