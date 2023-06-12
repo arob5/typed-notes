@@ -291,12 +291,41 @@ Applying the Woodbury identity \ref{Woodbury},
 		       &= \hat{\Sigma}_{t + 1} - K_{t+1} H \hat{\Sigma}_{t + 1} \\
 		       &= \left(I_P - K_{t+1}H \right)\hat{\Sigma}_{t+1}
 \end{align*}
+\end{proof}
 The matrix $K_{t + 1}$ is known as the \textbf{Kalman gain}, because it quantifies how much uncertainty is reduced after observing $y_{t+1}$. The matrix 
  $I_P - K_{t+1}H$ can be viewed as an operator that transforms $\hat{\Sigma}_{t+1}$ into $\Sigma_{t + 1}$ by accounting for the new information obtained 
  from the observation $y_{t+1}$. 
+ 
+\textbf{TODO: Write Kalman mean update in terms of Kalman gain.} 
 
+% Extended and Ensemble Kalman Filter
+\section{The Extended and Ensemble Kalman Filter}
+I consider two extensions of the Kalman filter here that approximate the filtering distributions in a more general setting. In particular, we depart from the linear 
+Gaussian model by allowing the forward model to be non-linear, while maintaining the assumption that the observation operator is linear. 
+\begin{align}
+&x_{t + 1} = g(x_t) + \xi_t, && \xi_t \overset{iid}{\sim} \mathcal{N}(0, \Sigma_x) \\
+&y_{t + 1} = Hx_{t+1} + \epsilon_{t+1}, && \epsilon_t \overset{iid}{\sim} \mathcal{N}(0, \Sigma_\epsilon) \nonumber 
+\end{align}
+Allowing $g(\cdot)$ to be nonlinear has the consequence that the prediction operator $\mathcal{P}$ will no longer preserve Gaussianity. Therefore, the predictive 
+distribution $\hat{\pi}_{t+1}$ will no longer be available in closed-form. The extended Kalman filter (ExKF) addresses this by employing a linear approximation, while 
+the ensemble Kalman filter (EnKF) utilizes a sample-based approximation. 
 
-\end{proof}
+\subsection{Extended Kalman Filter}
+The main idea of the ExKF is to employ a linear approximation to propagate $\Sigma_t$ to $\hat{\Sigma}_{t + 1}$. I derive this method by attempting to perform the same 
+calculations used by the Kalman filter to obtain $\hat{\mu}_{t + 1}$ and $\hat{\Sigma}_{t + 1}$ and observing where we run into issues due to the non-linear $g(\cdot)$. 
+Recall that the predictive distribution is defined as $\hat{\pi}_{t + 1}(x_{t+1}) = p(x_{t+1}|Y_t)$. In the Kalman filter derivations, we could simply obtain closed-form 
+solutions for $\hat{\mu}_{t + 1} = \E[x_{t + 1}|Y_t]$ and $\hat{\Sigma}_{t+1} = \Cov(x_{t+1}|Y_t)$. I now consider computing this moments in this more general setting. 
+\begin{align*}
+\E[x_{t + 1}|Y_t] &= \E\left[g(x_t) + \xi_t|Y_t\right] = \E\left[g(x_t)|Y_t\right] + \E[\xi_t|Y_t] = \E\left[g(x_t)|Y_t\right] \\
+\Cov(x_{t+1}|Y_t) &= \Cov\left(g(x_t) + \xi_t|Y_t]\right) = \Cov\left(g(x_t)|Y_t\right) + \Cov(\xi_t|Y_t) = \Cov\left(g(x_t)|Y_t\right) + \Sigma_g
+\end{align*}
+These derivations rely on the independence assumptions $\{\xi_t\} \perp \{\epsilon_t\} \perp x_0$. The mean and covariance can not be reduced further, as in the linear 
+case. Thus, we turn to approximations. For the mean, we suppose that the distribution $\pi_t$ is concentrated about its mean $\mu_t$ so that $g(x_t) \approx g(\mu_t)$. 
+Applying this approximation, we then obtain  
+\begin{align*}
+\E\left[g(x_t)|Y_t\right] \approx \E\left[g(\mu_t) |Y_t \right] = g(\mu_t)
+\end{align*}
+In other words, we set the predictive mean to the value obtained by simply propagating the previous mean $\mu_t$ forward one time step. 
 
 
 \end{document} 
