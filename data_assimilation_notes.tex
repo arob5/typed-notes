@@ -337,7 +337,12 @@ we consider the linearization (i.e. first order Taylor series approximation) of 
 				       &= Dg(\mu_t) \Cov(x_t|Y_t) Dg(\mu_t)^\top \\
 				       &= Dg(\mu_t) \Sigma_t Dg(\mu_t)^\top
  \end{align*}
- The second line applies the same approximation $g(x_t) \approx g(\mu_t)$ as in the approximation used for the mean above. The third line inserts the linear approximation. 
+ The second line applies the same approximation $g(x_t) \approx g(\mu_t)$ as in the approximation used for the mean above. The third line inserts the linear approximation.
+ Summarizing, we employ the following approximations for $\hat{\mu}_{t + 1}$ and $\hat{\Sigma}_{t + 1}$ to approximate the prediction step in the filtering problem. 
+ \begin{align}
+ \hat{\mu}_{t + 1} &= g(\mu_t) \label{ExKF_approximations} \\
+ \hat{\Sigma}_{t + 1} &= Dg(\mu_t) \Sigma_t Dg(\mu_t)^\top + \Sigma_g \nonumber
+ \end{align} 
 
 \end{document} 
 
