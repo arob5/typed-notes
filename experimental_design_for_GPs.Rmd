@@ -366,6 +366,7 @@ new augmented dataset $\mathcal{D}_{n + 1}$. Re-fit the GP on the new dataset.
 There are many optimization tricks and pitfalls when considering such sequential schemes. For example, one might not update the MLE GP fit every iteration to save on computation, but this could potentially lead to unsatisfactory results. It is also common to *warm start* the MLE hyperparameter 
 optimization by setting the initial values in the optimization to the values of the hyperparameters that were optimized in the previous step. 
 
+## Active Learning MacKay 
 Perhaps the simplest sequential design criterion is to choose the point that maximizes the predictive variance. The idea is that if the predictive variance is very high at a point, then the GP is very uncertain about the latent function at that point so we should run the model at that point to 
 reduce that uncertainty. The objective thus looks like
 $$ \mathbf{x}_{n + 1} := \text{argmax}_{\mathbf{x}} J(\mathbf{x})|\mathcal{D}_n = \text{argmax}_{\mathbf{x}} k_{\mathbf{X}_n}(\mathbf{x})$$
@@ -545,7 +546,51 @@ points(X[1:N0,1], X[1:N0,2])
 text(X[(N0+1):nrow(X),1], X[(N0+1):nrow(X),2], cex = 0.75)
 ```
 
+The sequential design procedure also provides a measure of progress. In particular, we can monitor the optimal value of the objective function found during each iteration. In the case of ALM, this means monitoring the maximum predictive variance. 
+```{r}
+plot((N0+1):N, objective_value, xlab = "n", ylab = "Maximum Predictive Variance", main = "Measure of Progress")
+```
 
+It would initially seem that the predictive variance could only decrease at iteration. This would be true if the GP hyperparameters were fixed the whole time. However, since the hyperparameters are re-fit at each iteration, it is possible to have jumps in maximum predictive 
+variance. In particular, the predictive variance can be very sensitive to the marginal variance estimate $\hat{\tau}_n$. We could avoid 
+jumps in the plot by considering the predictive variance normalized by $\hat{\tau}_n$. 
+
+## Active Learning Cohn 
+One downside of the ALM criterion is that it only targets locations where predictive variance is large at a single point. It ignores the fact that observing a new data point will have an effect on predictive variance over the entire input domain. We might want a criterion 
+that can take into account regions of the input space (not just individual points) that cumulatively have high uncertainty. We have seen ideas like this when discussing the IMSPE criterion in the one-shot design setting. 
+
+The idea here is to pick $x_{n+1}$ that would cause the largest reduction in the predictive variance, averaged over the input space. 
+Recall that the predictive variance at point $x$ is given by 
+$$ 
+k_{X_n}(x) = k_n(x) - k_n(x, X_n)K_n(X_n)^{-1}k_n(X_n, x)
+$$
+where I utilize the subscript $n$ to indicate that the kernel hyperparameters are fit using the design points $x_1, \dots, x_n$. 
+We define $\tilde{k}_{X_{n+1}}(x)$ to be the predictive variance at $x$ for the GP that has been run at the additional input 
+$x_{n + 1}$ and conditioned on the new observation $(x_{n + 1}, y_{n + 1})$, but still using the hyperparameter estimates 
+based on $x_1, \dots, x_n$. That is, 
+$$ 
+\tilde{k}_{X_{n+1}}(x) = k_n(x) - k_n(x, X_{n+1})K_n(X_{n+1})^{-1}k_n(X_{n+1}, x)
+$$
+I use a subscript $n$ on the kernel $k$ to emphasize that the hyperparameter estimates are based on the first $n$ design points. 
+Now we can consider the average reduction in uncertainty:
+$$
+\Delta k_n(x_{n+1}) := \int_{\mathcal{X}} \left[k_n(x) - \tilde{k}_{n+1}(x) \right] dx
+$$
+Since $k_n(x)$ does not depend on $x_{n+1}$, maximizing this quantity is the same as minimizing 
+$$
+J(x_{n + 1}) := \int_{\mathcal{X}} \tilde{k}_{n+1}(x) dx
+$$
+Essentially this is the average one-step-look-ahead uncertainty, since it considers what the predictive variance would be were we to 
+add the new design point $x_{n+1}$. This is the ALC objective. I will not implement this here, but just make a few notes. In general, 
+ALC favors candidate points in the interior of the domain moreso than ALM. This is due to the fact that it takes into account the 
+effect of the design points on uncertainty over the entire domain, and points in the interior have more of a global impact that points 
+on the boundaries. For a rectangular
+input space $\mathcal{X}$ this can be evaluated in closed form. However, in general it is common to approximate this integral via a Monte Carlo approach. In particular, a space-filling reference design (e.g. LHS) is utilized to approximate $J(x_{n+1})$. When this is done we observe similar behavior as when investigating IMSPE approximated by a reference grid of points above. ALC will favor candidate points 
+that are far from the current design $X_{n+1}$ but close to the reference grid. If a LHS is used to generate the reference points, then 
+few of the reference points will be near the boundaries. This will do even more to favor points in the interior of the domain. 
+
+## Fisher Information Objective
+**TODO**
 
 # Sequential Design for Bayesian Inverse Problems
 The model-based design strategies discussed above seek to select a point $\mathbf{x}_{n+1}$ that is optimal in some sense for improving the GP fit. These strategies have presumed that we care about the GP fit uniformly across the input space. However, in the setting of Bayesian inverse problems it is common that 
@@ -581,6 +626,26 @@ where now the predictive variance of $\mathcal{L}_n$ is considered instead of th
 
 # Appendix 
 
+## Determinant and Inverse of Block Matrix
+In the sequential design setting, we are continually adding data to the design $X_n$ and then having to re-compute quantities such as 
+$K(X_{n+1})^{-1}$ and $\det\left(K(X_{n+1}) \right)$. Formulas for the inverse and determinant of block matrices will come in handy 
+when deriving fast updates for these quantities. 
+
+### Determinant
+Let $A$, $B$, $C$, $D$ be square matrices with $A$ invertible. Then, 
+$$ 
+\det\begin{pmatrix} A & B \\ C & D \end{pmatrix} = \det \begin{pmatrix} A & B \\ 0 & D - CA^{-1}B \end{pmatrix} = \det(A) \cdot 
+\det\left(D - CA^{-1}B \right)
+$$
+
+### Inverse
+James E. Pustejovsky provides a nice post on the inversion of partitioned matrices $\href{https://www.jepusto.com/inverting-partitioned-matrices/}{here}$. Suppose $A$ and $D$ are invertible, not necessarily of 
+equal dimension. Letting $S = \left(D - CA^{-1}B\right)^{-1}$ we have 
+$$
+\begin{pmatrix} A & B \\ C & D \end{pmatrix}^{-1} = \begin{pmatrix} A^{-1} + A^{-1}BSCA^{-1} & -A^{-1}BS \\
+-SCA^{-1} & S \end{pmatrix}
+$$
+
 ## Information and Entropy of multivariate Gaussian
 Here we derive the Shannon information content of a multivariate Gaussian 
 
@@ -601,6 +666,23 @@ $$
 
 The entropy is thus 
 $$ H(X) = -I(X) = \frac{1}{2}\log\det(2\pi e \Sigma)$$
+
+## Fast GP Updates
+At first glance, the sequential design GP update at step $n$ appears to incur $O(n^3)$ runtime. If the scheme is run for $N$ steps 
+then the whole procedure is a costly $O(N^4)$ scheme. Fortunately, this need not be the case. Most updates to an existing 
+GP based on the addition of a single data point $(x_{n+1}, y_{n+1})$ can be accomplished in $O(n^2)$ time, meaning the whole procedure 
+is now $O(N^3)$. To be more clear, let us consider what actually needs to be updated. There are two general regimes here:
+1.) Updating GP predictive quantities with fixed hyperparameterization. 
+2.) Update the GP hyperparameterization (i.e. re-fit the hyperparameters). 
+The second is a more costly operation which will be dicussed later. We begin by focusing on the first item. As far as these notes are concerned, the main goal is to be able to reduce the computation in evaluating the acquisition function/design criterion. These 
+criteria typically depend on the GP predictive quantities, so we will consider fast updates for: 1.) the inverse kernel matrix; 
+i.e. updating $K(X_n)^{-1}$ to $K(X_{n+1})^{-1}$; 2.) the predictive mean and variance at fixed input locations; e.g. updating $k_{X_n}(x)$ to $k_{X_{n+1}}(x)$; 3.) the log determinant of the kernel matrix; i.e. updating $\log \text{det}(K(X_n))$ to 
+$\log \text{det}(K(X_{n+1}))$. 
+
+### Updating the inverse kernel matrix 
+
+
+
 
 # References 
 Binois, M, J Huang, RB Gramacy, and M Ludkovski. 2019. “Replication or Exploration? Sequential Design for Stochastic Simulation Experiments.” Technometrics 27 (4): 808–21. https://doi.org/10.1080/00401706.2018.1469433.
