@@ -581,7 +581,7 @@ $$
 J(x_{n + 1}) := \int_{\mathcal{X}} \tilde{k}_{n+1}(x) dx
 $$
 Essentially this is the average one-step-look-ahead uncertainty, since it considers what the predictive variance would be were we to 
-add the new design point $x_{n+1}$. This is the ALC objective. I will not implement this here, but just make a few notes. In general, 
+add the new design point $x_{n+1}$. This is the ALC objective. It is the sequential version of the IMSPE. I will not implement this here, but just make a few notes. In general, 
 ALC favors candidate points in the interior of the domain moreso than ALM. This is due to the fact that it takes into account the 
 effect of the design points on uncertainty over the entire domain, and points in the interior have more of a global impact that points 
 on the boundaries. For a rectangular
@@ -677,9 +677,38 @@ is now $O(N^3)$. To be more clear, let us consider what actually needs to be upd
 The second is a more costly operation which will be dicussed later. We begin by focusing on the first item. As far as these notes are concerned, the main goal is to be able to reduce the computation in evaluating the acquisition function/design criterion. These 
 criteria typically depend on the GP predictive quantities, so we will consider fast updates for: 1.) the inverse kernel matrix; 
 i.e. updating $K(X_n)^{-1}$ to $K(X_{n+1})^{-1}$; 2.) the predictive mean and variance at fixed input locations; e.g. updating $k_{X_n}(x)$ to $k_{X_{n+1}}(x)$; 3.) the log determinant of the kernel matrix; i.e. updating $\log \text{det}(K(X_n))$ to 
-$\log \text{det}(K(X_{n+1}))$. 
+$\log \text{det}(K(X_{n+1}))$. Throughout this section I will let $K_n$ denote the kernel matrix constructed from 
+$x_1, \dots, x_n$ and $K_{n+1}$ the kernel matrix constructed from $x_1, \dots, x_n, x_{n+1}$ each using the same GP 
+hyperparameterization. Note that this contrasts with the notation sometimes used in the main text, where the kernel subscript indexed
+the hyperparameterization. I will also let $k_n := k(X_n, x_{n+1})$ and $k_{n+1} := k(x_{n+1})$. 
 
 ### Updating the inverse kernel matrix 
+The addition of a new design point $x_{n+1}$ increases the dimension of the kernel matrix by one. The matrix can be written in block 
+form as 
+$$
+K_{n+1} = \begin{pmatrix} K_n & k_n \\ k_n^T & k_{n+1} \end{pmatrix}
+$$
+To find the inverse we can apply the inverse formula for block matrices presented earlier in the appendix. First we compute the matrix $S$ from 
+that section to be
+$$ S = \left(k_{n+1} - k_n^T K_n^{-1} k_n\right)^{-1} = \frac{1}{k_{X_n}(x_{n+1})}$$
+The second equality follows from the fact that we recognize the expression as the predictive variance at $x_{n+1}$ given the design $X_n$. Thus, in this 
+case $S$ is just a scalar. Applying the partitioned inverse formula now yields 
+$$
+K_{n+1}^{-1} = \begin{pmatrix} K_n^{-1} + k^{-1}_{X_n}(x_{n+1})K_n^{-1} k_n k_n^T K_n^{-1} & -k^{-1}_{X_n}(x_{n+1}) K_n^{-1}k_n \\
+-k^{-1}_{X_n}(x_{n+1}) k_n^T K_n^{-1} & k^{-1}_{X_n}(x_{n+1}) \end{pmatrix}
+$$
+Noticing that many of the same terms come up in each entry, we can clean this up. Define $\nu := k_{X_n}(x_{n+1})$ and 
+$z := -\nu K_n^{-1} k_n$. Plugging these in, we obtain 
+$$ 
+K_{n+1}^{-1} = \begin{pmatrix} K_n^{-1} + \nu zz^\top & z \\ z^\top & \nu^{-1} \end{pmatrix}
+$$
+
+
+
+## Integrating GP Predictive Variance 
+Many sequential design criteria, such as the integrated mean squared prediction error (IMSPE) and Active Learning Cohn (ALC) require 
+computing an integral of the GP predictive variance of the input domain. In simple settings, such as when the input domain is 
+rectangular, this can be done in closed-form. 
 
 
 
