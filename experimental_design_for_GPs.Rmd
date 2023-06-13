@@ -702,15 +702,35 @@ $z := -\nu K_n^{-1} k_n$. Plugging these in, we obtain
 $$ 
 K_{n+1}^{-1} = \begin{pmatrix} K_n^{-1} + \nu zz^\top & z \\ z^\top & \nu^{-1} \end{pmatrix}
 $$
-
+Given that $K_n^{-1}$ is already available, we observe that all of the computations here involve either matrix-vector products, or an outer 
+product between vectors. Thus, updating $K_n^{-1}$ to $K_{n+1}^{-1}$ can be done in $O(n^2)$ operations. 
 
 
 ## Integrating GP Predictive Variance 
 Many sequential design criteria, such as the integrated mean squared prediction error (IMSPE) and Active Learning Cohn (ALC) require 
 computing an integral of the GP predictive variance of the input domain. In simple settings, such as when the input domain is 
-rectangular, this can be done in closed-form. 
-
-
+rectangular, this can be done in closed-form. The integral we seek to compute is 
+$$
+\begin{align*}
+I_{n+1}(x_{n+1}) &= \int_{\mathcal{X}} k_{X_n}(x) \rho(x) dx
+\end{align*}
+$$
+where $\rho$ is a density on $\mathcal{X}$. We take the input domain to be the unit hypercube $\mathcal{X} = [0, 1]^D$. The beginning of this 
+derivation will be applicable to any covariance family. However, eventually we must specify a specific family. We consider the squared exponential 
+kernel with the following parameterization. 
+$$
+k(x, x^\prime) = \tau^2 \exp\left\{-\frac{1}{2} \sum_{d = 1}^{D} \left(\frac{x_d - x_d^\prime}{\theta_d}\right)^2  \right\}
+$$
+We now consider evaluation of the integral $I_{n+1}(x_{n+1}) $. It is helpful to re-write this as an expectation. 
+$$
+\begin{align*}
+I_{n+1}(x_{n+1}) &= \mathbb{E}_{x \sim \rho}\left[k_{X_n}(x) \right] \\
+                 &= \mathbb{E}_{x \sim \rho}\left[k(x) - k_{n+1}^T K_{n+1}^{-1} k_{n+1} \right] \\
+                 &= \mathbb{E}_{x \sim \rho}[k(x)] - \mathbb{E}_{x \sim \rho}\left[k_{n+1}^T K_{n+1}^{-1} k_{n+1} \right]
+\end{align*}
+$$
+Note that $K^{-1}_{n+1}$ does not depend on $x$ so is fixed with respect to the expectation; $k_{n+1}$ does depend on $x$ since 
+$k_{n+1} = k(X_n, x) = \left(k(x_1, x), \dots, k(x_n,x) \right)^\top$. 
 
 
 # References 
