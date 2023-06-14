@@ -719,18 +719,73 @@ where $\rho$ is a density on $\mathcal{X}$. We take the input domain to be the u
 derivation will be applicable to any covariance family. However, eventually we must specify a specific family. We consider the squared exponential 
 kernel with the following parameterization. 
 $$
-k(x, x^\prime) = \tau^2 \exp\left\{-\frac{1}{2} \sum_{d = 1}^{D} \left(\frac{x_d - x_d^\prime}{\theta_d}\right)^2  \right\}
+k(x, x^\prime) = \tau^2 \exp\left\{-\frac{1}{2} \sum_{d = 1}^{D} \left(\frac{x_d - x_d^\prime}{\theta_d}\right)^2  \right\} = \tau^2 \exp\left\{-\frac{1}{2} (x - x^\prime)^\top \Sigma_\theta^{-1}(x - x^\prime) \right\}
 $$
+where $\Sigma_\theta = \text{diag}\left(\theta_1^2, \dots, \theta_D^2 \right$. 
+
+
+### The General Case 
+
 We now consider evaluation of the integral $I_{n+1}(x_{n+1}) $. It is helpful to re-write this as an expectation. 
 $$
 \begin{align*}
 I_{n+1}(x_{n+1}) &= \mathbb{E}_{x \sim \rho}\left[k_{X_n}(x) \right] \\
-                 &= \mathbb{E}_{x \sim \rho}\left[k(x) - k_{n+1}^T K_{n+1}^{-1} k_{n+1} \right] \\
-                 &= \mathbb{E}_{x \sim \rho}[k(x)] - \mathbb{E}_{x \sim \rho}\left[k_{n+1}^T K_{n+1}^{-1} k_{n+1} \right]
+                 &= \mathbb{E}_{x \sim \rho}\left[k(x) - k_{n+1}^\top K_{n+1}^{-1} k_{n+1} \right] \\
+                 &= \mathbb{E}_{x \sim \rho}[k(x)] - \mathbb{E}_{x \sim \rho}\left[k_{n+1}^\top K_{n+1}^{-1} k_{n+1} \right]
 \end{align*}
 $$
 Note that $K^{-1}_{n+1}$ does not depend on $x$ so is fixed with respect to the expectation; $k_{n+1}$ does depend on $x$ since 
-$k_{n+1} = k(X_n, x) = \left(k(x_1, x), \dots, k(x_n,x) \right)^\top$. 
+$k_{n+1} = k(X_n, x) = \left(k(x_1, x), \dots, k(x_n,x) \right)^\top$. The second term is thus an expectation of a quadratic form with 
+fixed matrix and a random vector. Such expectations are well-known to be equal to the trace of the produce of the matrix times the 
+covariance matrix of the vector: 
+$$
+\mathbb{E}_{x \sim \rho}\left[k_{n+1}^\top K_{n+1}^{-1} k_{n+1} \right] = \text{tr}\left(K_n^{-1}\text{Cov}\left[k_{n+1}\right]\right)
+$$
+Let $\Sigma := \text{Cov}\left[k_{n+1}\right]$. In general this matrix has entries 
+$$
+\begin{align*}
+\Sigma_{ij} &= \text{Cov}_{x \sim \rho}\left[k(x_i, x), k(x_j, x) \right] \\
+            &= \mathbb{E}_{x \sim \rho}\left[k(x_i, x)k(x_j, x) \right] - \mathbb{E}_{x \sim \rho}\left[k(x_i, x)\right]\mathbb{E}_{x \sim \rho}\left[k(x_j, x) \right]
+\end{align*}
+$$
+In the case that the GP has a zero-mean prior the second terms vanishes. Indeed, 
+$$
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k(x_i, x)\right] &= \mathbb{E}_{x \sim \rho} \text{Cov}\left[y(x_i), y(x) \right] \\
+                                               &= \mathbb{E}_{x \sim \rho} \mathbb{E}\left[y(x_i)y(x) \right] \\
+                                               &= \mathbb{E} \mathbb{E}_{x \sim \rho} \left[y(x_i)y(x) \right] \\
+                                               &= \mathbb{E}\left[y(x_i)\right] \mathbb{E}_{x \sim \rho} \left[y(x) \right] \\
+                                               &= 0 \cdot \mathbb{E}_{x \sim \rho} \left[y(x) \right] \\
+                                               &= 0
+\end{align*}
+$$
+where the second line uses the assumption of zero-mean GP prior. This is about as far as we can go without making additional assumptions 
+about $\mathcal{X}$, $\rho$, or $k(\cdot, \cdot)$. 
+
+### Special Cases 
+In certain simple cases, $\Sigma$ can be computed in closed-form. We focus here on the case where the kernel is of the exponentiated quadratic family. 
+Recall from above that $\Sigma$ has entries of the form 
+$$\Sigma_{ij} = \mathbb{E}_{x \sim \rho}\left[k(x_i, x)k(x_j, x) \right] - \mathbb{E}_{x \sim \rho}\left[k(x_i, x)\right]\mathbb{E}_{x \sim \rho}\left[k(x_j, x) \right]$$
+Plugging in the expression for the exponentiated quadratic kernel yields the following results for the two expectations in the above expression. 
+$$
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k(x, x^\prime)\right] &= \tau^2 \mathbb{E}_{x \sim \rho}\left[\exp\left\{-\frac{1}{2}(x - x^\prime)^{\top}\Sigma_\theta^{-1}(x - x^\prime)\right\} \right] \\
+&= \tau^2 \int_{\mathcal{X}} \exp\left\{-\frac{1}{2}(x - x^\prime)^{\top}\Sigma_\theta^{-1}(x - x^\prime)\right\} \rho(x) dx
+\end{align*}
+$$
+
+#### EQ Kernel, No weights, Unbounded Domain 
+First we consider the form $\Sigma$ takes in the specific case of the exponentiated quadratic kernel, $\rho(x) \equiv 1$ and $\mathcal{X} = \mathbb{R}^D$. 
+In this case, the required expectations simplify to 
+$$
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k(x, x^\prime)\right] &= \tau^2 \int_{\mathcal{X}} \exp\left\{-\frac{1}{2}(x - x^\prime)^{\top}\Sigma_\theta^{-1}(x - x^\prime)\right\} \rho(x) dx \\
+&= \tau^2 \int_{\mathbb{R}^D} \exp\left\{-\frac{1}{2}(x - x^\prime)^{\top}\Sigma_\theta^{-1}(x - x^\prime)\right\} dx \\
+&= \tau^2 \int_{\mathbb{R}^D} \text{det}\left(2\pi \Sigma_\theta \right)^{1/2} \mathcal{N}_D\left(x|x^\prime, \Sigma_\theta \right)  dx \\
+&= \tau^2 \text{det}\left(2\pi \Sigma_\theta \right)^{1/2}
+\end{align*}
+$$
+
 
 
 # References 
