@@ -785,8 +785,31 @@ $$
 &= \tau^2 \text{det}\left(2\pi \Sigma_\theta \right)^{1/2}
 \end{align*}
 $$
-
-
+Now for the second expectation. 
+$$
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k(x_i, x)k(x_j, x) \right] &= \int_{\mathcal{X}} k(x_i, x)k(x_j, x) \rho(x) dx \\
+&= \int_{\mathbb{R}^D} k(x_i, x)k(x_j, x) dx \\
+&= \tau^4 \int_{\mathbb{R}^D} \exp\left\{-\frac{1}{2} (x - x_i)^\top \Sigma_\theta^{-1}(x - x_i) -\frac{1}{2} (x - x_j)^\top \Sigma_\theta^{-1}(x - x_j) \right\} dx \\
+&= \tau^4 \exp\left\{-\frac{1}{2} x_i^\top \Sigma_\theta^{-1} x_i - \frac{1}{2} x_j^\top \Sigma_\theta^{-1} x_j\right\} 
+\int_{\mathbb{R}^D} \exp\left\{-x^\top \Sigma_\theta^{-1}x + x^\top \Sigma_\theta^{-1}(x_i + x_j) \right\} dx \\
+&= \tau^4 \exp\left\{-\frac{1}{2} x_i^\top \Sigma_\theta^{-1} x_i - \frac{1}{2} x_j^\top \Sigma_\theta^{-1} x_j + \frac{1}{2} \mu^\top A^{-1}\mu \right\} 
+\int_{\mathbb{R}^D} \exp\left\{-\frac{1}{2}(x - \mu)^\top A^{-1} (x - \mu) \right\} dx \\
+&= \tau^4 \exp\left\{-\frac{1}{2} x_i^\top \Sigma_\theta^{-1} x_i - \frac{1}{2} x_j^\top \Sigma_\theta^{-1} x_j + \frac{1}{2} \mu^\top A^{-1}\mu \right\} 
+\text{det}\left(2\pi A \right)^{1/2}
+\end{align*}
+$$
+where 
+$$
+\begin{align*}
+A^{-1} &= 2\Sigma_\theta^{-1}, && \mu = \frac{x_i + x_j}{2}
+\end{align*}
+$$
+Plugging in these values to the above expression, we obtain 
+$$
+\mathbb{E}_{x \sim \rho}\left[k(x_i, x)k(x_j, x) \right] = \tau^4 \exp\left\{-\frac{1}{4}(x_i - x_j)^\top \Sigma_\theta^{-1}(x_i - x_j) \right\}
+\text{det}\left(\pi \Sigma_\theta \right)^{1/2}
+$$
 
 # References 
 Binois, M, J Huang, RB Gramacy, and M Ludkovski. 2019. “Replication or Exploration? Sequential Design for Stochastic Simulation Experiments.” Technometrics 27 (4): 808–21. https://doi.org/10.1080/00401706.2018.1469433.
