@@ -705,6 +705,10 @@ $$
 Given that $K_n^{-1}$ is already available, we observe that all of the computations here involve either matrix-vector products, or an outer 
 product between vectors. Thus, updating $K_n^{-1}$ to $K_{n+1}^{-1}$ can be done in $O(n^2)$ operations. 
 
+### Updating the log determinant of the kernel matrix 
+
+### Updating the predictive mean and variance 
+
 
 ## Integrating GP Predictive Variance 
 Many sequential design criteria, such as the integrated mean squared prediction error (IMSPE) and Active Learning Cohn (ALC) require 
@@ -737,9 +741,9 @@ $$
 Note that $K^{-1}_{n+1}$ does not depend on $x$ so is fixed with respect to the expectation; $k_{n+1}$ does depend on $x$ since 
 $k_{n+1} = k(X_n, x) = \left(k(x_1, x), \dots, k(x_n,x) \right)^\top$. The second term is thus an expectation of a quadratic form with 
 fixed matrix and a random vector. Such expectations are well-known to be equal to the trace of the produce of the matrix times the 
-covariance matrix of the vector: 
+covariance matrix of the vector, plug a quadratic form in the mean: 
 $$
-\mathbb{E}_{x \sim \rho}\left[k_{n+1}^\top K_{n+1}^{-1} k_{n+1} \right] = \text{tr}\left(K_n^{-1}\text{Cov}\left[k_{n+1}\right]\right)
+\mathbb{E}_{x \sim \rho}\left[k_{n+1}^\top K_{n+1}^{-1} k_{n+1} \right] = \text{tr}\left(K_n^{-1}\text{Cov}\left[k_{n+1}\right]\right) + \mathbb{E}_{x \sim \rho}\left[ k_{n+1}\right]^\top K_n^{-1} \mathbb{E}_{x \sim \rho}\left[ k_{n+1}\right]
 $$
 Let $\Sigma := \text{Cov}\left[k_{n+1}\right]$. In general this matrix has entries 
 $$
