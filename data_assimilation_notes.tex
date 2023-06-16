@@ -310,6 +310,7 @@ Allowing $g(\cdot)$ to be nonlinear has the consequence that the prediction oper
 distribution $\hat{\pi}_{t+1}$ will no longer be available in closed-form. The extended Kalman filter (ExKF) addresses this by employing a linear approximation, while 
 the ensemble Kalman filter (EnKF) utilizes a sample-based approximation. 
 
+% Extended Kalman Filter
 \subsection{Extended Kalman Filter}
 The main idea of the ExKF is to employ a linear approximation to propagate $\Sigma_t$ to $\hat{\Sigma}_{t + 1}$. I derive this method by attempting to perform the same 
 calculations used by the Kalman filter to obtain $\hat{\mu}_{t + 1}$ and $\hat{\Sigma}_{t + 1}$ and observing where we run into issues due to the non-linear $g(\cdot)$. 
@@ -343,6 +344,77 @@ we consider the linearization (i.e. first order Taylor series approximation) of 
  \hat{\mu}_{t + 1} &= g(\mu_t) \label{ExKF_approximations} \\
  \hat{\Sigma}_{t + 1} &= Dg(\mu_t) \Sigma_t Dg(\mu_t)^\top + \Sigma_g \nonumber
  \end{align} 
+The analysis step is then unchanged from the standard Kalman filter. Note that the quality of approximation in the prediction step depends heavily on the assumption that 
+the distribution $\pi_t$ is concentrated about its mean. This means that we require $\Sigma_g$ and $\Sigma_{\epsilon}$ to be small in order for the approximation to 
+be reasonable. 
+
+% Ensemble Kalman Filter
+\subsection{Ensemble Kalman Filter}
+Notice that the Jacobian $Dg(\mu_t)$ is a $P \times P$ matrix. If the number of states $P$ is very large then computation and storage of this matrix becomes 
+intractable. The Ensemble Kalman Filter (EnKF) was introduced to overcome this issue, replacing the local linearization with a sample-based approximation. 
+The main idea is to propagate an ensemble of ``particles'' (i.e. samples) and approximate $\hat{\Sigma}_{t + 1}$ by using the empirical covariance matrix estimator 
+computed on the particles. We continue assuming that the forward operator $g: \R^P \to \R^P$ is non-linear but the observation operator $H: \R^P \to \R^N$ is 
+linear. However, note that there are many variations of the EnKF that apply under differing assumptions. 
+
+We let $\{x_t^{(k)}\}_{k = 1}^{K}$ denote the ensemble of particles at time $t$. All particles are weighted equally, as opposed to other ensemble-based filtering 
+algorithms discussed later. We might imagine constructing a sample-based approximation to the filtering distribution; something like, 
+\begin{align*}
+\pi_t^{N}(x) &:= \frac{1}{K} \sum_{k = 1}^{K} \delta(x_t^{(k)} - x)
+\end{align*}
+or something more sophisticated like a kernel density estimate. However, when $N$ is modest in size and/or the true distribution $\pi_t$ is far from Gaussian, 
+such density estimates can be quite poor. Instead, the EnKF can be thought of as a sort of sequential optimization method, which will be described in more depth 
+later. For now, we provide details on the how the prediction and analysis steps are performed using the ensemble of particles. 
+
+\bigskip
+\noindent
+\textbf{Prediction.} Recall from the Kalman filter that the prediction step proceeds by accounting for the uncertainty in stepping the model one time step into 
+the future, thus obtaining the distribution $\hat{\pi}_{t+1}(x_{t+1}) = p(x_{t+1}|Y_t)$. The ensemble-based equivalent of this is to feed each particle through one 
+step of the dynamical model. Thus the ensemble is updated 
+\[\{x_t^{(k)}\} \to \{\hat{x}_{t+1}^{(k)}\}\]
+via 
+\begin{align*}
+\hat{x}_{t+1}^{(k)} &= g(x_t^{(k)}) + \xi_t,  &&k = 1, \dots, K
+\end{align*}
+Note that this involves mapping each particle by $g(x_t^{(k)})$ and then perturbing the result by adding noise $\xi_t \sim \mathcal{N}_P(0, \Sigma_g)$. Now 
+the predictive mean $\hat{\mu}_{t+1}$ and covariance $\hat{\Sigma}_{t+1}$ can be estimated via the sample analogs. 
+\begin{align*}
+\hat{\mu}_{t+1} &= \frac{1}{K} \sum_{k = 1}^{K} \hat{x}_{t+1}^{(k)} \\
+\hat{\Sigma}_{t+1} &= \frac{1}{K} \sum_{k = 1}^{K} \left(\hat{x}_{t+1}^{(k)} - \hat{\mu}_{t+1} \right) \left(\hat{x}_{t+1}^{(k)} - \hat{\mu}_{t+1} \right)^\top
+\end{align*}
+
+\bigskip
+\noindent
+\textbf{Analysis.} Recall that the analysis step of the Kalman filter can be written 
+\begin{align*}
+\mu_{t+1} &= (I - K_{t+1}H) \hat{\mu}_{t+1} + K_{t+1} y_{t+1} \\
+\Sigma_{t+1} &= (I - K_{t+1}H) \hat{\Sigma}_{t+1}
+\end{align*}
+where 
+\[K_{t+1} = \hat{\Sigma}_{t+1} H^\top \left[H \hat{\Sigma}_{t+1}H^\top + \Sigma_{\epsilon}^{-1}   \right]^{-1} \]
+is the \textit{Kalman gain}. The mean is seen to be a compromise between the predictive mean $\hat{\mu}_{t+1}$ and data 
+$y_{t+1}$ with the relative weights controlled by the Kalman gain. The Kalman gain also controls the update 
+$\hat{\Sigma}_{t+1} \to \Sigma_{t+1}$.  
+
+The EnKF defines the Kalman gain identically, with the empirical covariance matrix $\hat{\Sigma}_{t+1}$ replacing the exact covariance used in the Kalman 
+filter. Thus, $\Sigma_{t+1}$ is updated using the same Kalman filter equations. The particles are updated via the equation for the Kalman mean update. 
+\begin{align}
+&x^{(k)}_{t+1} = (I - K_{t+1}H) \hat{x}^{(k)}_{t+1} + K_{t+1} y_{t+1} && k = 1, 2, \dots, K \label{EnKF_analysis_update}
+\end{align}
+
+\subsubsection{Perturbed Observation EnKF}
+A natural question is whether the EnKF is truly an exact sample-based approximation to the Kalman filter in the linear Gaussian setting. By this I mean the following: 
+supposing the forward model $g$ is linear, do we have 
+\[x^{(k)}_{t+1} \overset{iid}{\sim} \pi_{t+1} \]
+i.e., are the particles independent samples of the true filtering distribution? The answer to the Kalman filter as currently defined is \textit{no}. To intuitively see why,  
+look back at the analysis update \ref{EnKF_analysis_update} to the particles. The update equation is using the fixed observation $y_{t+1}$. However, as we know 
+the Kalman filter update propagates forward the uncertainty in the measurement process, accounting for the noise $\epsilon_t$. In order to capture this uncertainty 
+in the sample-based approximation, we must perturb the observation $y_{t+1}$ in a similar manner that the particles are perturbed by $\xi_t$ in the prediction step. 
+\begin{align}
+&x^{(k)}_{t+1} = (I - K_{t+1}H) \hat{x}^{(k)}_{t+1} + K_{t+1} y^{(k)}_{t+1} \label{EnKF_analysis_update_perturbed_obs} \\
+&y^{(k)}_{t+1} \overset{iid}{\sim} \mathcal{N}_N(0, \Sigma_{\epsilon}), && k = 1, 2, \dots, K \nonumber 
+\end{align}
+We now prove that this perturbed-observation EnKF is indeed an exact sample-based approximation of the filtering distributions in the linear Gaussian setting. 
+
 
 \end{document} 
 

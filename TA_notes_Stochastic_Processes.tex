@@ -63,9 +63,16 @@
 \newpage
 
 \section{Introduction to Stochastic Processes}
-\begin{itemize}
-\item Discuss the two perspectives on stochastic processes; random function vs. collection of random variables. 
-\end{itemize}
+
+\subsection{From Deterministic to Discrete Dynamical Systems}
+Introduce difference equations, then add noise to get to AR(1) processes. Talk about what it means to solve a difference equation. Then show how this 
+relates to ODEs/continuous time formulation. Pose question: what does it mean to ``solve'' ODEs with random dynamics? 
+
+\subsection{Two Perspectives on Stochastic Processes}
+random function vs. collection of random variables; thinking of $t$ as time and $\omega$ as the result of an experiment, or as a particle. 
+
+\subsection{Random Walks}
+Talk about the increments, other basic properties 
 
 \section{Introduction to Markov Chains}
 
@@ -139,7 +146,6 @@ is not very surprising. In fact, we specifically defined $\mu P$ and $P_1 P_2$ s
 we would definitely want to reconsider those definitions/notation. It is helpful to think about the finite state space case, in which case $\mu$ is a row vector and $P_1$, $P_2$ are 
 matrices. The statement \ref{associativity} is identical to the finite state space analog from a notational standpoint, so what we have done is cleverly define things in the general state 
 space setting so that the same notation applies here (i.e. we have overloaded the notation). 
-
 
 \subsection{Questions}
 \begin{itemize}
@@ -306,6 +312,34 @@ same to move from continuous-time dynamical systems (e.g. ODEs) to continuous-ti
 \item Include discussion of random vs stochastic DEs (see Stuart)
 \end{itemize}
 
+% Brownian Motion 
+\subsection{Brownian Motion}
+A \textit{Brownian motion} $\{B_t\}_{t \in \R_+}$ is a very special type of continuous time stochastic process. Before diving into the definition, recall that in general a stochastic process 
+$\{X_t(\omega)\} = \{X(t, \omega)\}$ can be thought of in two ways. 
+\begin{enumerate}
+\item A collection of random variables, indexed by $t$: at each time $t$, there is a different random variable $X_t: \Omega \to \R$. 
+\item A probability distribution over functions: for a fixed $\omega \in \Omega$ we can consider the function $X_\omega: \R_+ \to \R$. In other words, this function of time is 
+a specific path (i.e. trajectory) of the process indexed by $\omega$. We might think of this as the path of a particle $\omega$. 
+\end{enumerate}
+
+There are many ways to motivate why Brownian motions are important; while the definition may seem opaque at first, the familiarity and utility of these processes the more you come across them. 
+One nice way to think about Brownian motions are as the stochastic process analog of Gaussian random variables. One of the primary reasons the Gaussian distribution is so important is due to 
+the CLT, which states that properly scaled iid random variables from any distribution converge to a Gaussian. \textbf{Continue to describe this.}
+
+
+
+
+\subsubsection{Resources:}
+\begin{itemize}
+\item BROWNIAN MOTION AS THE LIMITING DISTRIBUTION OF RANDOM WALKS (Christian Liu)
+\item An Introduction to Stochastic Modeling 4th edition 
+\item Applied Stochastic Processes in Science and Engineering (M Scott)
+\item Applied Stochastic Differential Equations (Sarkka and Solin)
+\item Stochastic Differential Equations: An Introduction with Applications. (Oksendal)
+\item STOCHASTIC PROCESSES AND APPLICATIONS (Pavliotis)
+\end{itemize}
+
+
 % Resources
 \section{Resources}
 \begin{itemize}
@@ -313,13 +347,10 @@ same to move from continuous-time dynamical systems (e.g. ODEs) to continuous-ti
 https://cims.nyu.edu/~holmes/teaching/asa2019.html
 Really nice notes on Markov Chains (good notes on detailed balance) and stochastic PDEs
 \item Stochastic modeling of scientific data (Washington Stat 516)
-http://faculty.washington.edu/yenchic/18A_stat516.html
 \item Markov Chain Monte Carlo Lecture Notes (Charles Geyer)
-https://www.stat.umn.edu/geyer/f05/8931/n1998.pdf
 \item Markov Chain Monte Carlo: Theory and Practical Applications (Douc and Corff)
 Also some very nice content on geometric ergodicity, total variation norm, etc.
-https://moodle.polytechnique.fr/pluginfile.php/219891/mod_resource/content/7/poly.pdf
-
+\item Introduction to Stochastic Processes - Lecture Notes (Gordan Zitkovic)
 \end{itemize}
 
 
