@@ -260,6 +260,7 @@ x^{\top} \Sigma_{t + 1}^{-1} x &= x^{\top} \left[\hat{\Sigma}^{-1}_{t+1} + H^{\t
 where the last step uses the above result that $\hat{\Sigma}^{-1}_{t+1}$ is positive definite. This concludes the proof. 
 \end{proof}
 
+% Computational Considerations 
 \subsubsection{Computational Considerations}
 It turns out that the $O(P^3)$ matrix inversion discussed above can be avoided, and replaced by an $O(N^3)$ inversion. This can be quite advantageous 
 when the dimension of the state space is much larger than the dimension of the observed data. The alternate form of the update can be derived via an 
@@ -297,6 +298,24 @@ The matrix $K_{t + 1}$ is known as the \textbf{Kalman gain}, because it quantifi
  from the observation $y_{t+1}$. 
  
 \textbf{TODO: Write Kalman mean update in terms of Kalman gain.} 
+
+% Optimization Perspective 
+\subsubsection{Optimization Perspective}
+Recall that the analysis map $\mathcal{A}_{t}$ simply weights the predictive distribution $\hat{\pi}_{t+1}(x_{t+1})$ by the likelihood $p(y_{t+1}|x_{t+1})$ and then 
+normalizes in order to produce a valid probability distribution. 
+\begin{align*}
+\pi_{t + 1}(x_{t + 1}) &\propto \exp\left(-\frac{1}{2} (y_{t+1} - Hx_{t+1})^{\top} \Sigma_\epsilon^{-1} (y_{t+1} - Hx_{t+1}) - \frac{1}{2} (x_{t+1} - \hat{\mu}_{t+1})^{\top} \hat{\Sigma}^{-1}_{t+1} (x_{t+1} - \hat{\mu}_{t+1}) ) \right) \\
+			       &= \exp\left(-\frac{1}{2} \norm{y_{t+1} - Hx_{t+1}}^2_{\Sigma_\epsilon} - \frac{1}{2} \norm{x_{t+1} - \hat{\mu}_{t+1}}^2_{\hat{\Sigma}^{-1}_{t+1}} \right) 
+\end{align*}
+Knowing that $\pi_{t + 1}(x_{t + 1})$ is Gaussian, and that the mean of the Gaussian distribution corresponds to its mode we have that 
+\begin{align*}
+\mu_{t + 1} &= \text{argmax}_{x_{t+1}} \pi_{t+1}(x_{t+1}) \\
+		  &= \text{argmin}_{x_{t+1}} \left( \frac{1}{2} \norm{y_{t+1} - Hx_{t+1}}^2_{\Sigma_\epsilon} - \frac{1}{2} \norm{x_{t+1} + \hat{\mu}_{t+1}}^2_{\hat{\Sigma}^{-1}_{t+1}} \right)
+\end{align*}
+In other words, the Kalman filter sets the $\mu_{t+1}$ to the solution of the above dual objective least-squares optimization problem. The competing objectives are a measure of fit 
+to the observed observation $y_{t+1}$ and a measure of agreement with the predictive mean $\hat{\mu}_{t+1}$. The matrices $\Sigma_\epsilon$ and $\hat{\Sigma}^{-1}_{t+1}$
+control the relative weight given to each quadratic objective. 
+
 
 % Extended and Ensemble Kalman Filter
 \section{The Extended and Ensemble Kalman Filter}
