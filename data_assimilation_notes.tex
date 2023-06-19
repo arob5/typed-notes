@@ -419,21 +419,68 @@ filter. Thus, $\Sigma_{t+1}$ is updated using the same Kalman filter equations. 
 \begin{align}
 &x^{(k)}_{t+1} = (I - K_{t+1}H) \hat{x}^{(k)}_{t+1} + K_{t+1} y_{t+1} && k = 1, 2, \dots, K \label{EnKF_analysis_update}
 \end{align}
+We recall that the Kalman mean update can be viewed as solving a dual objective least squares optimization problem. Therefore, the above particle update 
+can also be understood as solving the following problem. 
+\begin{align*}
+x^{(k)}_{t+1} &= \text{argmin}_{x} J_k(x) \\
+J_k(x) &= \norm{y_{t+1} - H x}^2_{\Sigma_{\epsilon}} + \norm{x - \hat{x}^{(k)}_{t+1}}^2_{\Sigma_g}
+\end{align*}
 
 \subsubsection{Perturbed Observation EnKF}
 A natural question is whether the EnKF is truly an exact sample-based approximation to the Kalman filter in the linear Gaussian setting. By this I mean the following: 
 supposing the forward model $g$ is linear, do we have 
 \[x^{(k)}_{t+1} \overset{iid}{\sim} \pi_{t+1} \]
-i.e., are the particles independent samples of the true filtering distribution? The answer to the Kalman filter as currently defined is \textit{no}. To intuitively see why,  
-look back at the analysis update \ref{EnKF_analysis_update} to the particles. The update equation is using the fixed observation $y_{t+1}$. However, as we know 
+i.e., are the particles independent samples of the true filtering distribution? The answer is currently \textit{no}. To intuitively see why,  
+look back at the analysis update \ref{EnKF_analysis_update} to the particles. The update equation is using the fixed observation $y_{t+1}$. However, as we know, 
 the Kalman filter update propagates forward the uncertainty in the measurement process, accounting for the noise $\epsilon_t$. In order to capture this uncertainty 
 in the sample-based approximation, we must perturb the observation $y_{t+1}$ in a similar manner that the particles are perturbed by $\xi_t$ in the prediction step. 
 \begin{align}
 &x^{(k)}_{t+1} = (I - K_{t+1}H) \hat{x}^{(k)}_{t+1} + K_{t+1} y^{(k)}_{t+1} \label{EnKF_analysis_update_perturbed_obs} \\
-&y^{(k)}_{t+1} \overset{iid}{\sim} \mathcal{N}_N(0, \Sigma_{\epsilon}), && k = 1, 2, \dots, K \nonumber 
+&y^{(k)}_{t+1} \overset{iid}{\sim} \mathcal{N}_N(y_{t+1}, \Sigma_{\epsilon}), && k = 1, 2, \dots, K \nonumber 
 \end{align}
-We now prove that this perturbed-observation EnKF is indeed an exact sample-based approximation of the filtering distributions in the linear Gaussian setting. 
+We now prove that this perturbed-observation EnKF is indeed an exact sample-based approximation of the Kalman updates in the linear Gaussian setting. However, we 
+must be very clear about what the below proof actually shows. It establishes that both the \textit{prediction} and \textit{analysis} EnKF updates provide sample-based 
+approximations of the Kalman updates in the linear Gaussian setting. It does \textit{not} show that the full two-step update 
+\[\{x^{(k)}_t\} \to \{\hat{x}^{(k)}_{t+1}\} \to \{x^{(k)}_{t+1}\}\]
+The reason this does not not immediately follow is due to the fact that the covariance $\hat{\Sigma}_{t+1}$ is also estimated from the ensemble. The fact that the 
+analysis update is non-linear in $\hat{\Sigma}_{t+1}$ complicates matters. The below result instead shows that, \textit{conditional on } $\hat{\Sigma}_{t+1}$ the 
+distribution is preserved, which is much easier to establish. It is indeed true that the EnKF converges to the Kalman filter as $K \to \infty$, but such a proof is outside 
+of the scope of these notes. 
 
+\begin{thm} 
+Assume the forward model is linear, given by $g(x) = Gx$. 
+\begin{enumerate}
+\item \textbf{Prediction:} Suppose that $x^{(k)}_{t} \sim \mathcal{N}_D(\mu_t, \Sigma_t)$. Then the EnKF prediction update yields 
+\[\hat{x}^{(k)}_{t + 1} \sim \mathcal{N}_D(G\mu_t, G\Sigma_t G^T + \Sigma_g)\] 
+\item \textbf{Analysis:} Suppose that $\hat{x}^{(k)}_{t + 1} \sim \mathcal{N}_D(\hat{\mu}_{t+1}, \hat{\Sigma}_{t+1})$. Then the EnKF analysis update yields 
+\[x^{(k)}_{t+1} \sim \mathcal{N}_D(\hat{\mu}_{t+1} + K_{t+1}(y_{t+1} - H\hat{\mu}_{t+1}), \left(I_P - K_{t+1}H \right)\hat{\Sigma}_{t+1})\]
+\end{enumerate}
+where 
+\[K_{t+1} := \hat{\Sigma}_{t+1} H^{\top} \left[H\hat{\Sigma}_{t+1} H^\top + \Sigma_{\epsilon} \right]^{-1} \]
+Notice that the moments of the two Gaussian distributions align with the Kalman filter formulae. 
+\end{thm}
+
+\begin{proof} 
+The first part of this proof concerns showing that the predictive ensemble $\{\hat{x}^{(k)}_{t+1}\}$ is distributed according to the true predictive distribution.
+ The second part shows that the perturbed-observation EnKF analysis update results in an ensemble with distribution that agrees with the distribution 
+ resulting from the true Kalman filter update.  
+ 
+\bigskip
+\noindent
+\textbf{Prediction.} There is almost nothing to prove here, as the predictive ensemble is formed by propagating the samples through the model 
+\begin{align*}
+&\hat{x}^{(k)}_{t+1} = Gx_t^{(t)} + \xi^{(k)}_t, && \xi^{(k)}_t \overset{iid}{\sim} \mathcal{N}_D(0, \Sigma_g) 
+\end{align*}
+Since $x_t^{(t)} \sim \mathcal{N}_D(\mu_t, \Sigma_t)$ then the above linear update preserves Gaussianity. The resulting distribution is given by 
+\[\hat{x}^{(k)}_{t+1} \sim \mathcal{N}_D(G\mu_t, G\Sigma_t G + \Sigma_g) = \mathcal{N}_D(\hat{\mu}_{t+1}, \hat{\Sigma}_{t+1})\]
+
+
+
+\bigskip
+\noindent
+\textbf{Analysis.}
+
+\end{proof}
 
 \end{document} 
 
