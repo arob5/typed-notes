@@ -1,0 +1,256 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bk}{\mathbf{k}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Computations for Bayesian Optimization and Sequential Design with Gaussian Processes}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% Introduction and Setup
+\section{Introduction and Setup}
+The typical procedure for Bayesian optimization (BO) or sequential design with GPs is to perform a single-step optimization to select the next point. Let 
+$X_n := [x_1, \dots, x_n]^T \in \R^{n \times D}$  and $Y_n := [y_1, \dots, y_n]^T \in \R^n$ denote the current observed inputs and outputs, respectively. I denote 
+the full dataset at time step $n$ by $\mathcal{D}_n = \{X_n, Y_n\}$. Let $f: \R^D \to \R$ denote the latent function of interest. In Bayesian optimization this is the 
+objective function while in sequential design $f$ might define a response surface that we wish to explore. We represent our uncertainty about $f$ by assigning it 
+a Gaussian process (GP) prior 
+\[f(\cdot) \sim \mathcal{GP}(\mu(\cdot), k(\cdot, \cdot))\]
+If the hyperparameters defining the mean function $\mu(\cdot)$ and covariance function/kernel $k(\cdot, \cdot)$ are set to their MLE values using data $\mathcal{D}_n$, I write these 
+functions as $\mu_n(\cdot)$ and $k_n(\cdot, \cdot)$. I denote the resulting GP prior with optimized hyperparameters as 
+\[f_n(\cdot) \sim \mathcal{GP}(\mu_n(\cdot), k_n(\cdot, \cdot))\]
+When the GP is conditioned on the data $\mathcal{D}_n$, the resulting \textit{predictive distribution} is also Gaussian. I denote this distribution by 
+\[f_n^*(\cdot) := f_n(\cdot)|\mathcal{D}_n \sim \mathcal{GP}(\mu^*_n(\cdot), k^*_n(\cdot, \cdot))\]
+A superscript asterisk will always identify the predictive distribution. This notation allows us to differentiate between 1.) the GP prior without optimized 
+hyperparameters $f \sim \mathcal{GP}(\mu, k)$, 2.) the GP prior with optimized hyperparameters $f_n \sim \mathcal{GP}(\mu_n, k_n)$, and the GP predictive distribution 
+$f_n^* \sim \mathcal{GP}(\mu_n^*, k_n^*)$. This will be useful in 
+situations in which we may condition on $\mathcal{D}_n$ without re-fitting the hyperparameters in order to save on computation. 
+
+While some computations will be agnostic to the choice of kernel, others will be specialized for a specific kernel family. The default choice will be the exponentiated quadratic (EQ) family, using 
+the following parameterization. 
+\begin{align} 
+k(x, x^\prime) &= \tau^2 \exp\left\{-\frac{1}{2} \sum_{d = 1}^{D} \left(\frac{x_d - x_d^\prime}{\theta_d}\right)^2  \right\} = \tau^2 \exp\left\{-\frac{1}{2} (x - x^\prime)^\top \Sigma_\theta^{-1}(x - x^\prime) \right\} \label{EQ_kernel}
+\end{align}
+For a set of inputs $x_1, \dots, x_M$ stacked in the rows of a matrix $X \in \R^{M \times D}$ I write $k_n(X)$ to denote the $M \times M$ matrix with entries $\left[k_n(X)\right]_{ij} = k(x_i, x_j)$. Given an additional input 
+$x$ I similarly write $k_n(X, x)$ to denote the $M \times 1$ vector with entries $k(X, x)_i = k(x_i, x)$. I will use the special notation $K_n := k_n(X_n)$ to denote the \textit{kernel matrix}; i.e. the matrix resulting from evaluating 
+the GP prior covariance function $k_n(\cdot, \cdot)$ at the set of design points $X_n$. The GP predictive moments at unobserved input locations $X$ are given by 
+\begin{align*}
+\mu_n^*(X) &= \mu_n(X) + k_n(X, X_n)\left(K_n + \sigma^2_{\epsilon} I_n \right)^{-1}(Y_n - \mu_n(X_n)) \\
+k_n^*(X) &= k_n(X) - k_n(X, X_n) \left(K_n + \sigma^2_{\epsilon} I_n \right)^{-1} k_n(X_n, X)
+\end{align*}
+The parameter $\sigma^2_{\epsilon}$ is the \textit{nugget}, which corresponds to the variance of a noise term $\epsilon \sim \mathcal{N}_n(0, \sigma^2_{\epsilon} I_n)$ in the GP regression model. The nugget is typically 
+set to a value close to zero when observations are noise-free. 
+
+
+% Fast GP Updates
+\section{Fast Gaussian Process Updates}
+At first glance, the sequential design GP update at step $n$ appears to incur $O(n^3)$ runtime. If the scheme is run for $N$ steps 
+then the whole procedure is a costly $O(N^4)$ scheme. Fortunately, this need not be the case. Most updates to an existing 
+GP based on the addition of a single data point $(x_{n+1}, y_{n+1})$ can be accomplished in $O(n^2)$ time, meaning the whole procedure 
+is now $O(N^3)$. To be more clear, let us consider what actually needs to be updated. There are two general regimes here:
+1.) Updating GP predictive quantities with fixed hyperparameterization. 
+2.) Update the GP hyperparameterization (i.e. re-fit the hyperparameters). 
+The second is a more costly operation which will be discussed later. We begin by focusing on the first item. As far as these notes are concerned, the main goal is to be able to reduce the computation in evaluating the acquisition function/design criterion. These 
+criteria typically depend on the GP predictive quantities, so we will consider fast updates for: 1.) the inverse kernel matrix; 
+i.e. updating $K_n^{-1}$ to $K_{n+1}^{-1}$; 2.) the predictive mean and variance at fixed input locations; e.g. updating $k_n^*(x)$ to $k_n^*(x|x_{n+1})$; 3.) the log determinant of the kernel matrix; i.e. updating $\log \text{det}(K_n)$ to 
+$\log \text{det}(K_{n+1})$. Throughout this section I will let $K_n$ denote the kernel matrix constructed from 
+$x_1, \dots, x_n$ and $K_{n+1}$ the kernel matrix constructed from $x_1, \dots, x_n, x_{n+1}$ each using the same GP 
+hyperparameterization. I will also let $k_n := k(X_n, x_{n+1})$ and $k_{n+1} := k(x_{n+1})$. 
+
+\subsection{Inverse Kernel Matrix}
+The addition of a new design point $x_{n+1}$ increases the dimension of the kernel matrix by one. The matrix can be written in block 
+form as 
+\[K_{n+1} = \begin{pmatrix} K_n & k_n \\ k_n^T & k_{n+1} \end{pmatrix}\]
+To find the inverse we can apply the inverse formula for block matrices presented in the appendix. First we compute the matrix $S$ from 
+that section to be
+\[S = \left(k_{n+1} - k_n^T K_n^{-1} k_n\right)^{-1} = \frac{1}{k^*_{n}(x_{n+1})}\]
+The second equality follows from the fact that we recognize the expression as the predictive variance at $x_{n+1}$ given the design $X_n$. Thus, in this 
+case $S$ is just a scalar. Denoting $\nu := k^*_{n}(x_{n+1}$ and applying the partitioned inverse formula now yields 
+\[
+K_{n+1}^{-1} = \begin{pmatrix} K_n^{-1} + \nu^{-1} K_n^{-1} k_n k_n^T K_n^{-1} & -\nu^{-1} K_n^{-1}k_n \\
+-\nu^{-1} k_n^T K_n^{-1} & \nu^{-1} \end{pmatrix}
+\]
+Noticing that many of the same terms come up in each entry, we can clean this up. Define
+$z := -\nu K_n^{-1} k_n$. Plugging this in, we obtain 
+\[
+K_{n+1}^{-1} = \begin{pmatrix} K_n^{-1} + \nu zz^\top & z \\ z^\top & \nu^{-1} \end{pmatrix}
+\]
+Given that $K_n^{-1}$ is already available, we observe that all of the computations here involve either matrix-vector products, or an outer 
+product between vectors. Thus, updating $K_n^{-1}$ to $K_{n+1}^{-1}$ can be done in $O(n^2)$ operations. 
+
+% Bayesian Optimization Acquisition Functions
+\section{Bayesian Optimization Acquisition Functions}
+
+% Sequential Design Criteria
+\section{Sequential Design Criteria}
+
+\subsection{Integrated Mean Squared Prediction Error}
+Many sequential design criteria, such as the integrated mean squared prediction error (IMSPE) and Active Learning Cohn (ALC) require 
+computing an integral of the GP predictive variance over the input domain. In simple settings, such as when the input domain is 
+rectangular, this can be done in closed-form. The integral we seek to compute is 
+\begin{align*}
+I_{n+1}(x_{n+1}) &= \int_{\mathcal{X}} k^*_n(x) \rho(x) dx
+\end{align*}
+where $\rho$ is a density on $\mathcal{X}$. We proceed by starting as general as possible, and upon hitting roadblocks make assumptions about $k$, $\mathcal{X}$, and 
+$\rho$ in order to yield closed-form solutions. 
+
+\subsubsection{The General Case}
+
+We now consider evaluation of the integral $I_{n+1}(x_{n+1}) $. It is helpful to re-write this as an expectation. Denote $\bk_{n + 1} := k_n(X_n, x)$. 
+\begin{align*}
+I_{n+1}(x_{n+1}) &= \mathbb{E}_{x \sim \rho}\left[k_n^*(x) \right] \\
+                 	 &= \mathbb{E}_{x \sim \rho}\left[k_n(x) - \bk_{n+1}^\top K_{n+1}^{-1} \bk_{n+1} \right] \\
+                          &= \mathbb{E}_{x \sim \rho}[k(x)] - \mathbb{E}_{x \sim \rho}\left[\bk_{n+1}^\top K_{n+1}^{-1} \bk_{n+1} \right]
+\end{align*}
+Note that $K^{-1}_{n+1}$ does not depend on $x$ so is fixed with respect to the expectation; $\bk_{n+1}$ does depend on $x$ since 
+$\bk_{n+1} = k_n(X_n, x) = \left(k_n(x_1, x), \dots, k_n(x_n,x) \right)^\top$. The second term is thus an expectation of a quadratic form with 
+fixed matrix and a random vector. Such expectations are well-known to be equal to the trace of the produce of the matrix times the 
+covariance matrix of the vector, plug a quadratic form in the mean: 
+\textbf{Left off here: need to think about notation; probably best to start using defined expressions so it is easy to switch notation.}
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k_{n+1}^\top K_{n+1}^{-1} k_{n+1} \right] = \text{tr}\left(K_n^{-1}\text{Cov}\left[k_{n+1}\right]\right) + \mathbb{E}_{x \sim \rho}\left[ k_{n+1}\right]^\top K_n^{-1} \mathbb{E}_{x \sim \rho}\left[ k_{n+1}\right]
+\end{align*}
+
+Let $\Sigma := \text{Cov}\left[k_{n+1}\right]$. In general this matrix has entries 
+\begin{align*}
+\Sigma_{ij} &= \text{Cov}_{x \sim \rho}\left[k(x_i, x), k(x_j, x) \right] \\
+            &= \mathbb{E}_{x \sim \rho}\left[k(x_i, x)k(x_j, x) \right] - \mathbb{E}_{x \sim \rho}\left[k(x_i, x)\right]\mathbb{E}_{x \sim \rho}\left[k(x_j, x) \right]
+\end{align*}
+
+In the case that the GP has a zero-mean prior the second terms vanishes. Indeed, 
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k(x_i, x)\right] &= \mathbb{E}_{x \sim \rho} \text{Cov}\left[y(x_i), y(x) \right] \\
+                                               &= \mathbb{E}_{x \sim \rho} \mathbb{E}\left[y(x_i)y(x) \right] \\
+                                               &= \mathbb{E} \mathbb{E}_{x \sim \rho} \left[y(x_i)y(x) \right] \\
+                                               &= \mathbb{E}\left[y(x_i)\right] \mathbb{E}_{x \sim \rho} \left[y(x) \right] \\
+                                               &= 0 \cdot \mathbb{E}_{x \sim \rho} \left[y(x) \right] \\
+                                               &= 0
+\end{align*}
+where the second line uses the assumption of zero-mean GP prior. This is about as far as we can go without making additional assumptions 
+about $\mathcal{X}$, $\rho$, or $k(\cdot, \cdot)$. 
+
+\subsubsection{Special case: EQ Kernel, No weights, Unbounded Domain}
+In certain simple cases, $\Sigma$ can be computed in closed-form. We focus here on the case where the kernel is of the exponentiated quadratic family. 
+Recall from above that $\Sigma$ has entries of the form 
+\[\Sigma_{ij} = \mathbb{E}_{x \sim \rho}\left[k(x_i, x)k(x_j, x) \right] - \mathbb{E}_{x \sim \rho}\left[k(x_i, x)\right]\mathbb{E}_{x \sim \rho}\left[k(x_j, x) \right]\]
+Plugging in the expression for the exponentiated quadratic kernel yields the following results for the two expectations in the above expression. 
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k(x, x^\prime)\right] &= \tau^2 \mathbb{E}_{x \sim \rho}\left[\exp\left\{-\frac{1}{2}(x - x^\prime)^{\top}\Sigma_\theta^{-1}(x - x^\prime)\right\} \right] \\
+&= \tau^2 \int_{\mathcal{X}} \exp\left\{-\frac{1}{2}(x - x^\prime)^{\top}\Sigma_\theta^{-1}(x - x^\prime)\right\} \rho(x) dx
+\end{align*}
+
+First we consider the form $\Sigma$ takes in the specific case of the exponentiated quadratic kernel, $\rho(x) \equiv 1$ and $\mathcal{X} = \mathbb{R}^D$. 
+In this case, the required expectations simplify to 
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k(x, x^\prime)\right] &= \tau^2 \int_{\mathcal{X}} \exp\left\{-\frac{1}{2}(x - x^\prime)^{\top}\Sigma_\theta^{-1}(x - x^\prime)\right\} \rho(x) dx \\
+&= \tau^2 \int_{\mathbb{R}^D} \exp\left\{-\frac{1}{2}(x - x^\prime)^{\top}\Sigma_\theta^{-1}(x - x^\prime)\right\} dx \\
+&= \tau^2 \int_{\mathbb{R}^D} \text{det}\left(2\pi \Sigma_\theta \right)^{1/2} \mathcal{N}_D\left(x|x^\prime, \Sigma_\theta \right)  dx \\
+&= \tau^2 \text{det}\left(2\pi \Sigma_\theta \right)^{1/2}
+\end{align*}
+
+Now for the second expectation. 
+\begin{align*}
+\mathbb{E}_{x \sim \rho}\left[k(x_i, x)k(x_j, x) \right] &= \int_{\mathcal{X}} k(x_i, x)k(x_j, x) \rho(x) dx \\
+&= \int_{\mathbb{R}^D} k(x_i, x)k(x_j, x) dx \\
+&= \tau^4 \int_{\mathbb{R}^D} \exp\left\{-\frac{1}{2} (x - x_i)^\top \Sigma_\theta^{-1}(x - x_i) -\frac{1}{2} (x - x_j)^\top \Sigma_\theta^{-1}(x - x_j) \right\} dx \\
+&= \tau^4 \exp\left\{-\frac{1}{2} x_i^\top \Sigma_\theta^{-1} x_i - \frac{1}{2} x_j^\top \Sigma_\theta^{-1} x_j\right\} 
+\int_{\mathbb{R}^D} \exp\left\{-x^\top \Sigma_\theta^{-1}x + x^\top \Sigma_\theta^{-1}(x_i + x_j) \right\} dx \\
+&= \tau^4 \exp\left\{-\frac{1}{2} x_i^\top \Sigma_\theta^{-1} x_i - \frac{1}{2} x_j^\top \Sigma_\theta^{-1} x_j + \frac{1}{2} \mu^\top A^{-1}\mu \right\} 
+\int_{\mathbb{R}^D} \exp\left\{-\frac{1}{2}(x - \mu)^\top A^{-1} (x - \mu) \right\} dx \\
+&= \tau^4 \exp\left\{-\frac{1}{2} x_i^\top \Sigma_\theta^{-1} x_i - \frac{1}{2} x_j^\top \Sigma_\theta^{-1} x_j + \frac{1}{2} \mu^\top A^{-1}\mu \right\} 
+\text{det}\left(2\pi A \right)^{1/2}
+\end{align*}
+where 
+\begin{align*}
+A^{-1} &= 2\Sigma_\theta^{-1}, && \mu = \frac{x_i + x_j}{2}
+\end{align*}
+Plugging in these values to the above expression, we obtain 
+\[
+\mathbb{E}_{x \sim \rho}\left[k(x_i, x)k(x_j, x) \right] = \tau^4 \exp\left\{-\frac{1}{4}(x_i - x_j)^\top \Sigma_\theta^{-1}(x_i - x_j) \right\}
+\text{det}\left(\pi \Sigma_\theta \right)^{1/2}
+\]
+
+
+% Appendix
+\section{Appendix}
+
+\subsection{Determinant and Inverse of Block Matrix}
+In the sequential design setting, we are continually adding data to the design $X_n$ and then having to re-compute quantities such as 
+$K(X_{n+1})^{-1}$ and $\det\left(K(X_{n+1}) \right)$. Formulas for the inverse and determinant of block matrices will come in handy 
+when deriving fast updates for these quantities. 
+
+\subsubsection{Determinant}
+Let $A$, $B$, $C$, $D$ be square matrices with $A$ invertible. Then, 
+\[
+\det\begin{pmatrix} A & B \\ C & D \end{pmatrix} = \det \begin{pmatrix} A & B \\ 0 & D - CA^{-1}B \end{pmatrix} = \det(A) \cdot 
+\det\left(D - CA^{-1}B \right)
+\]
+
+\subsubsection{Inverse}
+James E. Pustejovsky provides a nice post on the inversion of partitioned matrices $\href{https://www.jepusto.com/inverting-partitioned-matrices/}{here}$. Suppose $A$ and $D$ are invertible, not necessarily of 
+equal dimension. Letting $S = \left(D - CA^{-1}B\right)^{-1}$ we have 
+\[
+\begin{pmatrix} A & B \\ C & D \end{pmatrix}^{-1} = \begin{pmatrix} A^{-1} + A^{-1}BSCA^{-1} & -A^{-1}BS \\
+-SCA^{-1} & S \end{pmatrix}
+\]
+
+
+\end{document}
+
+

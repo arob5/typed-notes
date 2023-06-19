@@ -674,7 +674,7 @@ GP based on the addition of a single data point $(x_{n+1}, y_{n+1})$ can be acco
 is now $O(N^3)$. To be more clear, let us consider what actually needs to be updated. There are two general regimes here:
 1.) Updating GP predictive quantities with fixed hyperparameterization. 
 2.) Update the GP hyperparameterization (i.e. re-fit the hyperparameters). 
-The second is a more costly operation which will be dicussed later. We begin by focusing on the first item. As far as these notes are concerned, the main goal is to be able to reduce the computation in evaluating the acquisition function/design criterion. These 
+The second is a more costly operation which will be discussed later. We begin by focusing on the first item. As far as these notes are concerned, the main goal is to be able to reduce the computation in evaluating the acquisition function/design criterion. These 
 criteria typically depend on the GP predictive quantities, so we will consider fast updates for: 1.) the inverse kernel matrix; 
 i.e. updating $K(X_n)^{-1}$ to $K(X_{n+1})^{-1}$; 2.) the predictive mean and variance at fixed input locations; e.g. updating $k_{X_n}(x)$ to $k_{X_{n+1}}(x)$; 3.) the log determinant of the kernel matrix; i.e. updating $\log \text{det}(K(X_n))$ to 
 $\log \text{det}(K(X_{n+1}))$. Throughout this section I will let $K_n$ denote the kernel matrix constructed from 
