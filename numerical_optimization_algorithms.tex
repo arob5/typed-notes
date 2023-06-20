@@ -1,0 +1,125 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bk}{\mathbf{k}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Numerical Optimization Algorithms}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% Gradient Descent 
+\section{Gradient Descent}
+
+% Newton's Method
+\section{Newton's Method}
+
+% Gauss-Newton Method}
+\section{Gauss-Newton Method}
+The Gauss-Newton method is a famous iterative algorithm for solving non-linear least squares problems. Recall that linear least squares objectives are of the form 
+\begin{align*}
+&J(x) = \norm{Ax - y}^2, && x \in \R^D, y \in \R^N, A \in \R^{N \times D}
+\end{align*}
+with the additional assumption that $N \geq D$. 
+In other words, we might define the residuals $r(x) := Ax - y$ and then the least-squares criterion would be $J(x) = \norm{r(x)}^2$. So long as $A$ has linearly independent columns, this 
+problem can be uniquely solved in closed form:
+\begin{align}
+(A^\top A)^{-1} A^\top y = \text{argmin}_{x \in \R^D} \norm{Ax - y}^2 \label{linear_LS}
+\end{align}
+The Gauss-Newton method addresses the challenge of solving this minimization problem where the function $r: \R^D \to \R^N$ is no longer linear. For example, if we replace the linear forward 
+model $A$ with a non-linear function $f: \R^D \to \R^N$ then the residual vector would be a non-linear function of $x$:
+\begin{align*}
+J(x) &= \norm{f(x) - y}^2 = \norm{r(x)}^2, && r(x) = f(x) - y
+\end{align*}
+The insertion of non-linearity means that $\min_{x} J(x)$ no longer has a closed-form solution. The Gauss-Newton method is an iterative numerical scheme that, under certain conditions, converges 
+to a local optimum of $J(x)$.
+
+The idea behind Gauss-Newton is quite simple. Given a current iterate $x_t$, linearize $r(x)$ about $x_t$ then replace the non-linear objective with the linearized version and solve to obtain the 
+next iterate $x_{t+1}$. The linearized problem has a closed-form solution given by \ref{linear_LS}. This process is then iterated until convergence. Assuming that the derivative of the function $r$ 
+exists then the linear approximation is given by 
+\begin{align}
+r_t^{\text{lin}}(x) &:= r(x_t) + Dr(x_t)\left(x - x_t \right) 
+\end{align}
+For succinctness, I will write $D_t := Dr(x_t)$. We now solve for the next iterate:
+\begin{align*}
+x_{t + 1} := \text{argmin}_x r_t^{\text{lin}}(x)
+\end{align*}
+However, it is actually a bit cleaner to optimize for the \text{direction} $x - x_t$ rather than $x$ itself. Letting $v := x - x_t$ denote the direction, then we seek to solve
+\begin{align*}
+v_t &:= \text{argmin}_v \left(r(x_t) + D_t v \right) \\
+	      &= \text{argmin}_v \left(D_t v - [-r(x_t]) \right)
+\end{align*}
+The second line makes it clear that this is simply a linear least squares problem \ref{linear_LS}, with $A = D_t$, $x = v$, and $b = -r(x_t)$. The solution is thus 
+\begin{align*}
+v_t = -\left(D_t^\top D_t \right)^{-1} D_t^\top r(x_t)
+\end{align*}
+which requires $D_t$ to have full column rank (thus the assumption $N \geq D$ is essential). We can now define the next iterate as 
+\begin{align*}
+x_{t + 1} &= x_t + \alpha_t v_t
+\end{align*}
+where $\alpha_t$ is a step size parameter that determines how far to move away from $x_t$ in the direction $v_t$. 
+
+
+% Iteratively Re-Weighted Least Squares and Fisher Scoring
+\section{Iteratively Re-Weighted Least Squares and Fisher Scoring}
+
+
+\end{document}
+
+
