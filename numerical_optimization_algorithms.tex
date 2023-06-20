@@ -101,19 +101,45 @@ For succinctness, I will write $D_t := Dr(x_t)$. We now solve for the next itera
 x_{t + 1} := \text{argmin}_x r_t^{\text{lin}}(x)
 \end{align*}
 However, it is actually a bit cleaner to optimize for the \text{direction} $x - x_t$ rather than $x$ itself. Letting $v := x - x_t$ denote the direction, then we seek to solve
-\begin{align*}
-v_t &:= \text{argmin}_v \left(r(x_t) + D_t v \right) \\
-	      &= \text{argmin}_v \left(D_t v - [-r(x_t]) \right)
-\end{align*}
+\begin{align}
+v_t &:= \text{argmin}_v \norm{r(x_t) + D_t v}^2 \label{optimal_direction} \\
+	      &= \text{argmin}_v \norm{D_t v - [-r(x_t]}^2
+\end{align}
 The second line makes it clear that this is simply a linear least squares problem \ref{linear_LS}, with $A = D_t$, $x = v$, and $b = -r(x_t)$. The solution is thus 
 \begin{align*}
 v_t = -\left(D_t^\top D_t \right)^{-1} D_t^\top r(x_t)
 \end{align*}
 which requires $D_t$ to have full column rank (thus the assumption $N \geq D$ is essential). We can now define the next iterate as 
+\begin{align}
+x_{t + 1} &= x_t + \alpha_t v_t \label{line_search}
+\end{align}
+where $\alpha_t > 0$ is a step size parameter that determines how far to move away from $x_t$ in the direction $v_t$. Optimization methods of the form \ref{line_search} are known as 
+\textit{line-search algorithms} due to the fact that the next iterate is found by searching along the line spanned by $v_t$. The step sizes $\alpha_t$ are typically chosen adaptively. While 
+$\alpha_t$ can in some sense control how much trust we place in the direction $v_t$ found via the linear approximation $r_t^{\text{lin}}(x)$, we should emphasize that the direction of $v_t$ is 
+determined by placing complete trust in the linear approximation; the step size only determines how far we move in that direction. This is opposed to so-called \textit{trust-region} methods
+(e.g. such as Levenberg-Marquardt discussed below) which explicitly constrains \ref{optimal_direction} so that the solution lies in a ball where the linear approximation is ``trusted''. 
+
+\subsection{Levenberg-Marquardt Method}
+The Levenberg-Marquardt Method is quite similar to the general Gauss-Newton method, but replaces the step-size parameter $\alpha_t$ with new parameters $\delta_t$, $\Sigma$ which explicitly defines 
+the ball in which the linear approximation is trusted when optimizing for the direction $v_t$. This method replaces the unconstrained optimization problem \ref{optimal_direction} with the following 
+constrained problem:
+\begin{align}
+v_t &:= \text{argmin}_v \norm{r(x_t) + D_t v}^2 \text{   s.t.} && \norm{v}^2_{\Sigma} \leq \delta_t \label{LM_constrained_opt}
+\end{align}
+The matrix $\Sigma$ can be thought of as expressing prior information regarding the smoothness of the function $r$. The next iterate is then set to 
 \begin{align*}
-x_{t + 1} &= x_t + \alpha_t v_t
+x_{t+1} &:= x_t + v_t
 \end{align*}
-where $\alpha_t$ is a step size parameter that determines how far to move away from $x_t$ in the direction $v_t$. 
+Using Lagrange multipliers, it can be shown that \ref{LM_constrained_opt} can be converted to the unconstrained optimization 
+\begin{align}
+v_t &:= \text{argmin}_v\left( \norm{r(x_t) + D_t v}^2 + \frac{1}{\alpha_t} \norm{v}^2_{\Sigma}\right) \label{LM_unconstrained_opt}
+\end{align}
+where there is a one-to-one correspondence between $\delta_t$ and $\alpha_t$. We see that $\alpha_t$ acts as a sort of step-size parameter, in very similar fashion to the optimization perspective 
+for the gradient descent update. The formulation \ref{LM_unconstrained_opt} demonstrates the the Levenberg-Marquardt update consists of optimizing the increment to $x_t$ via a regularized 
+least-squares problem. In the context of a statistical model or inverse problem, where the residual $r(x)$ quantifies the error between the model using parameter $x$ and the observed data, then 
+using the Levenberg-Marquardt method can \textit{implicitly} regularize the problem even when there is no regularization term in $r(x)$. For example, in an ill-posed inverse problem $r(x)$ may be very 
+sensitive to the observed data, and hence the derivative $D_t$ will also be sensitive to the data. The regularization in \ref{LM_unconstrained_opt} can help to place less trust in $D_t$ in this setting and hence 
+help to discourage overfitting when solving the inverse problem.  
 
 
 % Iteratively Re-Weighted Least Squares and Fisher Scoring
