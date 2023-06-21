@@ -1,0 +1,92 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\bw}{\mathbf{w}}
+
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Linear Dynamical Systems and Ordinary Differential Equations}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% Notation 
+\section{Linear ODEs}
+Linear ODEs are generally of the form 
+\begin{align*}
+a_0(t)x + a_1(t) \dot{x} + a_2(t) \ddot{x} + \dots + a_n(t) x^{(n)} = b(t)
+\end{align*}
+This equation is said to be of order $n$ due to the fact that $n$ derivatives of the state vector $x(t) \in \R^P$ appear in the equation. 
+The equation is linear in the state vector $x$ and its $n$ derivatives, $\{x, \dot{x}, \ddot{x}, \dots, x^{(n)}\}$. The coefficients 
+$a_1(t), \dots, a_n(t)$ may be non-linear functions of $t$. In the case when the coefficients are simply constants 
+\begin{align*}
+a_0 x + a_1 \dot{x} + a_2 \ddot{x} + \dots + a_n x^{(n)} = b(t)
+\end{align*}
+the equation is known as an $n^{\text{th}}$ order linear ODE with constant coefficients. The emphasis here is not on finding analytical solutions 
+to such systems, but rather understanding the underlying structure. In particular, I will try to emphasize the application of linear algebra in studying 
+such systems far more than I emphasize arguments based on calculus. In this spirit, I start by exploring the general structure of the solutions to 
+$n^{\text{th}}$ order linear ODEs by taking a linear operator viewpoint. 
+
+\subsection{Space of solutions}
+
+
+\end{document}
+
+
