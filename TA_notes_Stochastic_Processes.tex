@@ -287,6 +287,89 @@ that the definition of irreducibility is that for all $x \in \mathcal{X}$, there
 In words: for any current state $x$, there is a positive probability of reaching the small set $C$ in a finite number of steps $k(x)$. Note that the number of steps required to reach the small set with a certain probability might 
 depend on the current state $x$, hence the notation $k(x)$.   
 
+\section{The Main Result}
+Recall that in simple Monte Carlo, we estimated the expectation $\pi(\phi)$ by drawing iid samples from $\pi$ and then simply computing the sample mean. 
+\begin{align*}
+\hat{\pi}_K(\phi) &= \sum_{k = 1}^{K} \phi(X_k), && X_k \overset{iid}{\sim} \pi
+\end{align*}
+The justification for this estimator is provided by the strong law of large numbers (SLLN), which guarantees 
+\[\hat{\pi}_K(\phi) \overset{a.s.}{\to} \pi(\phi) \text{ as } N \to \infty\]
+We know that the samples $\{X_k\}$ returned by an MCMC algorithm are not independent, nor identically distributed. However, we hope that the marginal distribution of 
+the state $X_k$ is approaching $\pi$ as $k$ grows large. Therefore, it is not unreasonable to wonder if we are justified in using the same estimator $\hat{\pi}_K(\phi)$ as we 
+did in the simple Monte Carlo case and still obtain a good estimate for $\pi(\phi)$ so long as the number of samples $K$ is large enough. In other words, we hope that if we 
+run the chain large enough then we can sort of treat the samples $X_k$ as if they were independent, and compute the standard sample mean in order to estimate expectations
+of interest. In order to justify doing this, we require an analog of the SLLN 
+\[\hat{\pi}^N(\phi) \overset{a.s.}{\to} \pi(\phi) \text{ as } N \to \infty\]
+that applies when the $X_k$ are not iid; in other words, we need a ``SLLN for Markov chains''. The below theorem states that, under the relatively mild condition or irreducibility, the 
+SLLN does indeed hold for Markov chains. 
+\begin{thm} 
+Suppose that a Markov chain with transition kernel $P$ has invariant distribution $\pi$. Moreover, assume that the Markov chain is irreducible. Then there is a set $S \subset \mathcal{X}$ 
+satisfying $\pi(S) = 1$ such that for all $x \in S$ and all $\phi: \mathcal{X} \to \R$ with $\pi(\phi) < \infty$, the Markov chain $\{X_k\}$ with initial distribution $\delta_x$ and transition kernel $P$ 
+satisfies
+\[\lim_{K \to \infty} \sum_{k = 1}^{K} \phi(X_k) = \pi(\phi) \text{ a.s.} \]
+\end{thm}
+
+\bigskip
+\noindent
+\textbf{Proof Sketch:} The proof of this result is not at all obvious. Here is the big idea: we want to be able to apply the SLLN to $\{\phi(X_k)\}$, but this only applies to iid random variables. Instead, we will 
+cleverly define some new random variables $\{Q_i\}$ that \textit{are} iid. We will then define a sample mean sort of estimator $\tilde{\pi}_N(\phi)$ using the $Y_k$ and apply the SLLN to conclude 
+\[\tilde{\pi}_N(\phi) \overset{a.s.}{\to} \pi(\phi)\]
+Of course, this isn't the convergence result we want since it involves $\tilde{\pi}_N(\phi)$ rather than $\hat{\pi}_N(\phi)$. However, we will be able to show that in the limit the difference between 
+these two estimators becomes negligible. This will imply that $\hat{\pi}_N(\phi)$ (the estimator using non-iid samples) also converges to $\pi(\phi)$, as desired. 
+
+Given this overview, the big question is how to define the $Q_i$? Here is where the irreducibility assumption comes into play. We know that any time the chain enters the small set $C$, then the 
+distribution of the next transition looks similar to $\pi$; i.e. this is almost as good as getting an independent sample from $\pi$. This means that the chain ``resets'' in a sense. We will then define 
+some random variables $T_0, T_1, T_2, \dots$ to keep track of the times when these resets occur; $T_0$ is the time of the first reset, $T_1$ the time of the second reset, and so on. Note that 
+since the process is random, then the times $\{T_i\}$ are also random. We will then define $Q_i$ to be the sum of all $\phi(X_k)$ where $T_{i - 1} \leq k \leq T_i - 1$; i.e. the sum of all 
+$\phi(X_k)$ starting at the $(i-1)^{\text{st}}$ reset and taking place before the $i^{\text{th}}$ reset. That is, 
+\begin{align*}
+Q_i := \sum_{k = T_{i-1}}^{T_i - 1} \phi(X_k)
+\end{align*}
+We will be able to prove that the $\{Q_i\}$ are in fact iid. While the $\{\phi(X_k)\}$ are certainly not iid, the sum of these random variables within each reset are. At this point, we still 
+apply the SLLN directly to the $\{Q_i\}$ since the lower and upper bounds on the sum $ \sum_{k = T_{i-1}}^{T_i - 1} \phi(X_k)$ are random variables. In other words, there are a random 
+number of terms in this sum! Thus, we will have to derive a similar sum with non-random bounds in order to apply the SLLN. There are many technical details in order to make all these arguments 
+rigorous, but it is most important to keep the big picture in mind. 
+
+\begin{proof} 
+\noindent
+\textbf{Step 1: extended Markov chain construction.} The first step is to define the formal mechanism by which we will keep track of when ``resets'' occur. To do so, we introduce 
+indicator random variables $Y_k \in \{0, 1\}$ such that $Y_k = 1$ indicates a reset has occurred at time $k$. Formally, we extend the current Markov chain $\{X_k\}$ to add the $Y_k$ as an 
+additional state variable. Thus, the new extended state space is $\mathcal{X} \times \{0, 1\}$ and the extended Markov chain looks like $\{(X_k, Y_k)\}$. In order to complete this definition, we 
+must define the transition kernel for the extended Markov chain. The transition dynamics we define will rely on the notion of irreducibility and the small set, in order to capture the notion of 
+``resetting''. To this end, first recall that the assumption of irreducibility guaranteed the existence of a measure $\mu$ on $\mathcal{X}$, a set $C \in \mathcal{F}$, and 
+$\beta \in (0, 1)$ satisfying 
+\[P(x, A) \geq \beta \mu(A) \text{ for all } x \in C, A \in \mathcal{F} \]
+It is convenient notationally to extend this inequality to all $x \in \mathcal{X}$ (not just $x \in C$) by defining $s(x) := \beta 1(x \in C)$. Then, 
+\[P(x, A) \geq s(x)\mu(A) \text{ for all } x \in \mathcal{X}, A \in \mathcal{F} \]
+Indeed, if $x \in C$ then this reduces to the previous inequality. On the other hand, if $x \notin C$ then the righthand side is $0$ so the inequality trivially holds. I now define the transition dynamics 
+of the extended chain. 
+\begin{align*}
+\Prob(X_k \in A, Y_k = 1|X_{k-1} = x, Y_{k-1}) &= s(x)\mu(A) \\
+\Prob(X_k \in A, Y_k = 0|X_{k-1} = x, Y_{k-1}) &= \tilde{P}(x, A) := P(x, A) - s(x) \mu(A) 
+\end{align*} 
+We must verify that these transition probabilities are actually valid, but first we make some observations. Notice that that the transition probabilities do not depend on the current 
+state of $Y_{k-1}$, but do depend on the current state of $X_{k-1} = x$. We also observe that if this current state $x$ is not in the small set $C$, then the probability of the next state having 
+$Y_{k} = 1$ is zero. Thus, if $Y_{k} = 1$ then we know that $X_{k-1} \in C$; i.e. the previous state $X_{k-1}$ was in the small set. So $Y_{k}$ acts as a ``flag'' indicating that 
+$X_{k-1}$ was in $C$; but it is a ``probabilistic flag'', in the sense that if $X_{k-1} \in C$ then $Y_k$ is set to $1$ with probability $\beta$. Indeed, 
+\[\Prob(Y_k = 1|X_{k-1} \in C, Y_{k-1}) = \Prob(Y_k = 1, X_k \in \mathcal{X}|X_{k-1} \in C, Y_{k-1}) = \beta \mu(\mathcal{X}) = \beta\]
+We now verify that the transition probabilities are valid; i.e. that they are bounded in $[0, 1]$ and sum to $1$. Indeed, note that $s(x) \mu(A) \geq 0$ and 
+\[s(x) \mu(A) \leq \beta \mu(A) \leq \beta \mu(\mathcal{X}) = \beta < 1\]
+so the first transition probability is indeed in $[0, 1]$. For the second transition probability, we have $\tilde{P}(x, A) = P(x, A) \in [0, 1]$ if $x \notin C$. If $x \in C$ then 
+\[\tilde{P}(x, A) = P(x, A) - \beta \mu(A) \geq \beta \mu(A) - \beta \mu(A) = 0\]
+where the inequality follows from the definition of the small set. We also clearly have $\tilde{P}(x, A) \leq 1$ so this transition probability is valid as well. The transition probabilities sum to one, 
+since 
+\[\Prob(X_k \in \mathcal{X}, Y_k \in \{0, 1\}) = s(x)\mu(\mathcal{X}) + \tilde{P}(x, \mathcal{X}) = s(x)\mu(\mathcal{X}) + P(x, \mathcal{X}) - s(x)\mu(\mathcal{X}) =  P(x, \mathcal{X}) = 1\]
+
+We have now established that the transition probabilities are valid. To complete this step of the proof, we derive the marginal transition probabilities. First, we consider the marginal for 
+$X_k$. 
+\begin{align*}
+\Prob(X_k \in A|X_{k - 1} = x)
+\end{align*}
+
+
+\end{proof} 
+
+
 
 
 \subsubsection{To include:}
@@ -300,8 +383,12 @@ depend on the current state $x$, hence the notation $k(x)$.
 \item MCMC tool that Youssef shared. 
 \end{itemize}
 
-% Ergodic theory for Markov Chains 
-\section{Ergodic Theory for Markov Chains}
+
+
+
+
+
+
 
 
 % SDEs
