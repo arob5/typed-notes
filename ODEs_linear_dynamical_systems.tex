@@ -68,8 +68,29 @@
 \tableofcontents
 \newpage
 
-% Notation 
-\section{Linear ODEs}
+% First-Order ODEs
+\section{First-Order ODEs}
+
+\subsection{Solving Scalar ODEs}
+
+\subsubsection{Guessing the solution}
+
+\subsubsection{Integration}
+See e.g. Sarkka SDEs book, first chapter. Motivates the matrix exponential solution for vector systems. 
+
+\subsection{Vector ODEs}
+
+\subsubsection{Introduction and Interpretation}
+See Stanford linear dynamical systems lectures. 
+
+\subsubsection{The Matrix Exponential}
+Briefly discuss different ways to compute it; i.e. Fourier/Laplace/Taylor series
+
+\subsubsection{Integrating Factors}
+
+
+% Higher-Order Linear ODEs
+\section{Higher-Order Linear ODEs}
 Linear ODEs are generally of the form 
 \begin{align}
 a_0(t)x + a_1(t) \dot{x} + a_2(t) \ddot{x} + \dots + a_n(t) x^{(n)} = b(t) \label{linear_ODE}
@@ -85,14 +106,43 @@ to such systems, but rather understanding the underlying structure. In particula
 such systems far more than I emphasize arguments based on calculus. In this spirit, I start by exploring the general structure of the solutions to 
 $n^{\text{th}}$ order linear ODEs by taking a linear operator viewpoint. 
 
+\subsection{Reduction to a First-Order System}
+I now establish another connection between linear ODEs \ref{linear_ODE} and linear systems. In particular, I show that \ref{linear_ODE} can be written as a first order linear 
+equation 
+\[\dot{\bx} = A \bx + L \bb \]
+by extending the state-space $x$ to a vector of states $\bx$. In the homogenous case this reduces to 
+\[\dot{\bx} = A \bx\]
+which is the basic vector-valued first-order linear ODE studied in the previous section. For clarity of notation, we consider a third-order system,
+\[a_0(t) x + a_1(t) \dot{x} + a_2(t) \ddot{x} + \dddot{x} = b(t)\]
+but the same exact reasoning applies to equations of general order. To keep the algebra clean we have also assumed $a_3(t) = 1$, which can be achieved by dividing both 
+sides of the equation by the coefficient on the highest-order term. I define the extended state vector 
+\begin{align*}
+\bx :=  \begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} := \begin{pmatrix} x \\ \dot{x} \\ \ddot{x} \end{pmatrix}
+\end{align*}
+The dimension of $\bx$ in general matches the order of the ODE, as $\bx$ includes the original state $x$ plus all of its derivatives except for the last one $x^{(n)}$. 
+The time derivative of $\bx$ is then given by 
+\begin{align*}
+\dot{\bx} =  \begin{pmatrix} \dot{x}_1 \\ \dot{x}_2 \\ \dot{x}_3 \end{pmatrix} = \begin{pmatrix} \dot{x} \\ \ddot{x} \\ \dddot{x} \end{pmatrix} &=  
+\begin{pmatrix} x_2 \\ x_3 \\ b(t) -  a_0(t) x_1 - a_1(t) x_2 - a_2(t) x_3 \end{pmatrix} \\
+&= \begin{pmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ -a_0(t) & -a_1(t) & -a_2(t) \end{pmatrix}  \begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} + \begin{pmatrix} 0 \\ 0 \\ 1 \end{pmatrix} b(t) \\
+&=: A\bx + L b
+\end{align*}
+The resulting forcing term $L b$ is quite simple, since $L$ is simply a vector and $b = b(t)$ a scalar. This reduction of higher order linear ODEs to a first order matrix system allows 
+us to apply theory and algorithms concerning the latter to equations like \ref{linear_ODE}.
+
 \subsection{Linear Operator Viewpoint and the Solution Space}
-We can view the left side of \ref{linear_ODE} as a linear operator that maps between function spaces. In particular, let $\mathcal{L}$ be the operator 
+We can view the left side of \ref{linear_ODE} as a linear operator that maps between function spaces. In particular, let $L: C^n(a, b) \to C(a, b)$
+\footnote{$C^n(a, b)$ denotes the space of functions on $(a, b)$ with n continuous derivatives. $C(a, b)$ is the space of continuous functions on $(a, b)$} be the operator 
 that maps $x(t)$ to $a_0(t)x + a_1(t) \dot{x} + a_2(t) \ddot{x} + \dots + a_n(t) x^{(n)}$. The equation \ref{linear_ODE} can now be written 
 \begin{align}
 Lx &= b \label{linear_ODE_operator_form}
 \end{align}
 where I note that $x = x(t)$ and $b = b(t)$ are both functions of $t$, though this is suppressed in the notation to emphasize the fact that we are viewing $x$ and 
-$b$ abstractly as vectors. Note that $L$ is indeed a linear operator (i.e. it satisfies $L(\alpha x_1 + \beta x_2) = \alpha L x_1 + \beta L x_2$) due to the fact that differentiation 
+$b$ abstractly as vectors. The operator $L$ is often called a \textit{differential operator} and is often written 
+\begin{align*}
+L &= a_0(t) + a_1(t) \frac{d}{dt} + a_2(t) \frac{d^2}{dt^2} + \dots + a_n(t) \frac{d^n}{dt^n}
+\end{align*}
+Note that $L$ is indeed a linear operator (i.e. it satisfies $L(\alpha x_1 + \beta x_2) = \alpha L x_1 + \beta L x_2$) due to the fact that differentiation 
 is a linear operation. By writing the linear ODE as \ref{linear_ODE_operator_form}, we see that solving linear ODEs can be viewed as solving a linear equation, though the unknown 
 $x$ in the equation is infinite-dimensional. 
 
@@ -103,20 +153,29 @@ is the null space of the linear operator $L$. If $x_n \in \text{Null}(L)$ then $
 so indeed $x_p + x_n$ is a solution. To show that all solutions are of this form, suppose that $x$ is some other solution such that $Lx = b$. Then we can write $x$ as 
 $x = x_p + (x - x_p)$ where $L(x - x_p) = Lx - L x_p = b - b = 0$ so $x - x_p \in \text{Null}(L)$. This establishes that all solutions are of the form $x_p + \text{Null}(L)$. 
 
-\subsection{Finding the Particular Solution}
+\subsubsection{Finding the Particular Solution}
+See MathTheBeautiful videos. 
 
-\subsection{Reduction to a First-Order System}
-I now establish another connection between linear ODEs \ref{linear_ODE} and linear systems. In particular, I show that \ref{linear_ODE} can be written as a first order linear 
-equation 
-\[\dot{\bx} = A \bb \]
-by extending the state-space $x$ to a vector of states $\bx$. For clarity of notation, we consider a third-order system,
-\[x + a_1(t) \dot{x} + a_2(t) \ddot{x} + a_3(t) \dddot{x} = b(t)\]
-but the same exact reasoning applies to equations of general order. To keep the algebra clean we have also assumed $a_0(t) = 1$, which can be achieved by dividing both 
-sides of the equation by the leading coefficient. I define the extended state vector 
+\subsubsection{Characterizing the Null Space}
+The big result here is that the dimension of $\text{Null}(L)$ is finite-dimensional, and in particular equal to $n$, the order of the equation. This means that the general solution 
+$x_p + \text{Null}(L)$ consists of a linear subspace of dimension $n$. In practice, this means that we require $n$ initial conditions in order to solve the equation: 
+$x(t_0), \dot{x}(t_0), \dots, x^{(n-1)}(t_0)$. 
+
+I now prove that indeed $\text{dim } \text{Null}(L) = n$. The proof will require Caratheodory's existence, which under mild conditions guarantees a unique solution to the initial value problem (IVP) 
 \begin{align*}
-\bx :=  \begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} := \begin{pmatrix} x \\ \dot{x} \\ \ddot{x} \end{pmatrix}
+\dot{\bx} = f(\bx, t), && \bx(t_0) = \bx_0
 \end{align*}
-The dimension of $\bx$ in general matches the order of the ODE, as $\bx$ includes the original state $x$ plus all of its derivatives except for the last one $x^{(n)}$. 
+where $t_0 \in (a, b)$. Note that this result applies to first-order ODEs; however, from the previous section we know that we can reduce an ODE of order $n$ to a first-order ODE 
+by extending the state space. 
+
+
+% Numerical Methods for Solving General ODEs
+\section{Numerical Methods for Solving General ODEs}
+
+\subsection{Forward Euler}
+Introduce in the intuitive way of simply stepping in the direction of the gradient. Also emphasize the alternative derivation based on discretizing the integral used to 
+step forward in time. 
+
 
 \end{document}
 
