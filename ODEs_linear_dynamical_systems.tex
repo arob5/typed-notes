@@ -159,12 +159,26 @@ so indeed $x_p + x_n$ is a solution. To show that all solutions are of this form
 $x = x_p + (x - x_p)$ where $L(x - x_p) = Lx - L x_p = b - b = 0$ so $x - x_p \in \text{Null}(L)$. This establishes that all solutions are of the form $x_p + \text{Null}(L)$. 
 
 \subsubsection{Finding the Particular Solution}
-See MathTheBeautiful videos. 
+I will not spend much time on particular solution methods, as the emphasis here is on big picture ideas. However, it is helpful to reason through one simple example. 
+Consider,  
+\[\ddot{x} - 6\dot{x} + 8x = 3e^{-5t}\]
+an example I took from \href{https://www.youtube.com/watch?v=3eFiwF8pUR4&list=PLlXfTHzgMRUK56vbQgzCVM9vxjKxc8DCr&index=5}{MathTheBeautiful's} excellent 
+YouTube channel. We are seeking a function $x(t)$ such that taking a linear combination of itself and its derivatives yields $3e^{-5t}$. Since the derivative of the exponential 
+is proportional to itself, then a good guess here would be $x(t) \propto e^{-5t}$. Let's plug this in and see what we get. 
+\begin{align*}
+L e^{-5t} &= 25e^{-5t} + 30 e^{-5t} + 8 e^{-5t} = 63 e^{-5t}
+\end{align*}
+So we have overshot the mark by a factor of $21$. We can easily correct for this by dividing through by $21$, yielding the particular solution 
+\[x_p(t) = \frac{1}{21} e^{-5t}\]
+I should note that this example was engineered to be very simple to reason through. The constant coefficients and fact that the forcing function is an exponential make this 
+equation very easy to solve. Progressing to more complicated examples depends more sophisticated solution techniques (in the case that analytical solutions even exist). 
+Working through these particular solution methods are not the emphasis of these notes. 
 
 \subsubsection{Characterizing the Null Space}
 The big result here is that the dimension of $\text{Null}(L)$ is finite-dimensional, and in particular equal to $n$, the order of the equation. This means that the general solution 
 $x_p + \text{Null}(L)$ consists of a linear subspace of dimension $n$. In practice, this means that we require $n$ initial conditions in order to solve the equation: 
-$x(t_0), \dot{x}(t_0), \dots, x^{(n-1)}(t_0)$. 
+$x(t_0), \dot{x}(t_0), \dots, x^{(n-1)}(t_0)$. It is also worth emphasizing that the null space of $L$ has nothing to do with $b(t)$, the driving term in the inhomogenous equation. 
+The particular solution $x_p$ of course depends on $b(t)$, but once a particular solution is found then finding the remaining solutions has nothing to do with $b(t)$. 
 
 I now prove that indeed $\text{dim } \text{Null}(L) = n$. The proof will require Caratheodory's existence theorem, which under mild conditions guarantees a unique solution to the initial value problem (IVP) 
 \begin{align*}
@@ -203,8 +217,56 @@ To show that they are linearly independent, simply note that $\bx^{(i)}(t_0) = \
  We have shown that $\bx^{(1)}, \dots, \bx^{(n)}$ is a basis for the set of solutions to $\dot{\bx} = A\bx$. Recall that this matrix system encodes the original problem $Lx = 0$. Therefore, it 
  immediately follows that $\bx^{(1)}_1, \dots, \bx^{(n)}_1$ form a basis for $\text{Null}(L)$. The fact that these functions span the null space is immediate, and also note that 
  each vector $\bx^{(i)}$ contains the original state and its derivatives. Thus, for the vectors to be independent the states $x(t)$ must also be independent; otherwise, the derivatives 
- would follow the same dependence relation as the original states. 
+ would follow the same dependence relation as the original states. $\blacksquare$
 
+\bigskip
+Let us consider the third order homogenous equation with constant coefficients. 
+\begin{align*}
+a_0 x + a_1 \dot{x} + a_2 \ddot{x} + a_3 \dddot{x} = 0 
+\end{align*}
+That is, we seek the null space of the differential operator 
+\[L = a_0 + a_1 \frac{d}{dt} + a_2 \frac{d^2}{dt^2} + a_3 \frac{d^3}{dt^3} \]
+To solve this equation, we may use the following logic: we know that the terms on the left-hand side must sum to zero. Thus, we immediately 
+know that $x$ cannot be something like a polynomial $x^p$ since taking derivatives would yield lower order polynomials which wouldn't cancel with 
+$x^p$. Thus, the derivative operations must not change the general form of the function in order for the terms to cancel. We know that a function with 
+this property is the exponential $x(t) = e^{\lambda t}$. Thus, let us guess that this is the solutions, leaving $\lambda$ unspecified for now so that we can 
+determine what $\lambda$ would have to be in the case that the solution really has this form. Plugging in the guess, we have 
+\begin{align*}
+L e^{\lambda t} &= a_0 e^{\lambda t} + a_1 \lambda e^{\lambda t} +  a_2 \lambda^2 e^{\lambda t} +  a_3 \lambda^3 e^{\lambda t} = 0
+\end{align*} 
+We can factor out $e^{\lambda t}$
+\begin{align*}
+e^{\lambda t} \left(a_0 + a_1 \lambda + a_2 \lambda^2 + a_3 \lambda^3 \right) = 0
+\end{align*} 
+and since $e^{\lambda t} > 0$ we can divide both sides through by this term to obtain 
+\begin{align*}
+a_0 + a_1 \lambda + a_2 \lambda^2 + a_3 \lambda^3 = 0
+\end{align*}
+Note that another way to express this idea is to say that $e^{\lambda t}$ is an \textit{eigenfunction} of the differential operator. Indeed, we just showed that 
+$L e^{\lambda t} = ce^{\lambda t}$, where $c = a_0 + a_1 \lambda + a_2 \lambda^2 + a_3 \lambda^3$. 
+
+The same reasoning of course extends to general equations of order $n$, in which case we arrive at the polynomial equation
+\begin{align*}
+a_0 + a_1 \lambda + a_2 \lambda^2 + a_3 \lambda^3  + \dots + a_n \lambda^n= 0 \label{characteristic_polynomial}
+\end{align*}
+The righthand side of this equation is called the \textit{characteristic polynomial}. 
+We know from the fundamental theorem of algebra that \ref{characteristic_polynomial} has exactly $n$ complex solutions, counted with multiplicity. 
+Each distinct solution of $\lambda$ yields an independent vector in $\text{Null}(L)$ since $e^{\lambda_1 t}$ and $e^{\lambda_2 t}$ are linearly 
+independent when $\lambda_1 \neq \lambda_2$. 
+
+\bigskip
+\noindent
+\textbf{Example.} Let us return to the example
+\[\ddot{x} - 6\dot{x} + 8x = 3e^{-5t}\]
+for which we already found a particular solution $x_p = \frac{1}{21} e^{-5t}$. We now seek the general solution, which requires finding a basis 
+for the null space of $L$. We know from above that this comes down to solving 
+\[8 - 6\lambda + \lambda^2 = 0\]
+In this case the solutions are easily seen to be $\lambda = 2, 4$ so $\{e^{2t}, e^{4t}\}$ is a basis for the null space. Note that the dimension of the basis
+is indeed equal to the order of the equation, as we proved in general above. Therefore, the general solution to this (very simple) ODE is 
+\[\frac{1}{21} e^{-5t} + \text{Span}\left(e^{2t}, e^{4t}\right)\]
+The convention is to just write this as 
+\[\frac{1}{21} e^{-5t} + C_1 e^{2t} + C_2 e^{4t}  \]
+\textbf{TODO}: add some initial conditions. 
 
 % Numerical Methods for Solving General ODEs
 \section{Numerical Methods for Solving General ODEs}
