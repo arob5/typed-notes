@@ -33,6 +33,7 @@
 \newcommand{\bx}{\mathbf{x}}
 \newcommand{\bb}{\mathbf{b}}
 \newcommand{\bw}{\mathbf{w}}
+\newcommand{\be}{\mathbf{e}}
 
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -67,6 +68,10 @@
 \maketitle
 \tableofcontents
 \newpage
+
+% An Introduction to ODEs
+\section{An Introduction to ODEs}
+
 
 % First-Order ODEs
 \section{First-Order ODEs}
@@ -161,12 +166,44 @@ The big result here is that the dimension of $\text{Null}(L)$ is finite-dimensio
 $x_p + \text{Null}(L)$ consists of a linear subspace of dimension $n$. In practice, this means that we require $n$ initial conditions in order to solve the equation: 
 $x(t_0), \dot{x}(t_0), \dots, x^{(n-1)}(t_0)$. 
 
-I now prove that indeed $\text{dim } \text{Null}(L) = n$. The proof will require Caratheodory's existence, which under mild conditions guarantees a unique solution to the initial value problem (IVP) 
+I now prove that indeed $\text{dim } \text{Null}(L) = n$. The proof will require Caratheodory's existence theorem, which under mild conditions guarantees a unique solution to the initial value problem (IVP) 
 \begin{align*}
 \dot{\bx} = f(\bx, t), && \bx(t_0) = \bx_0
 \end{align*}
 where $t_0 \in (a, b)$. Note that this result applies to first-order ODEs; however, from the previous section we know that we can reduce an ODE of order $n$ to a first-order ODE 
-by extending the state space. 
+by extending the state space. Applying that result, we can re-write 
+\begin{align*}
+Lx = a_0(t)x + a_1(t) \dot{x} + a_2(t) \ddot{x} + \dots + a_n(t) x^{(n)} = 0
+\end{align*}
+as 
+\begin{align*}
+\dot{\bx} &= A\bx, &&\bx = \begin{pmatrix} x & \dot{x} & \hdots & x^{(n-1)} \end{pmatrix}^\top
+\end{align*}
+Now consider the $n$ separate IVPs for some $t_0 \in (a, b)$:
+\begin{align*}
+\dot{\bx} &= A\bx, \ \bx(t_0) := \be_i, &&i = 1, \dots, n
+\end{align*}
+where $\be_i \in \R^n$ denotes the $i^{\text{th}}$ standard basis vector. Caratheodory's existence theorem guarantees unique solutions 
+$\bx^{(1)}, \dots, \bx^{(n)}$ for each respective IVP. I claim that these $n$ functions form a basis for $\text{Null}(L)$, which will establish that $\text{Null}(L)$ has dimension $n$.
+To show that they are linearly independent, simply note that $\bx^{(i)}(t_0) = \be_i$ so that the vectors $\{\bx^{(i)}(t_0)\}_{i = 1}^{n}$ are linearly independent. Thus, the functions 
+ $\{\bx^{(i)}\}_{i = 1}^{n}$ must also be independent. It remains to show that these functions span $\text{Null}(L)$. To this end, suppose $\tilde{x} \in \text{Null}(L)$ so that $L\tilde{x} = 0$, 
+ which can be reduced to $\dot{\tilde{\bx}} = A\tilde{\bx}$ as above. 
+ 
+ Since the initial conditions $\{\bx^{(i)}(t_0)\}_{i = 1}^{n} = \{\be_i\}_{i = 1}^{n}$ span $\R^n$ then $\tilde{\bx}(t_0) = \sum_{i = 1}^{n} c_i \bx_i(t_0)$ for scalars $c_i$ (clearly, $c_i$ is simply 
+ the $i^{\text{th}}$ entry of $\tilde{\bx}$). Now, consider the IVP:
+ \begin{align}
+ \dot{\bx} &= A\bx, && \bx(t_0) = \sum_{i = 1}^{n} c_i \bx^{(i)}(t_0) \label{IVP_tilde}
+ \end{align}
+ By construction we have that $\tilde{\bx}$ is a solution to \ref{IVP_tilde}. I claim that $\sum_{i = 1}^{n} c_i \bx^{(i)}$ is also a solution, in which case by uniqueness it must be that 
+ $\tilde{\bx} = \sum_{i = 1}^{n} c_i \bx^{(i)}$ and hence $\tilde{\bx} \in \text{Span}\left(\bx^{(1)}, \dots, \bx^{(in)} \right)$. This is clearly true since $\sum_{i = 1}^{n} c_i \bx^{(i)}$ satisfies the initial 
+ condition and 
+ \begin{align*}
+ \frac{d}{dt} \sum_{i = 1}^{n} c_i \bx^{(i)} &= \sum_{i = 1}^{n} c_i \dot{\bx}^{(i)} = \sum_{i = 1}^{n} c_i A\bx^{(i)} = A \sum_{i = 1}^{n} c_i \bx^{(i)} 
+ \end{align*}
+ We have shown that $\bx^{(1)}, \dots, \bx^{(n)}$ is a basis for the set of solutions to $\dot{\bx} = A\bx$. Recall that this matrix system encodes the original problem $Lx = 0$. Therefore, it 
+ immediately follows that $\bx^{(1)}_1, \dots, \bx^{(n)}_1$ form a basis for $\text{Null}(L)$. The fact that these functions span the null space is immediate, and also note that 
+ each vector $\bx^{(i)}$ contains the original state and its derivatives. Thus, for the vectors to be independent the states $x(t)$ must also be independent; otherwise, the derivatives 
+ would follow the same dependence relation as the original states. 
 
 
 % Numerical Methods for Solving General ODEs
