@@ -334,7 +334,8 @@ rigorous, but it is most important to keep the big picture in mind.
 \noindent
 \textbf{Step 1: extended Markov chain construction.} The first step is to define the formal mechanism by which we will keep track of when ``resets'' occur. To do so, we introduce 
 indicator random variables $Y_k \in \{0, 1\}$ such that $Y_k = 1$ indicates a reset has occurred at time $k$. Formally, we extend the current Markov chain $\{X_k\}$ to add the $Y_k$ as an 
-additional state variable. Thus, the new extended state space is $\mathcal{X} \times \{0, 1\}$ and the extended Markov chain looks like $\{(X_k, Y_k)\}$. In order to complete this definition, we 
+additional state variable. Thus, the new extended state space is $\mathcal{X} \times \{0, 1\}$ and the extended Markov chain looks like $\{(X_k, Y_k)\}$. We define the initial condition 
+$Y_0 = 0$. n order to complete this definition, we 
 must define the transition kernel for the extended Markov chain. The transition dynamics we define will rely on the notion of irreducibility and the small set, in order to capture the notion of 
 ``resetting''. To this end, first recall that the assumption of irreducibility guaranteed the existence of a measure $\mu$ on $\mathcal{X}$, a set $C \in \mathcal{F}$, and 
 $\beta \in (0, 1)$ satisfying 
@@ -363,8 +364,24 @@ since
 We have now established that the transition probabilities are valid. To complete this step of the proof, we derive the marginal transition probabilities. First, we consider the marginal for 
 $X_k$. 
 \begin{align*}
-\Prob(X_k \in A|X_{k - 1} = x)
+\Prob(X_k \in A|X_{k - 1} = x) &= \Prob(X_k \in A, Y_k \in \{0, 1\}| X_{k - 1} = x) \\
+					     &= \Prob(X_k \in A, Y_k = 1| X_{k - 1} = x) + \Prob(X_k \in A, Y_k = 0| X_{k - 1} = x) \\
+					     &= s(x)\mu(A) + \left[P(x, A) - s(x)\mu(A) \right] \\
+					     &= P(x, A)
 \end{align*}
+So the marginal $X$ dynamics agree with those of the original (non-extended) chain. Next we consider the marginal transition probabilities for $Y_k$.
+\begin{align*}
+\Prob(Y_k = 1|X_{k-1}, Y_{k-1}) &= \Prob(X_k \in \mathcal{X}, Y_k = 1|X_{k-1}, Y_{k-1}) = s(x)\mu(\mathcal{X}) = s(x) \\
+\Prob(Y_k = 0|X_{k-1}, Y_{k-1}) &= \Prob(X_k \in \mathcal{X}, Y_k = 0|X_{k-1}, Y_{k-1}) = P(x, \mathcal{X}) - s(x)\mu(\mathcal{X}) = 1- s(x) \\
+\end{align*}
+Now here is the big idea. If $x \in C$ then 
+\begin{align*}
+\Prob(X_k \in A|X_{k-1} = x) = P(x, A) \geq \beta \mu(A)
+\end{align*}
+In general this transition probability is $P(x, A)$, which has dependence on the value of previous state $x$. However, the small set assumption gives a lower bound on the transition 
+probability $\beta \mu(A)$ which is independent of the previous state! This is what we mean by ``resetting''. The sample $X_k$ can be treated more like an independent sample (from $\mu$). 
+
+
 
 
 \end{proof} 
