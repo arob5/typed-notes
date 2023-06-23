@@ -381,7 +381,14 @@ Now here is the big idea. If $x \in C$ then
 In general this transition probability is $P(x, A)$, which has dependence on the value of previous state $x$. However, the small set assumption gives a lower bound on the transition 
 probability $\beta \mu(A)$ which is independent of the previous state! This is what we mean by ``resetting''. The sample $X_k$ can be treated more like an independent sample (from $\mu$). 
 
-
+\bigskip
+\noindent
+\textbf{Step 2: characterizing the regeneration times.} In the proof summary, I introduced the random variables $T_0, T_1, T_2, \dots$ that encode the times of the first, second, third, etc. 
+reset (i.e. regeneration). We now rigorously define these random variables recursively as 
+\begin{align*}
+T_0 &:= \min\{k \in \mathbb{N}: Y_k = 1\} \\
+ T_i &:= \min\{k \in \mathbb{N}: k > T_{i - 1}, Y_k = 1\}, \ i = 1, 2, 3, \dots
+\end{align*}
 
 
 \end{proof} 
