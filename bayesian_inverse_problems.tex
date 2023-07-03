@@ -503,4 +503,96 @@ If we sampled from these distributions, then in the first case we would expect t
 \textbf{Also discuss difference vs quotient wrt normalizing constants:} e.g. $\abs{\frac{\pi_1(\theta)}{Z_1} - \frac{\pi_2(\theta)}{Z_2}}$ (norm constants affect results). vs. 
 $\abs{\frac{\frac{\pi_1(\theta)}{Z_1}}{\frac{\pi_2(\theta)}{Z_2}}} = \frac{Z_2}{Z_1} \frac{\pi_1(\theta)}{\pi_2(\theta)}$ so norm constants will just scale the integral which is fine. 
 
+
+% Ensemble Kalman Inversion
+\section{Ensemble Kalman Inversion}
+
+% Appendix
+\section{Appendix}
+
+\subsection{Linear Least Squares Optimization}
+In this section, we characterize the optimum of a regularized linear least squares optimization problem. This calculation is provided here as it is used in many different settings; the same calculation is also required to characterize 
+the posterior distribution in a linear Gaussian inverse problem and to derive the analysis step of the Kalman filter. With this latter application in mind, we also write the below result in terms of the \textit{Kalman gain}, which has 
+relevance to inverse problems via their solution by ensemble Kalman inversion techniques. 
+
+\begin{thm}
+Consider the regularized linear least squares objective 
+\begin{align}
+\frac{1}{2} \norm{y - G\theta}^2_{\Sigma_\epsilon} + \frac{1}{2} \norm{\theta - \mu_0}^2_{\Sigma_0} \label{LLS_obj}
+\end{align}
+Define the Kalman gain $K = \Sigma_0 G^\top (G \Sigma_0 G^\top + \Sigma_{\epsilon})^{-1}$. Then, 
+\begin{enumerate}
+\item \ref{LLS_obj} can be written as 
+\begin{align}
+\norm{\theta - \mu}^2_\Sigma + c \label{LLN_post}
+\end{align}
+where $c$ is a constant with respect to $\theta$ and 
+\begin{align*}
+\Sigma &= \left[G^\top \Sigma^{-1}_{\epsilon} G + \Sigma^{-1}_0\right]^{-1} \\
+\mu &= \Sigma \left[G^\top \Sigma^{-1}_{\epsilon}y + \Sigma_0^{-1} \mu_0  \right]
+\end{align*}
+
+\item The above formulas can alternatively be written in terms of the Kalman gain as 
+\begin{align*}
+\Sigma &=  (I - KG)\Sigma_0 \\
+\mu &= Ky + (I - KG) \mu_0
+\end{align*}
+
+\item The Kalman gain can alternatively be written as 
+\[K = \Sigma G^\top \Sigma_{\epsilon}^{-1} \]
+\end{enumerate}
+\end{thm}
+
+\begin{proof} 
+\begin{enumerate}
+\item For the first result, we simply expand the expressions \ref{LLS_obj} and \ref{LLN_post} and equate their terms. To this end, we have
+\begin{align*}
+\ref{LLS_obj} &\propto \frac{1}{2} \theta^\top (G^\top \Sigma^{-1}_\epsilon G) \theta - \theta^\top G^\top \Sigma_\epsilon^{-1} y + \frac{1}{2} \theta^\top \Sigma_0^{-1} \theta - \theta^\top \Sigma_0^{-1} \mu_0 \\
+	             &= \frac{1}{2} \theta^\top [G^\top \Sigma_\epsilon^{-1} G + \Sigma_0^{-1}]\theta - \theta^\top [G^\top \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1}\mu_0] \\
+\ref{LLN_post} &\propto \frac{1}{2} \theta^\top \Sigma^{-1} \theta - \theta^\top \Sigma^{-1} \mu + \frac{1}{2} \mu^\top \Sigma^{-1} \mu 	           
+\end{align*}
+Setting the coefficients of the respective terms equal yields
+\begin{align*}
+\Sigma^{-1} &= G^\top \Sigma_{\epsilon}^{-1}G + \Sigma_0^{-1} \\
+\Sigma^{-1} \mu &= G^\top \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1} \mu_0
+\end{align*}
+which implies the desired formulas. 
+
+\item The alternative expression for $\Sigma$ is derived by applying the Woodbury matrix inversion identity to the above expression for $\Sigma$. Indeed, 
+\begin{align*}
+\Sigma = \left[G^\top \Sigma_{\epsilon}^{-1}G + \Sigma_0^{-1} \right]^{-1} &= \Sigma_0 - \Sigma_0 G^\top (\Sigma_\epsilon + G \Sigma_0 G^\top)^{-1} G\Sigma_0 \\
+													       &= \Sigma_0 - KG\Sigma_0 \\
+													       &= (I - KG) \Sigma_0 
+\end{align*}
+
+For the $\mu$ expression I use $K = \Sigma G^\top \Sigma_{\epsilon}^{-1}$, which will be verified below. We have 
+\begin{align*}
+\mu &= \Sigma\left[G^\top \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1} \mu_0\right] \\
+       &= \Sigma G^\top \Sigma_{\epsilon}^{-1}y + \Sigma \Sigma_0^{-1} \mu_0 \\
+       &= Ky + \Sigma \Sigma_0^{-1} \mu_0 \\
+       &= Ky + (I - KG)\Sigma_0  \Sigma_0^{-1} \mu_0 \\
+       &= Ky + (I - KG)\mu_0
+\end{align*}
+where the penultimate line applies the result $\Sigma = (I - KG)\Sigma_0$ just proved above. 
+
+\item Finally, we verify $K = \Sigma G^\top \Sigma_{\epsilon}^{-1}$. To show this, we use the identity 
+\[G^\top \Sigma^{-1}_{\epsilon} \left[G \Sigma_0 G^\top + \Sigma_\epsilon \right] = \left[\Sigma_0^{-1} + G^\top \Sigma^{-1}_{\epsilon}G \right] \Sigma_0 G^\top \]
+To see the equality simply distribute the expressions on both sides. Under the assumption that $G$ has full column rank then the expressions in brackets on each side 
+of the equation are both invertible. Multiplying through by their inverses yields, 
+\begin{align}
+\left[\Sigma_0^{-1} + G^\top \Sigma_{\epsilon}^{-1} G \right]^{-1} G^\top \Sigma_{\epsilon}^{-1} = \Sigma_0 G^\top \left[G \Sigma_0 G^\top + \Sigma_{\epsilon} \right]^{-1} \label{gain_identity}
+\end{align}
+With this identity in hand, we then have 
+\begin{align*}
+K &= \Sigma_0 G^\top \left(G\Sigma_0 G^\top + \Sigma_\epsilon \right)^{-1} && \text{Definition} \\
+   &= \left[\Sigma_0^{-1} + G^\top \Sigma_{\epsilon}^{-1} G \right]^{-1} G^\top \Sigma_{\epsilon}^{-1} &&\ref{gain_identity} \\
+   &= \Sigma G^\top \Sigma_{\epsilon}^{-1}
+\end{align*}
+
+\end{enumerate}
+\end{proof}
+
+
+
+
 \end{document}

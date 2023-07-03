@@ -72,26 +72,52 @@
 % An Introduction to ODEs
 \section{An Introduction to ODEs}
 
+\subsection{General Definitions}
 
-% First-Order ODEs
-\section{First-Order ODEs}
+\subsection{Examples}
 
-\subsection{Solving Scalar ODEs}
+\subsection{Solving First-Order Scalar ODEs}
 
 \subsubsection{Guessing the solution}
 
 \subsubsection{Integration}
 See e.g. Sarkka SDEs book, first chapter. Motivates the matrix exponential solution for vector systems. 
 
-\subsection{Vector ODEs}
 
-\subsubsection{Introduction and Interpretation}
-See Stanford linear dynamical systems lectures. 
+
+% Matrix Systems
+\section{Matrix Systems}
+The focus on this section is an in-depth study of the first-order matrix system of ODEs
+\begin{align}
+\dot{\bx} = A\bx \label{matrix_system}
+\end{align}
+where 
+\begin{align*}
+&\bx(t) = \begin{pmatrix} x_1(t) & x_2(t) & \hdots & x_n(t) \end{pmatrix}^\top \in \R^n, &&A \in \R^{n \times n}
+\end{align*}
+The amount of time we spend studying this system is justified by the following points. 
+\begin{enumerate}
+\item Higher-order linear ODEs can be reduced to a matrix system of the form \ref{matrix_system}, and thus characterizing the solution 
+of \ref{matrix_system} immediately gives a characterization of the broad class of higher-order linear ODEs. 
+\item Such linear systems are quite general and show up all over the place in applications. 
+\item The study of non-linear systems often boils down to extending techniques from the linear case, or reducing to the 
+linear case via linearization. 
+\end{enumerate}
+
+\subsection{Big Picture and Interpretation}
+See Stanford linear dynamical systems lectures. Also mention view as a system of coupled dynamics. 
+
+\subsection{Solving $\dot{\bx} = A\bx$}
+\subsubsection{Eigenvalues and Eigenvectors}
+
+
 
 \subsubsection{The Matrix Exponential}
 Briefly discuss different ways to compute it; i.e. Fourier/Laplace/Taylor series
 
+\subsection{Matrix System with Forcing}
 \subsubsection{Integrating Factors}
+See Saarka SDEs book
 
 
 % Higher-Order Linear ODEs

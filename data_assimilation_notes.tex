@@ -269,7 +269,7 @@ application of the Woodbury matrix identity.
 \begin{prop} (Stuart et al, Lemma 8.6) \label{Woodbury}
 Let $A \in \R^{p \times p}$, $U \in \R^{p \times q}$, $B \in \R^{q \times q}$, $V \in \R^{q \times p}$. If $A$ and $B$ are positive definite then $A + UBV$ is invertible 
 and 
-\[(A + UBV)^{-1} = A^{-1} - A^{-1} U\left(B^{-1} + VA^{-1}U\right)VA^{-1}\]
+\[(A + UBV)^{-1} = A^{-1} - A^{-1} U\left(B^{-1} + VA^{-1}U\right)^{-1}VA^{-1}\]
 \end{prop}
 
 We now apply the Woodbury identity to the covariance update in the analysis step of the Kalman filter, which converts the $O(P^3)$ matrix inverse to a $O(N^3)$ 
@@ -481,13 +481,6 @@ Since $x_t^{(t)} \sim \mathcal{N}_D(\mu_t, \Sigma_t)$ then the above linear upda
 \textbf{Analysis.}
 
 \end{proof}
-
-% Ensemble Kalman Inversion
-\section{Ensemble Kalman Inversion}
-
-
-
-
 
 \end{document} 
 
