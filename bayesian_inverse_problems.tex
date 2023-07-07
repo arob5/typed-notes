@@ -506,6 +506,125 @@ $\abs{\frac{\frac{\pi_1(\theta)}{Z_1}}{\frac{\pi_2(\theta)}{Z_2}}} = \frac{Z_2}{
 
 % Ensemble Kalman Inversion
 \section{Ensemble Kalman Inversion}
+In this section, we discuss the application of ensemble Kalman methods to solving optimization problems. In particular, these methods will be used 
+to solve non-linear least squares problems, which are introduced below. 
+
+\subsection{Non-linear Least Squares}
+
+\subsubsection{Objective Function}
+Recall that (unregularized) linear least squares objectives are of the form 
+\begin{align*}
+&J(\theta) = \frac{1}{2} \norm{G\theta - y}^2, && \theta \in \R^D, y \in \R^N, G \in \R^{N \times D}
+\end{align*}
+with the additional assumption that $N \geq D$. Note that the $1/2$ is included purely for algebraic convenience. 
+In other words, we might define the residuals $r(\theta) := G\theta - y$ and then the least-squares criterion would be $J(\theta) = \frac{1}{2} \norm{r(\theta)}^2$. So long as $G$ has linearly independent columns, this 
+problem can be uniquely solved in closed form:
+\begin{align}
+(G^\top G)^{-1} G^\top y = \text{argmin}_{\theta \in \R^D} J(\theta) \label{linear_LS}
+\end{align}
+Non-linear least squares methods address the challenge of solving this minimization problem where the function $r: \R^D \to \R^N$ is no longer linear. For example, if we replace the linear forward 
+model $G$ with a non-linear function $g: \R^D \to \R^N$ then the residual vector would be a non-linear function of $\theta$:
+\begin{align*}
+J(\theta) &= \frac{1}{2} \norm{g(\theta) - y}^2 = \frac{1}{2} \norm{r(\theta)}^2, && r(\theta) = g(\theta) - y
+\end{align*}
+The insertion of non-linearity means that $\min_{\theta} J(\theta)$ no longer has a closed-form solution. 
+
+We have thus far generalized the most basic least-squares setting, which resulted in an objective of the form
+\begin{align}
+J(\theta) = \frac{1}{2} \norm{r(\theta)}^2 \label{nonlin_LS_obj}
+\end{align}
+where $r: \R^D \to \R^N$ is a potentially non-linear function. The ensemble Kalman inversion (EKI) methods discussed below will seek to minimize objectives of this form. 
+We next show that weighted and regularized least-squares problems also result in objectives of the form \ref{nonlin_LS_obj}, meaning that the EKI algorithms will apply much more 
+generally to the inverse problems we have been considering in these notes. The two primary objective functions of interest are the weighted least-squares objective and the regularized 
+weighted least-squares objective. Stuart et al call these, respectively, the \textit{data-misfit} (DM) and \textit{Tikhonov-Phillips} (TP) objectives, and I will use their notation below. 
+\begin{align}
+J_{DM}(\theta) &= \frac{1}{2} \norm{y - g(\theta)}^2_{\Sigma_{\epsilon}} && \text{Data-Misfit} \\
+J_{TP}(\theta) &= \frac{1}{2} \norm{y - g(\theta)}^2_{\Sigma_{\epsilon}} + \frac{1}{2} \norm{\theta - \mu_0}^2_{\Sigma_0} && \text{Tikhonov-Phillips} 
+\end{align}
+The data-misfit objective can be written in the general non-linear least squares form via
+\begin{align*}
+J_{DM}(\theta) = \frac{1}{2} (y - g(\theta))^\top \Sigma^{-1}_{\epsilon} (y - g(\theta)) &= \frac{1}{2} \norm{\Sigma_{\epsilon}^{-1/2}(y - g(\theta))}^2 \\
+																						&=: \frac{1}{2} \norm{r_{DM}(\theta)}^2
+\end{align*}
+The Tikhonov-Phillips objective can likewise be written in this form as
+\begin{align*}
+J_{TP}(\theta) &= \frac{1}{2} (y - g(\theta))^\top \Sigma^{-1}_{\epsilon} (y - g(\theta)) + \frac{1}{2} (\theta - \mu_0)^\top \Sigma^{-1}_0 (\theta - \mu_0) \\
+		       &= \frac{1}{2} \begin{pmatrix} y - g(\theta) \\ \mu_0 - \theta \end{pmatrix}^\top \begin{pmatrix} \Sigma_{\epsilon} & 0 \\ 0 & \Sigma_0 \end{pmatrix}^{-1} \begin{pmatrix} y - g(\theta) \\ \mu_0 - \theta \end{pmatrix}
+\end{align*}
+Thus, the TP objective reduces to the DM objective in the extended parameter and data space
+\begin{align*}
+J_{TP}(\theta) &= \frac{1}{2} \norm{\tilde{y} - \tilde{g}(\theta)}^2_{\tilde{\Sigma}_{\epsilon}},
+\end{align*}
+where 
+\begin{align*}
+&\tilde{g}(\theta) := \begin{pmatrix} g(\theta) \\ \theta \end{pmatrix} && &\tilde{y} := \begin{pmatrix} y \\ \mu_0 \end{pmatrix} &&&\tilde{\Sigma}_{\epsilon} := \begin{pmatrix} \Sigma_\epsilon & 0 \\ 0 & \Sigma_0 \end{pmatrix} 
+\end{align*}
+Thus, 
+\begin{align*}
+J_{TP}(\theta) &= \frac{1}{2} \norm{\tilde{\Sigma}^{-1/2}_{\epsilon} (\tilde{y} - \tilde{g}(\theta))}^2 := \norm{r_{TP}(\theta)}^2
+\end{align*}
+
+\subsubsection{Numerical Algorithms}
+The EKI algorithms that will shortly be introduced can be viewed as derivative-free ensemble versions of certain classical numerical schemes for solving non-linear least squares problems. We briefly 
+introduce two such numerical schemes here.  
+
+\bigskip
+\noindent
+\textbf{Gauss-Markov.}
+The idea behind Gauss-Newton is quite simple. Given a current iterate $\theta_t$, linearize $r(\theta)$ about $\theta_t$ then replace the non-linear objective with the linearized version and solve to obtain the 
+next iterate $\theta_{t+1}$. The linearized problem has a closed-form solution given by \ref{linear_LS}. This process is then iterated until convergence. Assuming that the derivative of the function $r$ 
+exists then the linear approximation is given by 
+\begin{align}
+r_t^{\text{lin}}(\theta) &:= r(\theta_t) + Dr(\theta_t)\left(\theta - \theta_t \right) 
+\end{align}
+For succinctness, I will write $D_t := Dr(\theta_t)$. We now solve for the next iterate:
+\begin{align*}
+\theta_{t + 1} := \text{argmin}_\theta r_t^{\text{lin}}(\theta)
+\end{align*}
+However, it is actually a bit cleaner to optimize for the \text{direction} $\theta - \theta_t$ rather than $\theta$ itself. Letting $v := \theta - \theta_t$ denote the direction, then we seek to solve
+\begin{align}
+v_t &:= \text{argmin}_v \norm{r(\theta_t) + D_t v}^2 \label{optimal_direction} \\
+	      &= \text{argmin}_v \norm{D_t v - [-r(\theta_t]}^2
+\end{align}
+The second line makes it clear that this is simply the linear least squares problem \ref{linear_LS}, with $G = D_t$, $\theta = v$, and $y = -r(\theta_t)$. The solution is thus 
+\begin{align*}
+v_t = -\left(D_t^\top D_t \right)^{-1} D_t^\top r(\theta_t)
+\end{align*}
+which requires $D_t$ to have full column rank (thus the assumption $N \geq D$ is essential). We can now define the next iterate as 
+\begin{align}
+\theta_{t + 1} &= \theta_t + \alpha_t v_t \label{line_search}
+\end{align}
+where $\alpha_t > 0$ is a step size parameter that determines how far to move away from $\theta_t$ in the direction $v_t$. Optimization methods of the form \ref{line_search} are known as 
+\textit{line-search algorithms} due to the fact that the next iterate is found by searching along the line spanned by $v_t$. The step sizes $\alpha_t$ are typically chosen adaptively. While 
+$\alpha_t$ can in some sense control how much trust we place in the direction $v_t$ found via the linear approximation $r_t^{\text{lin}}(\theta)$, we should emphasize that the direction of $v_t$ is 
+determined by placing complete trust in the linear approximation; the step size only determines how far we move in that direction. This is opposed to so-called \textit{trust-region} methods
+(e.g. such as Levenberg-Marquardt discussed below) which explicitly constrains \ref{optimal_direction} so that the solution lies in a ball where the linear approximation is ``trusted''. 
+
+\bigskip
+\noindent
+\textbf{Levenberg-Marquardt.}
+The Levenberg-Marquardt Method is quite similar to the general Gauss-Newton method, but replaces the step-size parameter $\alpha_t$ with new parameters $\delta_t$, $\Sigma_0$ which explicitly defines 
+the ball in which the linear approximation is trusted when optimizing for the direction $v_t$. This method replaces the unconstrained optimization problem \ref{optimal_direction} with the following 
+constrained problem:
+\begin{align}
+v_t &:= \text{argmin}_v \norm{r(\theta_t) + D_t v}^2 \text{   s.t.} && \norm{v}^2_{\Sigma_0} \leq \delta_t \label{LM_constrained_opt}
+\end{align}
+The matrix $\Sigma_0$ can be thought of as expressing prior information regarding the smoothness of the function $r$, hence the zero subscript. The next iterate is then set to 
+\begin{align*}
+\theta_{t+1} &:= \theta_t + v_t
+\end{align*}
+Using Lagrange multipliers, it can be shown that \ref{LM_constrained_opt} can be converted to the unconstrained optimization 
+\begin{align}
+v_t &:= \text{argmin}_v\left( \norm{r(\theta_t) + D_t v}^2 + \frac{1}{\alpha_t} \norm{v}^2_{\Sigma_0}\right) \label{LM_unconstrained_opt}
+\end{align}
+where there is a one-to-one correspondence between $\delta_t$ and $\alpha_t$. We see that $\alpha_t$ acts as a sort of step-size parameter, in very similar fashion to the optimization perspective 
+for the gradient descent update. The formulation \ref{LM_unconstrained_opt} demonstrates the the Levenberg-Marquardt update consists of optimizing the increment to $\theta_t$ via a regularized 
+least-squares problem. In the context of a statistical model or inverse problem, where the residual $r(\theta)$ quantifies the error between the model using parameter $\theta$ and the observed data, then 
+using the Levenberg-Marquardt method can \textit{implicitly} regularize the problem even when there is no regularization term in $r(\theta)$. For example, in an ill-posed inverse problem $r(\theta)$ may be very 
+sensitive to the observed data, and hence the derivative $D_t$ will also be sensitive to the data. The regularization in \ref{LM_unconstrained_opt} can help to place less trust in $D_t$ in this setting and hence 
+help to discourage overfitting when solving the inverse problem.  
+
+
 
 % Appendix
 \section{Appendix}

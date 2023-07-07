@@ -120,7 +120,7 @@ determined by placing complete trust in the linear approximation; the step size 
 (e.g. such as Levenberg-Marquardt discussed below) which explicitly constrains \ref{optimal_direction} so that the solution lies in a ball where the linear approximation is ``trusted''. 
 
 \subsection{Levenberg-Marquardt Method}
-The Levenberg-Marquardt Method is quite similar to the general Gauss-Newton method, but replaces the step-size parameter $\alpha_t$ with new parameters $\delta_t$, $\Sigma$ which explicitly defines 
+The Levenberg-Marquardt Method is quite similar to the general Gauss-Newton method, but replaces the step-size parameter $\alpha_t$ with new parameters $\delta_t$, $\Sigma_0$ which explicitly defines 
 the ball in which the linear approximation is trusted when optimizing for the direction $v_t$. This method replaces the unconstrained optimization problem \ref{optimal_direction} with the following 
 constrained problem:
 \begin{align}
