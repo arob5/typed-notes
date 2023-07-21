@@ -188,7 +188,7 @@ and (using the same notation as the un-weighted case), we obtain the eigenvalue 
 \begin{align}
 \frac{1}{\Ndesign} \kerMat \bu_i &= \hat{\lambda}_i \bu_i
 \end{align}
-To write this more clearly, let $\tilde{\Sig} := \text{diag}\{\Ndesign \hat{\lambda}_1, \dots, \Ndesign \hat{\lambda}_{\Ndesign}\}$. We then first solve the eigenvalue problem 
+To write this more clearly, let $\tilde{\Sig} := \text{diag}\{\tilde{\lambda}_1, \dots, \tilde{\lambda}_{\Ndesign}\} := \text{diag}\{\Ndesign \hat{\lambda}_1, \dots, \Ndesign \hat{\lambda}_{\Ndesign}\}$. We then first solve the eigenvalue problem 
 \begin{align}
 \kerMat \tilde{\bU} &= \tilde{\Sig} \tilde{\bU}
 \end{align}
@@ -206,7 +206,11 @@ The direction of the eigenvectors $\tilde{\bU}$ are unaffected by the scaling by
 so while orthogonality is satisfied, the scaling is off. To correct for this we define $\bU := \sqrt{\Ndesign} \tilde{\bU}$. To summarize, the final estimates for the eigenvalues and 
 eigenfunctions (evaluated at the sampling points) are given by 
 \begin{align}
-&\Sig = \frac{1}{\Ndesign} \tilde{\Sig}  &&\bU = \sqrt{\Ndesign} \tilde{\bU}
+&\Sig = \frac{1}{\Ndesign} \tilde{\Sig}  &&\bU = \sqrt{\Ndesign} \tilde{\bU} \label{Nystrom_eigs_weighted}
+\end{align}
+The associated estimate for $\phi_i(\bx^\prime)$ at new input $\bx^\prime$ (the analog of \ref{Nystrom_estimate}) is 
+\begin{align}
+\phi_i(\bx^\prime) \approx \frac{1}{\hat{\lambda}_i \Ndesign} \sum_{\designIdx = 1}^{\Ndesign} w_{\designIdx} \GPKer(\bx_{\designIdx}, \bx^\prime)  \bU_{\designIdx i} = \frac{\sqrt{\Ndesign}}{\tilde{\lambda}_i} \sum_{\designIdx = 1}^{\Ndesign} w_{\designIdx} \GPKer(\bx_{\designIdx}, \bx^\prime)  \tilde{\bU}_{\designIdx i} \label{Nystrom_estimate_weighted}
 \end{align}
 
 % Low-Rank Matrix Approximations
@@ -224,19 +228,38 @@ approximation to \ref{eigendecomposition} at lower computational cost.
 In the two previous sections, the Nystrom method has provided approximations to the eigenvalues and eigenfunctions of a kernel $\GPKer(\cdot, \cdot)$ through a discretization 
 based on a finite number of sample points $\{\bx_{\designIdx}\}_{\designIdx = 1}^{\Ndesign}$. On the other hand, the problem of producing a low-rank approximation to $\kerMat$ is already 
 a finite-dimensional problem, but we can adopt a similar approach. By analogy to the sample points, the Nystrom approximation in this setting samples a subset of the columns of $\kerMat$. 
-While much work has gone into smart sampling schemes, here we assume the sample of $\NpseudoData < \Ndesign$ columns $\tilde{\kerMat}_{\NpseudoData} \in \R^{\Ndesign \times \NpseudoData}$ has already been 
-selected. Moreover, let $\kerMat[\NpseudoData] \in \R^{\NpseudoData \times \NpseudoData}$ denote the first $\NpseudoData$ rows of $\tilde{\kerMat}_{\NpseudoData}$. Without loss of generality, assume the 
+While much work has gone into smart sampling schemes, here we assume the sample of $\NpseudoData < \Ndesign$ columns $\bC \in \R^{\Ndesign \times \NpseudoData}$ has already been 
+selected. Moreover, let $\bW \in \R^{\NpseudoData \times \NpseudoData}$ denote the first $\NpseudoData$ rows of $\bC$. Without loss of generality, assume the 
 rows and columns of $\kerMat$ are arranged so that 
 \begin{align}
-\kerMat &= \begin{pmatrix} \kerMat[\NpseudoData] & \kerMat[12] \\ \kerMat[21] & \kerMat[22] \end{pmatrix}
+\kerMat &= \begin{pmatrix} \bW & \kerMat[12] \\ \kerMat[12]^\top & \kerMat[22] \end{pmatrix}, &&\bC = \begin{pmatrix} \bW \\ \kerMat[12]^\top \end{pmatrix}
 \end{align}
-Since $\kerMat$ is PSD, then so much be the sub-matrix $\kerMat[\NpseudoData]$. \\
+Since $\kerMat$ is PSD, then so much be the sub-matrix $\bW$. The exact eigendecomposition of interest here is 
+\begin{align}
+\kerMat \bU = \Sig \bU
+\end{align}
+which is the analog to the exact integral equation of interest \ref{integral_eqn} discussed above. Just as in that case, we produce an approximation by only operating at the 
+sample points, which in this case correspond to $\bW$. Assuming we want a rank $R < \NpseudoData < \Ndesign$ approximation to $\kerMat$, we consider the optimal rank $R$
+approximation to $\bW$ provided by the truncated eigendecomposition 
+\begin{align}
+\bW_R &:= \bU_{\bW, R} \Sig_{\bW, R} \bU_{\bW, R}^\top 
+\end{align}
+Now we apply equations \ref{Nystrom_eigs_weighted} and \ref{Nystrom_estimate_weighted}. Applying the former yields the approximate eigenvalues and the approximate eigenvectors 
+only at the sampling locations (not the desired complete approximate eigenvectors for $\kerMat$). 
+\begin{align}
+&\hat{\Sig} = \frac{\Ndesign}{\NpseudoData} \Sig_{\bW, R}  &&\hat{\bU}_{\bW, R} = \sqrt{\NpseudoData} \bU_{\bW, R} \label{Nystrom_eigs_weighted}
+\end{align}
+(TODO: check the scaling on the second one). 
+
 
 \bigskip
 \textbf{TODOs:}
 \begin{enumerate}
 \item I may want to change notation in the integral section to use M instead of N for the number of sampling points. 
-\item Follow \cite{Williams} for the derivation of the low-rank matrix approximations. 
+\item Follow \cite{Williams} for the derivation of the low-rank matrix approximations; I think the trick is to view the problem as a special case of the integral equations. 
+\item The wikipedia page \href{https://en.wikipedia.org/wiki/Low-rank_matrix_approximations is also good.}{Low rank approx}
+\item \href{https://stats.stackexchange.com/questions/261149/nystroem-method-for-kernel-approximation}{Nice post}
+\item First consider case that $\kerMat$ is actually rank $R$. 
 \end{enumerate}
 
 
@@ -247,6 +270,7 @@ Since $\kerMat$ is PSD, then so much be the sub-matrix $\kerMat[\NpseudoData]$. 
 \begin{thebibliography}{20}
 \bibitem{Sun} Sun, Shiliang \& Zhao, Jing \& Zhu, Jiang. (2015). A Review of Nyström Methods for Large-Scale Machine Learning. Information Fusion. 26. 10.1016/j.inffus.2015.03.001. 
 \bibitem{Williams} Christopher K. I. Williams and Matthias Seeger. 2000. Using the Nyström method to speed up kernel machines. In Proceedings of the 13th International Conference on Neural Information Processing Systems (NIPS'00). MIT Press, Cambridge, MA, USA, 661–667.
+\bibitem{Drineas} Petros Drineas and Michael W. Mahoney. 2005. On the Nyström Method for Approximating a Gram Matrix for Improved Kernel-Based Learning. J. Mach. Learn. Res. 6 (12/1/2005), 2153–2175.
 \end{thebibliography}
 
 \end{document}
