@@ -95,12 +95,21 @@ $x_2$ times a product of terms that depend on $x_3$. Thus, $x_2$ is conditionall
 % The Nystrom Method
 \subsection{The Nystrom Method}
 
-\subsubsection{Solving Integral Equations}
+% Approximately Solving Integral Equations using Quadrature
+\subsubsection{Approximately Solving Integral Equations using Quadrature}
 The classical Nystrom method is concerned with numerically solving the integral equation 
 \begin{align}
 \int_{\inputSpace} \GPKer(\bx, \bx^\prime) \phi_i(\bx) d\bx = \lambda_i \phi_i(\bx^\prime) \label{integral_eqn}
 \end{align}
-where the $\phi_i$ are the eigenfunctions of the kernel $\GPKer(\cdot, \cdot)$ with associated eigenvalues $\lambda_i$. The method essentially applies 
+where the $\phi_i$ are the eigenfunctions of the kernel $\GPKer(\cdot, \cdot)$ with associated eigenvalues $\lambda_i$. Here $\GPKer(\bx, \bx^\prime)$ is a kernel with 
+Mercer representation \footnote{Mercer's theorem guarantees such a representation exists as long as the kernel is continuous and $\inputSpace$ is compact. We will suppose these assumptions hold.} 
+\begin{align}
+\GPKer(\bx, \bx^\prime) &= \sum_{i = 1}^{\infty} \lambda_i \phi_i(\bx) \phi_i(\bx^\prime) \label{Mercer_kernel}
+\end{align}
+Mercer's theorem implies the eigenvalues $\{\lambda_i\}$ are non-negative, and the eigenfunctions $\{\phi_i\}$ form an orthonormal basis for $L_2(\inputSpace)$. We will consider numerical 
+approximation of the $\Ndesign$ dominant eigenvalues and eigenfunctions in \ref{Mercer_kernel}.
+
+The Nystrom method essentially applies 
 a quadrature rule to discretize, and thus approximately solve, \ref{integral_eqn}. Indeed, consider a Gauss quadrature rule 
 $\{\bx_{\designIdx}, w_{\designIdx}\}_{\designIdx = 1}^{\Ndesign}$ consisting of $\Ndesign$ input points $\bx_{\designIdx}$ with associated weights $w_{\designIdx}$.
 Applying this rule to \ref{integral_eqn} yields the approximation 
@@ -139,7 +148,7 @@ approximations $\hat{\lambda}_i \approx \lambda_i$ and $ \bU_{\designIdx i} \app
 \begin{align}
 \phi_i(\bx^\prime) \approx \frac{1}{\hat{\lambda}_i } \sum_{\designIdx = 1}^{\Ndesign} w_{\designIdx} \GPKer(\bx_{\designIdx}, \bx^\prime)  \bU_{\designIdx i} \label{Nystrom_estimate}
 \end{align}
-Note that \ref{Nystrom_estimate} again utilizes an approximation based on the sampling points $\{\bx_{\designIdx}\}$. 
+Note that \ref{Nystrom_estimate} again utilizes an approximation based on the sampling points $\{\bx_{\designIdx}\}$.
 
 We make one final note on the baseline Nystrom method before proceeding to generalizations. When solving the equation \ref{integral_eqn}, we often also seek to enforce the 
 orthogonality constraint 
@@ -157,6 +166,11 @@ In words, the discretization tells us that to approximate the orthogonality of t
 is convenient as standard software packages will return the $\bv_i$ already normalized, and then we do not need to worry about scaling the 
 $\bu_i$ after executing the mapping $\bu_i = \bW^{-1/2}\bv_i$.   
 
+% Approximately Solving Integral Equations using Monte Carlo
+\subsubsection{Approximately Solving Integral Equations using Monte Carlo}
+
+% Low-Rank Matrix Approximations
+\subsubsection{Low-Rank Matrix Approximations}
 
 
 
