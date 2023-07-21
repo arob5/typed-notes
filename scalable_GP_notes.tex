@@ -18,23 +18,8 @@
 \pgfplotsset{compat=1.8}
 \usepackage{tikz}
 
-% Custom Commands
-\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
-\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
-\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
-\newcommand{\E}{\mathbb{E}}
-\newcommand{\Var}{\mathrm{Var}}
-\newcommand{\R}{\mathcal{R}}
-\newcommand{\N}{\mathcal{N}}
-\newcommand{\Ker}{\mathrm{Ker}}
-\newcommand{\Cov}{\mathrm{Cov}}
-\newcommand{\Prob}{\mathbb{P}}
-\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
-\DeclareMathOperator*{\argmax}{argmax}
-\DeclareMathOperator*{\argmin}{argmin}
-\def\R{\mathbb{R}}
-\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
-\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+% Local custom commands. 
+\include{local-defs-GPs}
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -62,10 +47,10 @@ Notes on Scalable Gaussian Processes
 Andrew Roberts
 \end{flushright} 
 
-\section{Different Approaches to Approximate GPs}
+% Overview of Approximate GPs
+\section{Overview of Approximate GPs}
 
-\section{Background: Factor Graphs and Pseudo Data}
-
+% Pseudo Data
 \subsection{Pseudo Data}
 The use of pseudo data is a feature utilized in many different approximate GP schemes, including both the approximate generative model and approximate inference approaches. Hence, we choose to introduce 
 this concept here rather than with a specific scalable GP method.
@@ -75,6 +60,10 @@ reducing the computational cost, a pretty natural thought is that maybe we can c
 $M << N$ so-called pseudo data points (which may or may not be a subset of the original training dataset) and utilize these points in such a way that hopefully the computation time now scales as some function 
 of $M$, rather than as $N^3$. When $M$ is much smaller than $N$ this can result in large computational gains, at the cost of some approximation error.
 
+% Background
+\section{Background}
+
+% Factor Graphs
 \subsection{Factor Graphs} 
 It is useful to have visual representation of GP models, which clearly displays the conditional dependencies between all of the variables. \textit{Factor graphs} are such a tool. To begin, consider a density $p$
 that can be factored as 
@@ -103,9 +92,76 @@ so if, say, $\left(\Sigma^{-1}\right)_{23} = 0$ then this becomes
 Now, notice that if we fix $x_1$ then $p(x_1)$ is just a constant, and the $p^2(x_1, x_3)$ is now viewed as a function of only $x_3$ so what's left is a product of terms that depend on 
 $x_2$ times a product of terms that depend on $x_3$. Thus, $x_2$ is conditionally independent of $x_3$, given $x_1$. 
 
-\section{Approximate Generative Models}
+% The Nystrom Method
+\subsection{The Nystrom Method}
 
-\subsection{Fully Independent Training Conditional (FITC)}
+\subsubsection{Solving Integral Equations}
+The classical Nystrom method is concerned with numerically solving the integral equation 
+\begin{align}
+\int_{\inputSpace} \GPKer(\bx, \bx^\prime) \phi_i(\bx) d\bx = \lambda_i \phi_i(\bx^\prime) \label{integral_eqn}
+\end{align}
+where the $\phi_i$ are the eigenfunctions of the kernel $\GPKer(\cdot, \cdot)$ with associated eigenvalues $\lambda_i$. The method essentially applies 
+a quadrature rule to discretize, and thus approximately solve, \ref{integral_eqn}. Indeed, consider a Gauss quadrature rule 
+$\{\bx_{\designIdx}, w_{\designIdx}\}_{\designIdx = 1}^{\Ndesign}$ consisting of $\Ndesign$ input points $\bx_{\designIdx}$ with associated weights $w_{\designIdx}$.
+Applying this rule to \ref{integral_eqn} yields the approximation 
+\begin{align}
+\sum_{\designIdx = 1}^{\Ndesign} w_{\designIdx} \GPKer(\bx_{\designIdx}, \bx^\prime) \phi_i(\bx_{\designIdx}) = \lambda_i \phi_i(\bx^\prime) \label{integral_eqn_discretized}
+\end{align}
+for each $\bx^\prime \in \inputSpace$. We refer to the set $\{\bx_{\designIdx}\}_{\designIdx = 1}^{\Ndesign}$ as the set of \textit{samples} used to form the approximation. 
+To discretize the continuum of $\bx^\prime \in \inputSpace$ values, the Nystrom method utilizes the same set of samples. In effect, we evaluate \ref{integral_eqn_discretized}
+(as a function of $\bx^\prime$) at each of the samples $\bx_{\designIdx}$. This yields, 
+\begin{align}
+\sum_{\designIdx = 1}^{\Ndesign} w_{\designIdx}  \GPKer(\bx_{\designIdx}, \bx_m) \phi_i(\bx_{\designIdx}) = \lambda_i \phi_i(\bx_m), \text{ for } m = 1, \dots, \Ndesign \label{Nystrom_discretization}
+\end{align}
+The original integral equation \ref{integral_eqn} has now been fully discretized, approximated by the finite linear system \ref{Nystrom_discretization}. To write this linear system in 
+matrix notation, define $\bu_i := \begin{pmatrix} \phi_i(\bx_1), \dots, \phi_i(\bx_N) \end{pmatrix}^{\top}$, $\bW := \text{diag}\left\{w_1, \dots, w_{\Ndesign} \right\}$, and 
+$\kerMat$ the $\Ndesign \times \Ndesign$ matrix with entries $\kerMat[\designIdx, m] = \GPKer(\bx_{\designIdx}, \bx_m)$. We can now re-write \ref{Nystrom_discretization} as 
+\begin{align}
+\kerMat \bW \bu_i = \lambda_i \bu_i \label{Nystrom_eigenvalue_prob}
+\end{align}
+We observe that \ref{Nystrom_eigenvalue_prob} is a familiar eigenvalue problem from linear algebra. However, $\kerMat \bW$ is in general not symmetric, which renders the 
+eigenvalue problem more difficult than the symmetric case. However, it is easy to symmetrize the problem by defining left-multiplying by $\bW^{1/2}$,
+\[\bW^{1/2} \kerMat \bW \bu_i = \bW^{1/2} \kerMat \bW^{1/2} \bW^{1/2} \bu_i= \lambda_i \bW^{1/2} \bu_i\]
+and defining $\tilde{\kerMat} := \bW^{1/2} \kerMat \bW^{1/2}$ (which is symmetric) and $\bv_i := \bW^{1/2} \bu_i$. This yields the equivalent symmetric eigenvalue problem 
+\begin{align}
+\tilde{\kerMat} \bv_i = \lambda_i \bv_i
+\end{align}
+
+Since $\tilde{\kerMat}$ is symmetric positive-definite, solving this eigenvalue problem yields an $\Ndesign$-dimensional orthonormal basis of 
+eigenvectors $\bV$ (with columns $\bv_i$) and positive eigenvalues $\hat{\lambda}_1, \dots, \hat{\lambda}_{\Ndesign}$, sorted in descending 
+order. That is, we have $\tilde{\kerMat} = \bV \Sig \bV^T$, where $\Sig := \text{diag}\left\{\hat{\lambda}_1, \dots, \hat{\lambda}_{\Ndesign} \right\}$. 
+To obtain the eigenvectors of interest $\bu_i$, we can simply map back via $\bu_i = \bW^{-1/2}\bv_i$; i.e., $\bU = \bW^{-1/2}\bV$. Now, 
+the $j^{\text{th}}$ entry of $\bu_i$ is our approximation of the $i^{\text{th}}$ eigenfunction evaluated at the $j^{\text{th}}$ quadrature
+point (i.e. $\phi_i(\bx_j)$). Moreover, $\hat{\lambda}_i$ is our approximation to $\lambda_i$. But what if we want an approximation to 
+$\phi_i(\bx^\prime)$, where $\bx^\prime \in \inputSpace$ is not one of the sample points? The Nystrom approximation provides us the formula 
+\ref{integral_eqn_discretized}, which can readily be used to approximate $\phi_i(\bx^\prime)$. Indeed, dividing both sides by $\lambda_i$ and then substituting in the 
+approximations $\hat{\lambda}_i \approx \lambda_i$ and $ \bU_{\designIdx i} \approx \phi_i(\bx_\designIdx)$, we obtain the estimate
+\begin{align}
+\phi_i(\bx^\prime) \approx \frac{1}{\hat{\lambda}_i } \sum_{\designIdx = 1}^{\Ndesign} w_{\designIdx} \GPKer(\bx_{\designIdx}, \bx^\prime)  \bU_{\designIdx i} \label{Nystrom_estimate}
+\end{align}
+Note that \ref{Nystrom_estimate} again utilizes an approximation based on the sampling points $\{\bx_{\designIdx}\}$. 
+
+We make one final note on the baseline Nystrom method before proceeding to generalizations. When solving the equation \ref{integral_eqn}, we often also seek to enforce the 
+orthogonality constraint 
+\begin{align}
+\int_{\inputSpace} \phi_i(\bx) \phi_j(\bx) d\bx = \delta_{ij} \label{orthogonality_constraint}
+\end{align}
+Has this discretization procedure ensured a good approximation of this condition? Indeed, discretizing the integral \ref{orthogonality_constraint} (using the 
+same quadrature rule as before) we see that
+\begin{align*}
+\sum_{\designIdx = 1}^{\Ndesign} w_{\designIdx} \phi_i(\bx_{\designIdx}) \phi_j(\bx_{\designIdx}) &\approx \sum_{\designIdx = 1}^{\Ndesign} \sqrt{w_{\designIdx}} \bU_{\designIdx i}\cdot \sqrt{w_k} \bU_{\designIdx j}\\
+								   &=  \sum_{\designIdx = 1}^{\Ndesign} \bV_{\designIdx i} \bV_{\designIdx j} \\
+								   &= \bv_i^{\top} \bv_j
+\end{align*}
+In words, the discretization tells us that to approximate the orthogonality of the $\phi_i$ we should impose orthogonality on the $\bv_i$. This
+is convenient as standard software packages will return the $\bv_i$ already normalized, and then we do not need to worry about scaling the 
+$\bu_i$ after executing the mapping $\bu_i = \bW^{-1/2}\bv_i$.   
+
+
+
+
+% Local Approximate GPs
+\section{Local Approximate GPs}
 
 
 \end{document}

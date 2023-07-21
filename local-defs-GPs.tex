@@ -1,0 +1,62 @@
+%!TEX root = SMA-book.tex
+
+% Useful info on newcomand: https://tex.stackexchange.com/questions/117358/newcommand-argument-confusion
+
+
+% --------------------------------------------------------------------------------------------------
+% General Math.  
+% --------------------------------------------------------------------------------------------------
+
+% Common math commands. 
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand{\R}{\mathbb{R}}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+% Linear algebra.
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\oneVec}[1]{\boldsymbol{1}_{#1}}
+\newcommand{\bu}{\mathbf{u}} 
+\newcommand{\bv}{\mathbf{v}} 
+\newcommand{\bW}{\mathbf{W}} 
+\newcommand{\bU}{\mathbf{U}} 
+\newcommand{\bV}{\mathbf{V}} 
+\newcommand{\Sig}{\boldsymbol{\Sigma}} 
+
+% Probability. 
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+
+
+% --------------------------------------------------------------------------------------------------
+% Gaussian Processes. 
+% --------------------------------------------------------------------------------------------------
+
+% Generic GP commands. 
+\newcommand{\GP}{\mathcal{GP}} % GP distribution.
+\newcommand{\f}{f} % Generic univariate target function on which GP prior is placed. 
+\newcommand{\bx}{\mathbf{x}} % Input variable. 
+\newcommand{\inputSpace}{\mathcal{X}} % Input space 
+\newcommand{\inputDim}{D} % Dimension of input space 
+\newcommand{\designIdx}{n} % The primary variable to index the design/training points. 
+\newcommand{\Ndesign}{N} % Number of observed data points (i.e. design points)
+\newcommand{\designMat}{\mathbf{X}} % Matrix of input design points.  
+\newcommand{\fObs}[1][\designIdx]{\mathbf{\f}_{#1}} % Vector of observed target function evaluations.  
+\newcommand{\GPMean}{\mu} % Generic GP prior mean function
+\newcommand{\GPKer}{k} % Generic GP prior covariance function
+\newcommand{\designData}{\mathcal{D}} % Set of training/design inputs and responses  
+\newcommand{\GPMeanPred}[1][\designIdx]{\GPMean_{#1}} % GP predictive mean (conditioned on data).
+\newcommand{\GPKerPred}[1][\designIdx]{\GPKer_{#1}} % GP predictive covariance function (conditioned on data). 
+\newcommand{\kerMat}[1][]{\mathbf{K}_{#1}} % Generic kernel matrix, explicitly showing dependence on number of design points.
+
+% Scalable/approximate GPs
+\newcommand{\NpseudoData}{M} % Number of pseudo-data points/inducing points. 
+
+
+
