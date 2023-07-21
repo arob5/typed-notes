@@ -94,6 +94,7 @@ $x_2$ times a product of terms that depend on $x_3$. Thus, $x_2$ is conditionall
 
 % The Nystrom Method
 \subsection{The Nystrom Method}
+This section largely follows the paper \cite{Sun}, which provides a nice review of Nystrom methods in machine learning. 
 
 % Approximately Solving Integral Equations using Quadrature
 \subsubsection{Approximately Solving Integral Equations using Quadrature}
@@ -150,7 +151,8 @@ approximations $\hat{\lambda}_i \approx \lambda_i$ and $ \bU_{\designIdx i} \app
 \end{align}
 Note that \ref{Nystrom_estimate} again utilizes an approximation based on the sampling points $\{\bx_{\designIdx}\}$.
 
-We make one final note on the baseline Nystrom method before proceeding to generalizations. When solving the equation \ref{integral_eqn}, we often also seek to enforce the 
+We make one final note on the baseline Nystrom method before proceeding to generalizations. Recall that the Mercer representation of the kernel implied 
+orthonormal eigenfunctions $\{\phi_i\}$. Therefore, when solving the equation \ref{integral_eqn}, we also seek to enforce the 
 orthogonality constraint 
 \begin{align}
 \int_{\inputSpace} \phi_i(\bx) \phi_j(\bx) d\bx = \delta_{ij} \label{orthogonality_constraint}
@@ -168,15 +170,84 @@ $\bu_i$ after executing the mapping $\bu_i = \bW^{-1/2}\bv_i$.
 
 % Approximately Solving Integral Equations using Monte Carlo
 \subsubsection{Approximately Solving Integral Equations using Monte Carlo}
+We now consider a generalization of the integral equation \ref{integral_eqn}, whereby instead of integrating uniformly over the compact set $\inputSpace$ we consider 
+integrating over $\R^{\inputDim}$ with respect to a probability density $\rho$. 
+\begin{align}
+\int_{\R^{\inputDim}} \GPKer(\bx, \bx^\prime) \phi_i(\bx) \rho(\bx) d\bx = \lambda_i \phi_i(\bx^\prime) \label{integral_eqn_weighted}
+\end{align}
+Since the lefthand side is of the form $\E_{\bx \sim \rho}\left[\GPKer(\bx, \bx^\prime) \phi_i(\bx) \right]$ we consider discretization via a Monte Carlo approximation in place of the 
+quadrature rule used above. For $\bx_1, \dots, \bx_{\Ndesign} \overset{iid}{\sim} \rho$ we have the Monte Carlo estimate
+\begin{align}
+\int_{\R^{\inputDim}} \GPKer(\bx, \bx^\prime) \phi_i(\bx) \rho(\bx) d\bx \approx \frac{1}{\Ndesign} \sum_{\designIdx = 1}^{\Ndesign} \GPKer(\bx_{\designIdx}, \bx^\prime) \phi_i(\bx_{\designIdx}).
+\end{align} 
+We now proceed exactly as before to obtain the discretized system of linear equations
+\begin{align}
+\frac{1}{\Ndesign} \sum_{\designIdx = 1}^{\Ndesign} \GPKer(\bx_{\designIdx}, \bx_m) \phi_i(\bx_{\designIdx}) &= \hat{\lambda}_i \phi_i(\bx_{m}), \text{ for } m = 1, \dots, M
+\end{align}
+and (using the same notation as the un-weighted case), we obtain the eigenvalue problem 
+\begin{align}
+\frac{1}{\Ndesign} \kerMat \bu_i &= \hat{\lambda}_i \bu_i
+\end{align}
+To write this more clearly, let $\tilde{\Sig} := \text{diag}\{\Ndesign \hat{\lambda}_1, \dots, \Ndesign \hat{\lambda}_{\Ndesign}\}$. We then first solve the eigenvalue problem 
+\begin{align}
+\kerMat \tilde{\bU} &= \tilde{\Sig} \tilde{\bU}
+\end{align}
+To obtain estimates for the $\lambda_i$, we transform back via 
+\begin{align}
+\Sig &:= \text{diag}\{\hat{\lambda}_1, \dots, \hat{\lambda}_{\Ndesign}\} = \frac{1}{\Ndesign} \tilde{\Sig} 
+\end{align}
+The direction of the eigenvectors $\tilde{\bU}$ are unaffected by the scaling by $N^{-1}$, but we must ensure that this discretization has respected the weighted analog of the orthonormality constraint 
+\ref{orthogonality_constraint}. We have 
+\begin{align}
+\int_{\inputSpace} \phi_i(\bx) \phi_j(\bx) d\bx &\approx \frac{1}{\Ndesign} \sum_{\designIdx = 1}^{\Ndesign} \tilde{\bU}_{\designIdx i} \tilde{\bU}_{\designIdx j} \\
+								   &= \frac{1}{\Ndesign} \bu_i^\top \bu_j \\
+								   &= \frac{1}{\Ndesign} \delta_{ij}
+\end{align}
+so while orthogonality is satisfied, the scaling is off. To correct for this we define $\bU := \sqrt{\Ndesign} \tilde{\bU}$. To summarize, the final estimates for the eigenvalues and 
+eigenfunctions (evaluated at the sampling points) are given by 
+\begin{align}
+&\Sig = \frac{1}{\Ndesign} \tilde{\Sig}  &&\bU = \sqrt{\Ndesign} \tilde{\bU}
+\end{align}
 
 % Low-Rank Matrix Approximations
 \subsubsection{Low-Rank Matrix Approximations}
+We next consider the problem of producing a low-rank approximation to a postive semi-definite matrix $\kerMat \in \R^{\Ndesign \times \Ndesign}$. 
+We know that the optimal rank-$R$ approximation in the 
+$L_2$ sense is given by the truncated eigendecomposition 
+\begin{align}
+\kerMat \approx \bU_{R} \Sig_R \bU_R^\top \label{eigendecomposition}
+\end{align}
+where $\bU_R$ is the matrix consisting of the first $R$ columns of $\bU$ and $\Sig_R$ is the upper-left $R \times R$ sub-matrix of $\Sig$. However, computing the 
+eigendecomposition requires $O(\Ndesign^3)$ operations, which is computationally intractable when $\Ndesign$ is large. Therefore, the task here is to provide an 
+approximation to \ref{eigendecomposition} at lower computational cost. 
 
+In the two previous sections, the Nystrom method has provided approximations to the eigenvalues and eigenfunctions of a kernel $\GPKer(\cdot, \cdot)$ through a discretization 
+based on a finite number of sample points $\{\bx_{\designIdx}\}_{\designIdx = 1}^{\Ndesign}$. On the other hand, the problem of producing a low-rank approximation to $\kerMat$ is already 
+a finite-dimensional problem, but we can adopt a similar approach. By analogy to the sample points, the Nystrom approximation in this setting samples a subset of the columns of $\kerMat$. 
+While much work has gone into smart sampling schemes, here we assume the sample of $\NpseudoData < \Ndesign$ columns $\tilde{\kerMat}_{\NpseudoData} \in \R^{\Ndesign \times \NpseudoData}$ has already been 
+selected. Moreover, let $\kerMat[\NpseudoData] \in \R^{\NpseudoData \times \NpseudoData}$ denote the first $\NpseudoData$ rows of $\tilde{\kerMat}_{\NpseudoData}$. Without loss of generality, assume the 
+rows and columns of $\kerMat$ are arranged so that 
+\begin{align}
+\kerMat &= \begin{pmatrix} \kerMat[\NpseudoData] & \kerMat[12] \\ \kerMat[21] & \kerMat[22] \end{pmatrix}
+\end{align}
+Since $\kerMat$ is PSD, then so much be the sub-matrix $\kerMat[\NpseudoData]$. \\
+
+\bigskip
+\textbf{TODOs:}
+\begin{enumerate}
+\item I may want to change notation in the integral section to use M instead of N for the number of sampling points. 
+\item Follow \cite{Williams} for the derivation of the low-rank matrix approximations. 
+\end{enumerate}
 
 
 % Local Approximate GPs
 \section{Local Approximate GPs}
 
+% Bibliography
+\begin{thebibliography}{20}
+\bibitem{Sun} Sun, Shiliang \& Zhao, Jing \& Zhu, Jiang. (2015). A Review of Nyström Methods for Large-Scale Machine Learning. Information Fusion. 26. 10.1016/j.inffus.2015.03.001. 
+\bibitem{Williams} Christopher K. I. Williams and Matthias Seeger. 2000. Using the Nyström method to speed up kernel machines. In Proceedings of the 13th International Conference on Neural Information Processing Systems (NIPS'00). MIT Press, Cambridge, MA, USA, 661–667.
+\end{thebibliography}
 
 \end{document}
 
