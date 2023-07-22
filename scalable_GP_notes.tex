@@ -256,9 +256,10 @@ only at the sampling locations (not the desired complete approximate eigenvector
 \textbf{TODOs:}
 \begin{enumerate}
 \item I may want to change notation in the integral section to use M instead of N for the number of sampling points. 
+\item Need to change notation so that it is clear which eigenproblem is being solved.  
 \item Follow \cite{Williams} for the derivation of the low-rank matrix approximations; I think the trick is to view the problem as a special case of the integral equations. 
 \item The wikipedia page \href{https://en.wikipedia.org/wiki/Low-rank_matrix_approximations is also good.}{Low rank approx}
-\item \href{https://stats.stackexchange.com/questions/261149/nystroem-method-for-kernel-approximation}{Nice post}
+\item \href{https://stats.stackexchange.com/questions/261149/nystroem-method-for-kernel-approximation}{Nice post}; add this as an alternative derivation. 
 \item First consider case that $\kerMat$ is actually rank $R$. 
 \end{enumerate}
 
@@ -271,6 +272,10 @@ only at the sampling locations (not the desired complete approximate eigenvector
 \bibitem{Sun} Sun, Shiliang \& Zhao, Jing \& Zhu, Jiang. (2015). A Review of Nyström Methods for Large-Scale Machine Learning. Information Fusion. 26. 10.1016/j.inffus.2015.03.001. 
 \bibitem{Williams} Christopher K. I. Williams and Matthias Seeger. 2000. Using the Nyström method to speed up kernel machines. In Proceedings of the 13th International Conference on Neural Information Processing Systems (NIPS'00). MIT Press, Cambridge, MA, USA, 661–667.
 \bibitem{Drineas} Petros Drineas and Michael W. Mahoney. 2005. On the Nyström Method for Approximating a Gram Matrix for Improved Kernel-Based Learning. J. Mach. Learn. Res. 6 (12/1/2005), 2153–2175.
+\bibitem{Schölkopf} B. Schölkopf, A. Smola and K. Müller, "Nonlinear Component Analysis as a Kernel Eigenvalue Problem," in Neural Computation, vol. 10, no. 5, pp. 1299-1319, 1 July 1998, doi: 10.1162/089976698300017467.
+\bibitem{Schwaighofer} Anton Schwaighofer and Volker Tresp. 2002. Transductive and inductive methods for approximate Gaussian process regression. In Proceedings of the 15th International Conference on Neural Information Processing Systems (NIPS'02). MIT Press, Cambridge, MA, USA, 977–984.
+\bibitem{Snelson} Snelson, Edward and Ghahramani, Zoubin. Sparse Gaussian Processes using Pseudo-inputs. Advances in Neural Information Processing Systems. % This is essentially coresets for GPs. 
+
 \end{thebibliography}
 
 \end{document}
