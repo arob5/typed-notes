@@ -263,8 +263,6 @@ or
  we have showed that the reproducing kernel can be represented as an inner product $k(x, x^\prime) = \langle \phi(x), \phi(x^\prime) \rangle_{\mathcal{H}}$, where $\phi(x) = k(\cdot, x)$. This construction 
  will be central in the statement and proof of the \textit{Moore-Aronszajn theorem}. 
  
- 
- 
  \section{Examples of RKHS}
  \begin{itemize}
  \item Set of real-valued functions with bounded Fourier transform (i.e. frequencies bounded in some interval $[-a, a]$). 
@@ -272,8 +270,27 @@ or
  \end{itemize}
 
 
-\section{Applications}
+\section{Maximum Mean Discrepancy and Two-Sample Testing}
 \subsection{Maximum Mean Discrepancy}
+Here we consider the classical problem of distinguishing between two probability distributions $P$ and $Q$ given iid samples from each. In particular, we want to use data 
+$X_1, \dots, X_N \overset{iid}{\sim} P$ and $Y_1, \dots, Y_M \overset{iid}{\sim} Q$ to test whether $P \neq Q$. Classical approaches to this problem typically make distributional 
+assumptions about $P$ and $Q$; the approach considered here is a non-parametric one. 
+
+In addition to providing a method of non-parametric two-sample testing, the methods discussed here will yield a metric on probability distributions that is amenable to estimation 
+from samples. Since the test statistic in the two-sample test will be defined in terms of this metric, we start with the latter. Lemma 1 of \cite{Gretton1} states that 
+$P = Q$ if and only if $\E_P[f(X)] = \E_Q[f(X)]$ for all $f \in C(\mathcal{X})$, the space of bounded continuous functions on a separable metric space 
+$\mathcal{X}$. This fact might lead us to define a metric something like 
+\begin{align*}
+d(P, Q) = \sup_{f \in C(\mathcal{X})} \abs{\E_P[f(X)] - \E_Q[f(X)]}
+\end{align*}
+The above mentioned lemma implies that $P = Q$ if and only if $d(P, Q) = 0$, as required by any metric $d(\cdot, \cdot)$. However, for practical purposes the function space 
+$C(\mathcal{X})$ is too ``rich'' to work with. The first task is thus to reduce this to a more tractable function space, while maintaining enough richness to guarantee 
+$P = Q \iff d(P, Q) = 0$. The authors in \cite{Gretton1} define the function class $\mathcal{F}$ to be the unit ball in an RKHS $\mathcal{H}$. As we will see, the ability to implicitly work in this 
+function space via a kernel $k(\cdot, \cdot)$ will prove to be a very practical benefit. First, a couple technicalities: the space $\mathcal{X}$ is assumed to be compact, and 
+the RKHS \mathcal{H} is assumed to be universal, meaning that it is dense in $C()$
+
+
+
 Useful: https://stats.stackexchange.com/questions/276497/maximum-mean-discrepancy-distance-distribution
 
 \section{References:}
@@ -284,6 +301,10 @@ Useful: https://stats.stackexchange.com/questions/276497/maximum-mean-discrepanc
 \item See Larry Wasserman's notes on minimax theory (I believe he talks about Hellinger distance).  
 \end{itemize}
 
+% Bibliography
+\begin{thebibliography}{20}
+\bibitem{Gretton1} Arthur Gretton, Karsten M. Borgwardt, Malte Rasch, Bernhard Schölkopf, and Alexander J. Smola. 2006. A kernel method for the two-sample-problem. In Proceedings of the 19th International Conference on Neural Information Processing Systems (NIPS'06). MIT Press, Cambridge, MA, USA, 513–520.
+\end{thebibliography}
 
 \end{document}
 

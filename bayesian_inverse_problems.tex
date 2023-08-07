@@ -18,7 +18,35 @@
 \pgfplotsset{compat=1.8}
 \usepackage{tikz}
 
-% Custom Commands
+%
+% Bayesian inverse problems. 
+%
+
+% General inverse problem. 
+\newcommand{\spar}{u} % Parameter (scalar, non-bold)
+\newcommand{\bpar}{\mathbf{u}} % Parameter vector (bold)
+\newcommand{\parSpace}{\mathcal{U}} % Parameter space
+\newcommand{\fwd}{g} % Forward model
+\newcommand{\fwdLinear}{\mathbf{G}} % Special case of linear forward model
+\newcommand{\dataVec}{\mathbf{y}} % Observed data vector
+\newcommand{\CovObs}{\boldsymbol{\Sigma}_{\epsilon}} % Observation noise covariance 
+\newcommand{\CovPrior}{\boldsymbol{\Sigma}_0} % Covariance matrix of prior distribution 
+\newcommand{\meanPrior}{\mathbf{\mu}_0} % Mean of prior distribution 
+\newcommand{\Npar}{D} % Dimension of parameter space
+\newcommand{\Nobj}{P} % Number of output variables/data constraints/objectives
+\newcommand{\llik}{\mathcal{L}} % Log-likelihood 
+\newcommand{\priorDens}{\pi_0} % Prior density 
+\newcommand{\postDens}{\pi} % Posterior density
+\newcommand{\objIdx}{p} % Primary index for indexing objective (i.e. data constraint or output variable) in multi-objective problems.
+\newcommand{\indexObj}[2][\objIdx]{{#2}^{(#1)}} % Adds objective index to a variable.
+\newcommand{\designMat}[1][\designIdx]{\mathbf{U}_{#1}} % Design matrix of input parameters (in rows) at which response is observed. 
+
+% Extended and Ensemble Kalman Inversion. 
+\newcommand{\CovObsEx}{\tilde{\boldsymbol{\Sigma}}_{\epsilon}} % Covariance matrix in extended model-parameter space. 
+\newcommand{\dataVecEx}{\tilde{\dataVec}} % Data vector in extended model-parameter space. 
+\newcommand{\fwdEx}{\tilde{\fwd}} % Forward model in extended model-parameter space. 
+
+% General math commands.
 \newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
 \newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
 \newcommand*{\suchthat}{\,\mathrel{\big|}\,}
@@ -33,6 +61,9 @@
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+% General linear algebra commands. 
+\newcommand{\bv}{\mathbf{v}} 
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -68,140 +99,140 @@
 \subsection{Introduction to Finite Dimensional Inverse Problems}
 Inverse problems generically take the form
 \begin{align}
-y &= f(\theta),
+y &= f(\bpar),
 \end{align}
-where $f: \R^d \to \R$ is a forward model (i.e. parameter-to-observation operator), $\theta \in \mathcal{D}$ is an unknown input to the forward model which we seek to learn, and
-$y \in \R^n$ are observations of the output of the forward model. The task is to infer the input parameter $\theta$ that gave rise to the observations $y$. Typically, we consider finite
+where $f: \R^d \to \R$ is a forward model (i.e. parameter-to-observation operator), $\bpar \in \mathcal{D}$ is an unknown input to the forward model which we seek to learn, and
+$y \in \R^n$ are observations of the output of the forward model. The task is to infer the input parameter $\bpar$ that gave rise to the observations $y$. Typically, we consider finite
 dimensional parameter spaces $\mathcal{D} \subset \R^d$ but will also touch on scenarios where $\mathcal{D}$ is infinite-dimensional (e.g. inferring a spatial field). 
 To reflect the reality that 
 observations are almost always corrupted by noise, we adopt a statistical framework
 \begin{align}
-y &= f(\theta) + \epsilon \label{inverse_problem_statistical} \\
+y &= f(\bpar) + \epsilon \label{inverse_problem_statistical} \\
 \epsilon &\sim \rho_\epsilon \nonumber
 \end{align}
-which now defines a likelihood $p(y|\theta) := \rho(y - f(\theta))$ that, loosely speaking, expresses the probability of observing the data $y$ given that the input parameter was $\theta$. It is quite common
+which now defines a likelihood $p(y|\bpar) := \rho(y - f(\bpar))$ that, loosely speaking, expresses the probability of observing the data $y$ given that the input parameter was $\bpar$. It is quite common
 to assume Gaussian noise 
 \begin{align}
-y &= f(\theta) + \epsilon \label{inverse_problem_statistical_Gaussian} \\
+y &= f(\bpar) + \epsilon \label{inverse_problem_statistical_Gaussian} \\
 \epsilon &\sim N_n(0, \Sigma_\epsilon) \nonumber,
 \end{align}
-which then yields the Gaussian likelihood $p(y|\theta) = N_n(y|f(\theta), \Sigma_\epsilon)$. The function $\rho: \R^d \to \R$ in this case is given by 
+which then yields the Gaussian likelihood $p(y|\bpar) = N_n(y|f(\bpar), \Sigma_\epsilon)$. The function $\rho: \R^d \to \R$ in this case is given by 
 \[\rho(s) \propto \exp\left\{-\frac{1}{2} s^{\top} \Sigma_{\epsilon}^{-1} s \right\}\]
  I will consider this particular choice of likelihood throughout much of the exposition, but consider non-Gaussian 
-likelihoods later in the paper. Assuming $\Sigma_\epsilon$ is known, a staightforward approach to solving [\ref{inverse_problem_statistical_Gaussian}] (i.e. estimating the value of $\theta$ 
+likelihoods later in the paper. Assuming $\Sigma_\epsilon$ is known, a staightforward approach to solving [\ref{inverse_problem_statistical_Gaussian}] (i.e. estimating the value of $\bpar$ 
 that gave rise to $y$) is to use MLE
 \begin{align}
-\hat{\theta}_{MLE} &:= \argmax_{\theta} N_n(y|f(\theta), \Sigma_\epsilon) \\
-			     &= \argmin_{\theta \in \mathcal{D}} \frac{1}{2} (y - f(\theta))^{\top} \Sigma_\epsilon^{-1} (y - f(\theta)) \nonumber
+\hat{\bpar}_{MLE} &:= \argmax_{\bpar} N_n(y|f(\bpar), \Sigma_\epsilon) \\
+			     &= \argmin_{\bpar \in \mathcal{D}} \frac{1}{2} (y - f(\bpar))^{\top} \Sigma_\epsilon^{-1} (y - f(\bpar)) \nonumber
 \end{align}
 However, in applications this approach commonly suffers from various problems, including the lack of a unique solution to the optimization problem and high sensitivity of the minimizer to perturbations of 
-the data $y$. To ameliorate these issues, one approach is to \textit{regularize} the problem by penalizing values of $\theta$ that drift too far away from some fixed point in the input space $\mathcal{D}$. 
+the data $y$. To ameliorate these issues, one approach is to \textit{regularize} the problem by penalizing values of $\bpar$ that drift too far away from some fixed point in the input space $\mathcal{D}$. 
 \begin{align}
-\hat{\theta}_{\theta_0, \Sigma_0} &= \argmin_{\theta \in \mathcal{D}} \frac{1}{2} (y - f(\theta))^{\top} \Sigma_\epsilon^{-1} (y - f(\theta)) + \frac{1}{2} (\theta - \theta_0)^{\top} \Sigma_0^{-1}(\theta - \theta_0) \label{regularization}
+\hat{\bpar}_{\bpar_0, \Sigma_0} &= \argmin_{\bpar \in \mathcal{D}} \frac{1}{2} (y - f(\bpar))^{\top} \Sigma_\epsilon^{-1} (y - f(\bpar)) + \frac{1}{2} (\bpar - \bpar_0)^{\top} \Sigma_0^{-1}(\bpar - \bpar_0) \label{regularization}
 \end{align}
-where $\Sigma_0$ characterizes the weighted norm that quantifies the penalty imposed as a function of the distance between $\theta$ and $\theta_0$. The values $\theta_0$ and $\Sigma_0$ must be chosen 
+where $\Sigma_0$ characterizes the weighted norm that quantifies the penalty imposed as a function of the distance between $\bpar$ and $\bpar_0$. The values $\bpar_0$ and $\Sigma_0$ must be chosen 
 a priori, and this seems problematic given that they appear to be somewhat arbitrary in the formulation [\ref{regularization}]. Adopting a Bayesian framework helps put these choices in a more transparent 
-modeling setup. Following typical Bayesian procedure, we place a prior $\pi_0$ on $\theta$ which encodes our current beliefs about the true value of the parameter. 
+modeling setup. Following typical Bayesian procedure, we place a prior $\pi_0$ on $\bpar$ which encodes our current beliefs about the true value of the parameter. 
 \begin{align}
-y &= f(\theta) + \epsilon \label{inverse_problem_Bayesian} \\
-\theta &\sim \pi_0 \\
+y &= f(\bpar) + \epsilon \label{inverse_problem_Bayesian} \\
+\bpar &\sim \pi_0 \\
 \epsilon &\sim N_n(0, \Sigma_\epsilon) \nonumber.
 \end{align}
 Solving the Bayesian inverse problem $[\ref{inverse_problem_Bayesian}]$ now means obtaining (or summarizing) the posterior distribution of the parameter given the data, which is calculated via Bayes' rule. 
 \begin{align}
-p(\theta|y) &= \frac{N_n(y|f(\theta), \Sigma_\epsilon)\pi_0(\theta)}{\int N(y|f(\theta), \Sigma_\epsilon)\pi_0(\theta) d\theta} \propto N_n(y|f(\theta), \Sigma_\epsilon)\pi_0(\theta) \label{posterior}
+p(\bpar|y) &= \frac{N_n(y|f(\bpar), \Sigma_\epsilon)\pi_0(\bpar)}{\int N(y|f(\bpar), \Sigma_\epsilon)\pi_0(\bpar) d\bpar} \propto N_n(y|f(\bpar), \Sigma_\epsilon)\pi_0(\bpar) \label{posterior}
 \end{align}
-The integral in the denominator of [\ref{posterior}] is typically intractable, but $p(\theta|y)$ can be sampled from using Markov Chain Monte Carlo (MCMC) techniques. In the case of a Gaussian prior 
-$\theta \sim N_d(\theta_0, \Sigma_0)$ the posterior becomes
+The integral in the denominator of [\ref{posterior}] is typically intractable, but $p(\bpar|y)$ can be sampled from using Markov Chain Monte Carlo (MCMC) techniques. In the case of a Gaussian prior 
+$\bpar \sim N_d(\bpar_0, \Sigma_0)$ the posterior becomes
 \begin{align}
-p(\theta|y) &\propto N_n(y|f(\theta), \Sigma_\epsilon)N_d(\theta|\theta_0, \Sigma_0) \\
- 		&\propto \exp\left\{-\frac{1}{2} (y - f(\theta))^{\top} \Sigma_\epsilon^{-1} (y - f(\theta)) - \frac{1}{2} (\theta - \theta_0)^{\top} \Sigma_0^{-1}(\theta - \theta_0) \right\} \nonumber
+p(\bpar|y) &\propto N_n(y|f(\bpar), \Sigma_\epsilon)N_d(\bpar|\bpar_0, \Sigma_0) \\
+ 		&\propto \exp\left\{-\frac{1}{2} (y - f(\bpar))^{\top} \Sigma_\epsilon^{-1} (y - f(\bpar)) - \frac{1}{2} (\bpar - \bpar_0)^{\top} \Sigma_0^{-1}(\bpar - \bpar_0) \right\} \nonumber
 \end{align}
 which in general is not Gaussian if $f$ is non-linear. The maximum a posterior (MAP) estimate is thus
 \begin{align}
-\hat{\theta}_{\text{MAP}} := \argmin_{\theta \in \mathcal{D}} \frac{1}{2} (y - f(\theta))^{\top} \Sigma_\epsilon^{-1} (y - f(\theta)) + \frac{1}{2} (\theta - \theta_0)^{\top} \Sigma_0^{-1}(\theta - \theta_0) \label{MAP}
+\hat{\bpar}_{\text{MAP}} := \argmin_{\bpar \in \mathcal{D}} \frac{1}{2} (y - f(\bpar))^{\top} \Sigma_\epsilon^{-1} (y - f(\bpar)) + \frac{1}{2} (\bpar - \bpar_0)^{\top} \Sigma_0^{-1}(\bpar - \bpar_0) \label{MAP}
 \end{align}
-which we notice is identical to the regularized MLE estimate $\hat{\theta}_{\theta_0, \Sigma_0}$. Therefore, the seemingly arbitrary choices $m_0$ and $\Sigma_0$ in the regularized setting are naturally 
-interpreted as the parameters defining the prior on $\theta$ in the Bayesian setting. The Bayesian framework also provides more than just this new interpretation; it provides a solution to the inverse problem 
-in terms of a distribution $p(\theta|y)$ rather than just a point estimate $\hat{\theta}_{\theta_0, \Sigma_0}$. While we can still calculate the point estimate $\hat{\theta}_{\text{MAP}}$, there are many other ways 
+which we notice is identical to the regularized MLE estimate $\hat{\bpar}_{\bpar_0, \Sigma_0}$. Therefore, the seemingly arbitrary choices $m_0$ and $\Sigma_0$ in the regularized setting are naturally 
+interpreted as the parameters defining the prior on $\bpar$ in the Bayesian setting. The Bayesian framework also provides more than just this new interpretation; it provides a solution to the inverse problem 
+in terms of a distribution $p(\bpar|y)$ rather than just a point estimate $\hat{\bpar}_{\bpar_0, \Sigma_0}$. While we can still calculate the point estimate $\hat{\bpar}_{\text{MAP}}$, there are many other ways 
 to interrogate the posterior to conduct more robust uncertainty quantification. 
 
 \subsection{More General Theoretical Framework}
 We now consider a general setting for Bayesian inverse problems, where the input parameter space $\mathcal{D}$ may be infinite dimensional. We again consider a forward operator (or parameter-to-observation 
 map) $f: \mathcal{D} \to \mathcal{Y}$. As before, the task is to solve the equation
 \begin{align*}
-y = f(\theta)
+y = f(\bpar)
 \end{align*}
-for $\theta \in \mathcal{D}$, given fixed $y \in \mathcal{Y}$. For full generality, we can consider $(\mathcal{D}, \norm{\cdot}_{\mathcal{D}})$ and $(\mathcal{Y},  \norm{\cdot}_{\mathcal{Y}})$ as Banach spaces. As discussed previously, this problem is often plagued by ill-posedness--non-existence 
+for $\bpar \in \mathcal{D}$, given fixed $y \in \mathcal{Y}$. For full generality, we can consider $(\mathcal{D}, \norm{\cdot}_{\mathcal{D}})$ and $(\mathcal{Y},  \norm{\cdot}_{\mathcal{Y}})$ as Banach spaces. As discussed previously, this problem is often plagued by ill-posedness--non-existence 
 of solutions or extreme sensitivity of the solution to $y$. A classical approach to address these issues is to instead consider a least-squares, or regularized least-squares, solution to the problem. The notion of distance in the least-squares problem is given by the norm $\norm{\cdot}_{\mathcal{Y}}$, which yields the least-squares problem  
 \begin{align*}
-\hat{\theta} := \argmin_{\theta \in \mathcal{D}} \frac{1}{2} \norm{y - f(\theta)}_{\mathcal{Y}}^2
+\hat{\bpar} := \argmin_{\bpar \in \mathcal{D}} \frac{1}{2} \norm{y - f(\bpar)}_{\mathcal{Y}}^2
 \end{align*}
 where the $\frac{1}{2}$ is included for consistency, recalling the relation between the squared error and Gaussian distribution discussed in the previous section. For the regularized problem, we penalize deviations 
-of $\theta$ from some pre-specified $m_0$. We could of course define this penalty as $\norm{u - m_0}_{\mathcal{D}}$, but in the interest of generality we consider the option of restricting $\theta$ to some smaller 
+of $\bpar$ from some pre-specified $m_0$. We could of course define this penalty as $\norm{u - m_0}_{\mathcal{D}}$, but in the interest of generality we consider the option of restricting $\bpar$ to some smaller 
 Banach space $\mathcal{E}$, equipped with arbitrary norm $\norm{\cdot}_\mathcal{E}$:
 \begin{align*}
-\hat{\theta} := \argmin_{\theta \in \mathcal{E}} \left(\frac{1}{2} \norm{y - f(\theta)}_{\mathcal{Y}}^2 + \frac{1}{2} \norm{\theta - m_0}^2_E\right)
+\hat{\bpar} := \argmin_{\bpar \in \mathcal{E}} \left(\frac{1}{2} \norm{y - f(\bpar)}_{\mathcal{Y}}^2 + \frac{1}{2} \norm{\bpar - m_0}^2_E\right)
 \end{align*}
 Moving away from pure optimization and instead adopting a Bayesian statistical framework offers many benefits, as described in the previous section. To this end, we consider a prior probability measure $\mu_0$ on 
-$\theta$ which encodes prior information as to the true value of $\theta$, before observing any data. Moreover, we now suppose that the data $y$ has been measured with noise. This yields the model
+$\bpar$ which encodes prior information as to the true value of $\bpar$, before observing any data. Moreover, we now suppose that the data $y$ has been measured with noise. This yields the model
 \begin{align*}
-y = f(\theta) + \epsilon
+y = f(\bpar) + \epsilon
 \end{align*}
-where $\epsilon$ is the \textit{observational noise}, which we in general consider to be a mean zero random variable. The distributions on $\epsilon$ and $\theta$ induce a distribution on $y$, as well as a joint 
-distribution over $(y, \theta)$. The marginal of this joint distribution corresponding to $\theta$ is simply the prior measure $\mu_0$, while the marginal corresponding to $y$ is known as the \textit{evidence}. The primary object of interest is the conditional random variable $\theta|y$, with associated probability measure $\mu^y$. The distribution $\mu^y$ encodes knowledge about the parameter after observing $y$, thus combining 
+where $\epsilon$ is the \textit{observational noise}, which we in general consider to be a mean zero random variable. The distributions on $\epsilon$ and $\bpar$ induce a distribution on $y$, as well as a joint 
+distribution over $(y, \bpar)$. The marginal of this joint distribution corresponding to $\bpar$ is simply the prior measure $\mu_0$, while the marginal corresponding to $y$ is known as the \textit{evidence}. The primary object of interest is the conditional random variable $\bpar|y$, with associated probability measure $\mu^y$. The distribution $\mu^y$ encodes knowledge about the parameter after observing $y$, thus combining 
 information from prior beliefs and observed data. 
 
 To make this concrete, we now turn back to the finite dimensional case where $\mathcal{Y} \subset \in \R^n$ and $\mathcal{D} \subset \R^d$ and probability densities exist. In this simpler setting, we consider characterizing the posterior measure $\mu^y$. 
 
 \begin{thm}
 Assume $\mathcal{Y} \subset \R^n$, $\mathcal{D} \subset \R^d$, and that the measure $\mu_0$ has associated density (i.e. Radon-Nikodym derivative with respect to Lebesgue measure) $\pi_0$. 
-Moreover, assume the likelihood $p(y|\theta)$ is proportional to a density $\rho(y - f(\theta))$. Then, 
+Moreover, assume the likelihood $p(y|\bpar)$ is proportional to a density $\rho(y - f(\bpar))$. Then, 
 \begin{enumerate}
 \item The posterior measure $\mu^y$ is absolutely continuous with respect to the prior measure $\mu_0$ (written $\mu^y << \mu_0$). 
-\item The Radon-Nikodym derivative of $\mu^y$ with respect to $\mu_0$ is proportional to $\rho(y - f(\theta))$, written $\frac{d\mu^y}{d\mu_0} \propto \rho(y - f(\theta))$. 
+\item The Radon-Nikodym derivative of $\mu^y$ with respect to $\mu_0$ is proportional to $\rho(y - f(\bpar))$, written $\frac{d\mu^y}{d\mu_0} \propto \rho(y - f(\bpar))$. 
 \end{enumerate}
 \end{thm}
 
 \begin{proof} 
 Note that since the prior and likelihood are both given by densities, then the posterior density is given by Bayes' rule
-\[\pi^y(\theta) \propto \pi_0(\theta) \rho(y - f(\theta))\]
+\[\pi^y(\bpar) \propto \pi_0(\bpar) \rho(y - f(\bpar))\]
 Let $A$ be any measurable set. To establish the first claim we must show that $\mu_0(A) = 0 \implies \mu^y(A) = 0$. Assuming $\mu_0(A) = 0$ means
-\[\int_A \pi_0(\theta) d\theta = 0\]
-and since $\pi_0$ is non-negative this implies that $\pi_0(\theta) = 0$ almost surely on $A$. Then, 
-\[\mu^y(A) = \int_A \pi^y(\theta) d\theta = \int_A \pi_0(\theta) \rho(y - f(\theta)) d\theta = 0\]
-which follows from the fact that $\pi_0(\theta) = 0$ almost surely on $A$. Thus, $\mu^y << \mu_0$. For the second claim, recall that the definition of the Radon-Nikodym derivative requires 
+\[\int_A \pi_0(\bpar) d\bpar = 0\]
+and since $\pi_0$ is non-negative this implies that $\pi_0(\bpar) = 0$ almost surely on $A$. Then, 
+\[\mu^y(A) = \int_A \pi^y(\bpar) d\bpar = \int_A \pi_0(\bpar) \rho(y - f(\bpar)) d\bpar = 0\]
+which follows from the fact that $\pi_0(\bpar) = 0$ almost surely on $A$. Thus, $\mu^y << \mu_0$. For the second claim, recall that the definition of the Radon-Nikodym derivative requires 
 \[\mu^y(A) = \int_A \frac{d\mu^y}{d\mu_0} d\mu_0\]
 for any measurable $A$. But we have 
-\[\mu^y(A) = \int_A \pi^y(\theta) d\theta \propto \int_A \pi_0(\theta) \rho(y - f(\theta)) d\theta = \int_A \rho(y - f(\theta)) d\mu_0 \]
-Comparing the two expressions, we observe $\frac{d\mu^y}{d\mu_0} \propto \rho(y - f(\theta))$. 
+\[\mu^y(A) = \int_A \pi^y(\bpar) d\bpar \propto \int_A \pi_0(\bpar) \rho(y - f(\bpar)) d\bpar = \int_A \rho(y - f(\bpar)) d\mu_0 \]
+Comparing the two expressions, we observe $\frac{d\mu^y}{d\mu_0} \propto \rho(y - f(\bpar))$. 
 \end{proof} 
 In the finite-dimensional setting, we now have two representations for the posterior measure:
 \begin{enumerate}
-\item $\pi^y(\theta) := \frac{d\mu^y}{d\lambda}(\theta) \propto \pi_0(\theta)\rho(y - f(\theta))$, the Radon-Nikodym derivative with respect to the Lebesgue measure $\lambda$ (what we typically think of as the posterior density).
-\item $\frac{d\mu^y}{d\mu_0}(\theta) \propto \rho(y - f(\theta))$, the Radon-Nikodym derivative with respect to the prior measure $\mu_0$. 
+\item $\pi^y(\bpar) := \frac{d\mu^y}{d\lambda}(\bpar) \propto \pi_0(\bpar)\rho(y - f(\bpar))$, the Radon-Nikodym derivative with respect to the Lebesgue measure $\lambda$ (what we typically think of as the posterior density).
+\item $\frac{d\mu^y}{d\mu_0}(\bpar) \propto \rho(y - f(\bpar))$, the Radon-Nikodym derivative with respect to the prior measure $\mu_0$. 
 \end{enumerate}
-The density $\frac{d\mu^y}{d\mu_0}$ can be interpreted as the function that re-weights the prior measure by taking into account the data $y$, and thus updating the current beliefs about $\theta$. 
+The density $\frac{d\mu^y}{d\mu_0}$ can be interpreted as the function that re-weights the prior measure by taking into account the data $y$, and thus updating the current beliefs about $\bpar$. 
 
 We now consider re-writing $\rho$ in terms of a \textit{potential function} $\Phi$. It is not immediately clear how this is helpful, but the potential function formulation is the one which will naturally extend to settings
 where $\mathcal{D}$ or $\mathcal{Y}$ are infinite-dimensional. Moreover, in the common case of a Gaussian likelihood, the potential function has a very natural interpretation as an $L_2$ error metric summarizing 
-the discrepancy between $y$ and $f(\theta)$. To this end, note that $\rho$ is a density and hence non-negative so we can define $\Phi(\theta; y)$ such that
-\[\rho(y - f(\theta)) \propto \exp\left\{-\Phi(\theta; y)\right\}\]
+the discrepancy between $y$ and $f(\bpar)$. To this end, note that $\rho$ is a density and hence non-negative so we can define $\Phi(\bpar; y)$ such that
+\[\rho(y - f(\bpar)) \propto \exp\left\{-\Phi(\bpar; y)\right\}\]
 holds. This gives us a new representation of the Radon-Nikodym derivative of the posterior with respect to the prior:
-\[\frac{d\mu^y}{d\mu_0}(\theta) \propto \rho(y - f(\theta)) \propto \exp\left\{-\Phi(\theta; y)\right\}\]
-To see that this is quite natural in the familiar Gaussian likelihood setting, consider that $y|\theta \sim \mathcal{N}_n(f(\theta), \Sigma_\epsilon)$ so that 
-\[\rho(y - f(\theta)) \propto  \exp\left\{-\frac{1}{2}(y - f(\theta))^{\top} \Sigma_\epsilon^{-1}(y - f(\theta))\right\}.\]
+\[\frac{d\mu^y}{d\mu_0}(\bpar) \propto \rho(y - f(\bpar)) \propto \exp\left\{-\Phi(\bpar; y)\right\}\]
+To see that this is quite natural in the familiar Gaussian likelihood setting, consider that $y|\bpar \sim \mathcal{N}_n(f(\bpar), \Sigma_\epsilon)$ so that 
+\[\rho(y - f(\bpar)) \propto  \exp\left\{-\frac{1}{2}(y - f(\bpar))^{\top} \Sigma_\epsilon^{-1}(y - f(\bpar))\right\}.\]
 Therefore, we see that 
-\[\Phi(\theta; y) = \frac{1}{2}(y - f(\theta))^{\top} \Sigma_\epsilon^{-1}(y - f(\theta))\]
-which is just the weighted $L_2$ error between the observed data $y$ and the model output $f(\theta)$. It will be notationally and conceptually useful to explicitly write this as a weighted norm 
-\[\norm{y - f(\theta)}^2_{\Sigma_{\epsilon}} := (y - f(\theta))^{\top} \Sigma_\epsilon^{-1}(y - f(\theta))\]
+\[\Phi(\bpar; y) = \frac{1}{2}(y - f(\bpar))^{\top} \Sigma_\epsilon^{-1}(y - f(\bpar))\]
+which is just the weighted $L_2$ error between the observed data $y$ and the model output $f(\bpar)$. It will be notationally and conceptually useful to explicitly write this as a weighted norm 
+\[\norm{y - f(\bpar)}^2_{\Sigma_{\epsilon}} := (y - f(\bpar))^{\top} \Sigma_\epsilon^{-1}(y - f(\bpar))\]
 To better understand this definition, note that $\Sigma_\epsilon$ is positive definite and thus has a square root $\Sigma_\epsilon^{1/2}$ satisfying $\Sigma_\epsilon = \Sigma_\epsilon^{1/2} \left(\Sigma_\epsilon^{1/2}\right)^{\top}$. Then, 
 \begin{align*}
-(y - f(\theta))^{\top} \Sigma_\epsilon^{-1}(y - f(\theta)) &= (y - f(\theta))^{\top} \Sigma_\epsilon^{-1/2} \left(\Sigma_\epsilon^{-1/2}\right)^{\top}(y - f(\theta)) \\
-									   &= \left[\left(\Sigma_\epsilon^{-1/2}\right)^{\top} (y - f(\theta)) \right]^{\top} \left[\left(\Sigma_\epsilon^{-1/2}\right)^{\top} (y - f(\theta)) \right] \\
-									   &= \norm{\left(\Sigma_\epsilon^{-1/2}\right)^{\top} (y - f(\theta))}_2^2
+(y - f(\bpar))^{\top} \Sigma_\epsilon^{-1}(y - f(\bpar)) &= (y - f(\bpar))^{\top} \Sigma_\epsilon^{-1/2} \left(\Sigma_\epsilon^{-1/2}\right)^{\top}(y - f(\bpar)) \\
+									   &= \left[\left(\Sigma_\epsilon^{-1/2}\right)^{\top} (y - f(\bpar)) \right]^{\top} \left[\left(\Sigma_\epsilon^{-1/2}\right)^{\top} (y - f(\bpar)) \right] \\
+									   &= \norm{\left(\Sigma_\epsilon^{-1/2}\right)^{\top} (y - f(\bpar))}_2^2
 \end{align*}
-so we see the weighted metric can be thought equivalently as applying the standard $L_2$ metric to the difference $y - f(\theta)$ that is first pre-multiplied by $\left(\Sigma_\epsilon^{-1/2}\right)^{\top}$. 
+so we see the weighted metric can be thought equivalently as applying the standard $L_2$ metric to the difference $y - f(\bpar)$ that is first pre-multiplied by $\left(\Sigma_\epsilon^{-1/2}\right)^{\top}$. 
 
 % Linear Gaussian Model
 \section{The Linear Gaussian Model}
@@ -211,28 +242,28 @@ To include:
 \item Example 2.1 from Inverse Problems: A Bayesian Perspective and the following example. These examples consider the effect of noise-free models on the posterior, which depends on whether or not the system is over or under determined. 
 \end{itemize}
 
-The linear Gaussian model is a special case of a Bayesian inverse problem where the forward model is linear (i.e., $G(\theta) = G\theta$), the prior distribution on $\theta$ is Gaussian, and the likelihood is Gaussian. 
+The linear Gaussian model is a special case of a Bayesian inverse problem where the forward model is linear (i.e., $G(\bpar) = G\bpar$), the prior distribution on $\bpar$ is Gaussian, and the likelihood is Gaussian. 
 \begin{align}
-y &= G\theta + \epsilon \label{linear_Gaussian} \\
-\theta &\sim \mathcal{N}_D(\mu_0, \Sigma_0) \nonumber \\
+y &= G\bpar + \epsilon \label{linear_Gaussian} \\
+\bpar &\sim \mathcal{N}_D(\mu_0, \Sigma_0) \nonumber \\
 \epsilon &\sim \mathcal{N}_N(0, \Sigma_\epsilon) \nonumber
 \end{align}
-Under these assumptions, the posterior $p(\theta|y)$ is available in closed-form, and is shown below to also be Gaussian. Before proceeding with the details, note that the posterior has the general form 
+Under these assumptions, the posterior $p(\bpar|y)$ is available in closed-form, and is shown below to also be Gaussian. Before proceeding with the details, note that the posterior has the general form 
 \begin{align*}
-p(\theta|y) &\propto \mathcal{N}_N(y|G\theta, \Sigma_\epsilon)\mathcal{N}_D(\theta|\mu_0, \Sigma_0) \\
-		&\propto \exp\left\{-\frac{1}{2} \norm{y - G\theta}^2_{\Sigma_\epsilon} - \frac{1}{2} \norm{\theta - \mu_0}^2_{\Sigma_0} \right\} \\
-		&= \exp\left\{-J(\theta) \right\}
+p(\bpar|y) &\propto \mathcal{N}_N(y|G\bpar, \Sigma_\epsilon)\mathcal{N}_D(\bpar|\mu_0, \Sigma_0) \\
+		&\propto \exp\left\{-\frac{1}{2} \norm{y - G\bpar}^2_{\Sigma_\epsilon} - \frac{1}{2} \norm{\bpar - \mu_0}^2_{\Sigma_0} \right\} \\
+		&= \exp\left\{-J(\bpar) \right\}
 \end{align*}
 where 
 \begin{align} 
-J(\theta) = \frac{1}{2} \norm{y - G\theta}^2_{\Sigma_\epsilon} + \frac{1}{2} \norm{\theta - \mu_0}^2_{\Sigma_0} \label{regularized_LS}
+J(\bpar) = \frac{1}{2} \norm{y - G\bpar}^2_{\Sigma_\epsilon} + \frac{1}{2} \norm{\bpar - \mu_0}^2_{\Sigma_0} \label{regularized_LS}
 \end{align}
-Since $p(\theta|y)$ is proportional to the exponential of a quadratic function of $\theta$ then we know it must be Gaussian. Writing the posterior in this form also provides a nice connection to the optimization approach to 
-inverse problems, since \ref{regularized_LS} is a regularized least squares objective. Instead of minimizing this objective, the Bayesian approach converts it into a probability distribution via $\exp\left\{-J(\theta) \right\}$, thus 
+Since $p(\bpar|y)$ is proportional to the exponential of a quadratic function of $\bpar$ then we know it must be Gaussian. Writing the posterior in this form also provides a nice connection to the optimization approach to 
+inverse problems, since \ref{regularized_LS} is a regularized least squares objective. Instead of minimizing this objective, the Bayesian approach converts it into a probability distribution via $\exp\left\{-J(\bpar) \right\}$, thus 
 allowing a more complete accounting of uncertainty. We now derive the mean and covariance matrix to complete the characterization of the posterior. 
 \begin{thm}
 The linear Gaussian model \ref{linear_Gaussian} has posterior 
-\[p(\theta|y) = \mathcal{N}_D(\theta|\mu, \Sigma)\]
+\[p(\bpar|y) = \mathcal{N}_D(\bpar|\mu, \Sigma)\]
 where 
 \begin{align} 
 \mu &= \Sigma \left[G^{\top} \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1} \mu_0 \right] \\
@@ -240,20 +271,20 @@ where
 \end{align}
 \end{thm}
 \begin{proof} 
-As noted above, $p(\theta|y)$ is Gaussian, which means $J(\theta)$ must have the form 
+As noted above, $p(\bpar|y)$ is Gaussian, which means $J(\bpar)$ must have the form 
 \begin{align}
-J(\theta) = \frac{1}{2} \norm{\theta - \mu}^2_{\Sigma} + C \label{posterior_structure}
+J(\bpar) = \frac{1}{2} \norm{\bpar - \mu}^2_{\Sigma} + C \label{posterior_structure}
 \end{align}
-where $C$ is a constant with respect to $\theta$. Perhaps the easiest way to derive $\mu$ and $\Sigma$ is to compare this expression to \ref{regularized_LS} and match up the terms. 
+where $C$ is a constant with respect to $\bpar$. Perhaps the easiest way to derive $\mu$ and $\Sigma$ is to compare this expression to \ref{regularized_LS} and match up the terms. 
 Expanding the latter expression yields 
 \begin{align*}
-J(\theta) &\propto \frac{1}{2} \theta^{\top} G^{\top} \Sigma_{\epsilon}^{-1} G\theta - y^{\top} \Sigma_{\epsilon}^{-1} G\theta + \frac{1}{2} \theta^{\top} \Sigma_0^{-1} \theta - \mu_0^{\top} \Sigma_0^{-1} \theta \\ 
-&= \frac{1}{2} \theta^{\top} \left[G^{\top} \Sigma_\epsilon^{-1} G + \Sigma_0^{-1} \right] \theta - \left[y^{\top} \Sigma_{\epsilon}^{-1} G + \mu_0^{\top} \Sigma_0^{-1} \right] \theta
+J(\bpar) &\propto \frac{1}{2} \bpar^{\top} G^{\top} \Sigma_{\epsilon}^{-1} G\bpar - y^{\top} \Sigma_{\epsilon}^{-1} G\bpar + \frac{1}{2} \bpar^{\top} \Sigma_0^{-1} \bpar - \mu_0^{\top} \Sigma_0^{-1} \bpar \\ 
+&= \frac{1}{2} \bpar^{\top} \left[G^{\top} \Sigma_\epsilon^{-1} G + \Sigma_0^{-1} \right] \bpar - \left[y^{\top} \Sigma_{\epsilon}^{-1} G + \mu_0^{\top} \Sigma_0^{-1} \right] \bpar
 \end{align*}
-Anything not dependent on $\theta$ is dropped in the proportionality symbol, as these terms are simply absorbed in the constant $C$.  
+Anything not dependent on $\bpar$ is dropped in the proportionality symbol, as these terms are simply absorbed in the constant $C$.  
 Now we similarly multiply out \ref{posterior_structure} and compare the two. 
 \begin{align*}
-J(\theta) &\propto \frac{1}{2} \theta^{\top} \Sigma^{-1} \theta - \mu^{\top} \Sigma^{-1} \theta
+J(\bpar) &\propto \frac{1}{2} \bpar^{\top} \Sigma^{-1} \bpar - \mu^{\top} \Sigma^{-1} \bpar
 \end{align*}
 Setting the two expressions equal and matching up the terms yields
 \begin{align*}
@@ -283,23 +314,23 @@ to the zero matrix, then the limiting distribution is a Dirac delta centered at 
 
 \subsubsection{Overdetermined Case}
 We first consider the case $N > D$. This is the common regression scenario when there are more equations than unknowns ($G$ is skinny). This means that unless $y$ happens 
-to lie in the column space of $G$ then the system $y = G\theta$ has no solution. Note that if $G$ has full column rank then the null space of $G$ is $\{0\}$. In this case,
-we know there is a unique least-squares solution, and thus we would expect the posterior $p(\theta|y)$ to converge to this distribution as $\gamma \to 0^+$. This is indeed the case. 
+to lie in the column space of $G$ then the system $y = G\bpar$ has no solution. Note that if $G$ has full column rank then the null space of $G$ is $\{0\}$. In this case,
+we know there is a unique least-squares solution, and thus we would expect the posterior $p(\bpar|y)$ to converge to this distribution as $\gamma \to 0^+$. This is indeed the case. 
 
 \begin{thm}
-Suppose that $N > D$ and $\text{null}(G) = \{0\}$. Then the posterior distribution $p(\theta|y)$ of the linear Gaussian model converges weakly to $\delta_{\theta_{\text{LS}}}$, where 
-$\theta_{\text{LS}}$ is the solution to the regularized least squares problem
-\[\theta_{\text{LS}} = \text{argmin}_{\theta \in \R^D} \norm{y - G\theta}_{\Sigma_0} \]
+Suppose that $N > D$ and $\text{null}(G) = \{0\}$. Then the posterior distribution $p(\bpar|y)$ of the linear Gaussian model converges weakly to $\delta_{\bpar_{\text{LS}}}$, where 
+$\bpar_{\text{LS}}$ is the solution to the regularized least squares problem
+\[\bpar_{\text{LS}} = \text{argmin}_{\bpar \in \R^D} \norm{y - G\bpar}_{\Sigma_0} \]
 \end{thm}
 
 \begin{proof} 
-We show that $\Sigma \to 0$ and $\mu \to \theta_{\text{LS}}$. In light of the above comments on convergence of Gaussians, this implies $p(\theta|y) \to \delta_{\theta_{\text{LS}}}$. 
+We show that $\Sigma \to 0$ and $\mu \to \bpar_{\text{LS}}$. In light of the above comments on convergence of Gaussians, this implies $p(\bpar|y) \to \delta_{\bpar_{\text{LS}}}$. 
 To show $\Sigma \to 0$, we prove that the eigenvalues of $\Sigma$ all converge to $0$. To this end, we first show that $\frac{1}{\gamma^2} G^{\top} \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1}$
-is positive definite. Since $\Sigma_0^{-1}$ is positive definite and $\gamma > 0$, it suffices to show that $G^{\top} \Sigma_{\epsilon}^{-1} G$ is positive definite. To this end let $\theta \neq 0$
+is positive definite. Since $\Sigma_0^{-1}$ is positive definite and $\gamma > 0$, it suffices to show that $G^{\top} \Sigma_{\epsilon}^{-1} G$ is positive definite. To this end let $\bpar \neq 0$
 and consider 
-\[\langle G^{\top} \Sigma_{\epsilon}^{-1}G \theta, \theta \rangle = \langle \Sigma_{\epsilon}^{-1/2}G \theta, \Sigma_{\epsilon}^{-1/2}G \theta \rangle = \norm{\Sigma_{\epsilon}^{-1/2}G \theta}_2^2 > 0 \]
-The inequality follows from the assumption $\text{null}(G) = \{0\}$, which implies $G\theta \neq 0$, and the fact that $\Sigma_{\epsilon}^{-1/2}$ is positive definite, which implies 
-$\Sigma_{\epsilon}^{-1/2}\left(G\theta \right) \neq 0$. This verifies that $\frac{1}{\gamma^2} G^{\top} \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1}$ is positive definite and hence has positive 
+\[\langle G^{\top} \Sigma_{\epsilon}^{-1}G \bpar, \bpar \rangle = \langle \Sigma_{\epsilon}^{-1/2}G \bpar, \Sigma_{\epsilon}^{-1/2}G \bpar \rangle = \norm{\Sigma_{\epsilon}^{-1/2}G \bpar}_2^2 > 0 \]
+The inequality follows from the assumption $\text{null}(G) = \{0\}$, which implies $G\bpar \neq 0$, and the fact that $\Sigma_{\epsilon}^{-1/2}$ is positive definite, which implies 
+$\Sigma_{\epsilon}^{-1/2}\left(G\bpar \right) \neq 0$. This verifies that $\frac{1}{\gamma^2} G^{\top} \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1}$ is positive definite and hence has positive 
 eigenvalues. Note that the eigenvalues converge to $+\infty$ as $\gamma \to 0^+$. Thus, the eigenvalues of $\Sigma = \left[\frac{1}{\gamma^2} G^{\top} \Sigma_{\epsilon}^{-1} G + \Sigma_0^{-1}\right]^{-1}$
 converge to $0$ as $\gamma \to 0^+$. This verifies $\Sigma \to 0$. 
 
@@ -311,20 +342,20 @@ For the convergence of the mean, consider
 \end{align*}
 As $\gamma \to 0^+$ we see that the second term will vanish since $\Sigma \to 0$. Moreover, $\gamma^2 \Sigma_0^{-1} \to 0$. Therefore, 
 \[\lim_{\gamma \to 0^+} \mu = \left(G^{\top} \Sigma_{\epsilon}^{-1} G \right)^{-1} G^{\top} \Sigma_{\epsilon}^{-1} y\]
-We recognize the limit as the solution to the regularized least-squares problem $\theta_{\text{LS}}$. 
+We recognize the limit as the solution to the regularized least-squares problem $\bpar_{\text{LS}}$. 
 \end{proof}
 The takeaway from this result is that in the overdetermined case, if the quantity of noise is very small then the Bayesian solution of the inverse problem is very similar to the 
 frequentist MLE approach. One can use this result to show that the posterior is consistent in the small-noise limit; in particular, the posterior concentrates around the true
-$\theta$ as $\gamma \to 0^+$ (see Stuart et al, theorem 2.7). 
+$\bpar$ as $\gamma \to 0^+$ (see Stuart et al, theorem 2.7). 
 
 \subsubsection{Determined Case}
-In the determined case $D = N$, $G$ is a square matrix. If we continue with the assumption $\text{null}(G) = \{0\}$ then $G$ is invertible and the system $y = G\theta$ has 
-a unique solution given by $\theta^* = G^{-1}y$. In the small noise limit, we would hope that the posterior collapses on this solution; that is, 
-$p(\theta|y) \overset{w}{\to} \delta_{G^{-1}y}$. This is indeed the case. 
+In the determined case $D = N$, $G$ is a square matrix. If we continue with the assumption $\text{null}(G) = \{0\}$ then $G$ is invertible and the system $y = G\bpar$ has 
+a unique solution given by $\bpar^* = G^{-1}y$. In the small noise limit, we would hope that the posterior collapses on this solution; that is, 
+$p(\bpar|y) \overset{w}{\to} \delta_{G^{-1}y}$. This is indeed the case. 
 
 \begin{thm}
 Suppose that $D = N$ and $\text{null}(G) = \{0\}$. Then the posterior distribution of the linear Gaussian model satisfies
-\[p(\theta|y) \overset{w}{\to} \delta_{G^{-1}y} \text{ as } \gamma \to 0^+\]
+\[p(\bpar|y) \overset{w}{\to} \delta_{G^{-1}y} \text{ as } \gamma \to 0^+\]
 \end{thm}
 
 \begin{proof}
@@ -338,13 +369,13 @@ which proves the result.
 Therefore, the prior again plays no role in the small-noise limit as in the overdetermined case. Similarly, the posterior can be shown to contract on the true value in this case. 
 
 \subsubsection{Underdetermined Case}
-In the underdetermined case $D > N$, $G$ is a ``fat'' matrix. In this setting, $G$ has a non-trivial null space, so if there exists a solution to the system $G\theta = y$ then there 
+In the underdetermined case $D > N$, $G$ is a ``fat'' matrix. In this setting, $G$ has a non-trivial null space, so if there exists a solution to the system $G\bpar = y$ then there 
 is entire subspace of solutions. In this case, once a particular solution is found the subspace can be obtained by adding vectors in the null space to the particular solution. 
 We suppose that $G$ has full row rank, which implies that the columns span the co-domain so that there is indeed a subspace of solutions. It can be shown that 
-\[\theta_{\text{LN}} := G^T (GG^T)^{-1}y\]
+\[\bpar_{\text{LN}} := G^T (GG^T)^{-1}y\]
 is the solution with minimal norm (i.e. the least-norm solution). The matrix $G^T(G G^T)^{-1}$ is a special \textit{right inverse} of $G$ known as the \textit{Moore-Penrose pseudoinverse}. 
-Thus, every solution to the system $G\theta = y$ can be written in the form 
-\[\theta^* = \theta_{\text{LN}} + \theta_{\text{null}}, \text{ where } \theta_{\text{null}} \in \text{null}(G)\]
+Thus, every solution to the system $G\bpar = y$ can be written in the form 
+\[\bpar^* = \bpar_{\text{LN}} + \bpar_{\text{null}}, \text{ where } \bpar_{\text{null}} \in \text{null}(G)\]
 
 We now return to the statistical setting. It is perhaps not as clear what will happen in the small-noise limit in this case. 
 It turns out that in this case the prior plays a role in the limit. This makes a certain amount of sense; 
@@ -372,7 +403,7 @@ G = L Q^{\top} = \begin{pmatrix} L_1 & 0 \end{pmatrix}  \begin{pmatrix} Q_1^{\to
 \]
 The QR decomposition yields a nice simple representation of the Moore-Penrose pseudoinverse. Indeed, 
 \begin{align*}
-\theta_{\text{LN}} = G^T \left(G G^T \right)^{-1}y &= Q_1 L_1^T \left(L_1 Q_1^{\top} Q_1 L_1^{\top} \right)^{-1} y \\
+\bpar_{\text{LN}} = G^T \left(G G^T \right)^{-1}y &= Q_1 L_1^T \left(L_1 Q_1^{\top} Q_1 L_1^{\top} \right)^{-1} y \\
 									 &= Q_1 L_1^T \left(L_1 I_N L_1^{\top} \right)^{-1} y \\
 									 &= Q_1 L_1^{\top} \left(L_1^{\top} \right)^{-1} L_1^{-1} y \\
 									 &= Q_1 L_1^{-1} y
@@ -381,7 +412,7 @@ With this background established, we proceed with the main result.
 
 \begin{thm}
 Suppose $D > N$ and $\text{rank}(G) = N$. Then in the small-noise limit $\gamma \to 0^+$, the posterior distribution of the linear Gaussian model satisfies
-\[p(\theta|y) \overset{w}{\to} \mathcal{N}_D(\mu^+, \Sigma^+)\]
+\[p(\bpar|y) \overset{w}{\to} \mathcal{N}_D(\mu^+, \Sigma^+)\]
 where 
 \begin{align*}
 \mu^+ &= \Sigma_0 Q_1\left(Q_1^\top \Sigma_0 Q_1 \right)^{-1} L_1^{-1} y + Q_2\left(Q_2^\top \Sigma_0^{-1} Q_2 \right)^{-1} Q_2^\top \Sigma_0^{-1} \mu_0 \\
@@ -389,8 +420,8 @@ where
 \end{align*}
 \end{thm}
 Before proceeding to the proof, let's try to understand this result. Note that the first term in the expression for $\mu^+$ looks a lot like the least-norm solution 
-from the non-statistical setting: $\theta_{\text{LN}} = Q_1 L_1^{-1} y$. The prior covariance $\Sigma_0$ complicates the expression but it certainly bears a close 
-resemblance to the least-norm solution. The second term is the analog of $\theta_{\text{null}}$ discussed above. An important observation is that the limiting posterior 
+from the non-statistical setting: $\bpar_{\text{LN}} = Q_1 L_1^{-1} y$. The prior covariance $\Sigma_0$ complicates the expression but it certainly bears a close 
+resemblance to the least-norm solution. The second term is the analog of $\bpar_{\text{null}}$ discussed above. An important observation is that the limiting posterior 
 covariance $\Sigma^+$ is not the zero matrix as in the previous cases; it depends on the prior covariance $\Sigma_0$ and the forward model $G$. In addition, this matrix 
 is not full rank. Indeed, 
 \[\text{rank}\left(\Sigma^+\right) = \text{rank}\left(Q_2 \left(Q_2^\top \Sigma_0^{-1} Q_2 \right)^{-1} Q_2^\top \right) = \text{rank}\left(Q_2 \right) = D - N < D\]
@@ -402,9 +433,9 @@ precise form of this uncertainty depends on the prior. For the proof of the abov
 TODO: consider example in Teckentrup paper where forward model $f$ is emulated and results in approximate inverse problem 
 
 \section{Quantifying Posterior Approximation Error}
-In classical optimization-based inverse problems, we want to be able to measure the sensitivity of the solution $\hat{\theta}$ of the inverse problem to the observed data. When this sensitivity is high we might call the 
+In classical optimization-based inverse problems, we want to be able to measure the sensitivity of the solution $\hat{\bpar}$ of the inverse problem to the observed data. When this sensitivity is high we might call the 
 problem \textit{ill-posed}. It is of interest to be able to quantify the well-posedness of a problem, which can help guide practical applications. In the Bayesian setting, we no longer have a single point solution 
-$\hat{\theta}$ to the inverse problem, but rather a distribution $\pi(\theta)$ summarizing the uncertainty in the true value of the parameter. However, such sensitivity analyses are still of considerable interest here. We now 
+$\hat{\bpar}$ to the inverse problem, but rather a distribution $\pi(\bpar)$ summarizing the uncertainty in the true value of the parameter. However, such sensitivity analyses are still of considerable interest here. We now 
 ask how the posterior distribution $\mu^y$ responds to changes in the observed data $y$. While the Bayesian approach is in general more robust to ill-posedness, sensitivity to observed data is still a concern. Moreover, if we further complicate things by replacing the true posterior with some approximation $\hat{\mu^y}$ (e.g. through the use of GP surrogates) then we also naturally want some measure of the approximation error between the true and approximate distributions. All of these questions point to the need for a notion of distance between probability measures. There is no one perfect metric that will apply to all problems, but we detail some common choices below. We introduce these distances using generic measures $\mu_1$ and $\mu_2$, and reference measure $\nu$, but one should keep in mind that we can think of $\mu_1$ as the true posterior 
 $\mu^y$ and $\mu_2$ as some approximation of $\mu^y$, for example.  
 
@@ -421,25 +452,25 @@ where the supremum is taken over all measurable sets $A$. Since $\mu_1(A)$ and $
 If the distributions have densities $\pi_1$ and $\pi_2$ with respect to the Lebesgue measure $\lambda$ then this can be 
 written 
 \begin{align*}
-\text{TV}(\pi_1, \pi_2) = \sup_{A} \abs{\int_A \left[\pi_1(\theta) - \pi_2(\theta)\right] d\theta }
+\text{TV}(\pi_1, \pi_2) = \sup_{A} \abs{\int_A \left[\pi_1(\bpar) - \pi_2(\bpar)\right] d\bpar }
 \end{align*}
 We can immediately establish a connection with $L_1$ distance. 
 \begin{align*}
-\text{TV}(\pi_1, \pi_2) &= \sup_{A} \abs{\int_A \left[\pi_1(\theta) - \pi_2(\theta)\right] d\theta } \\
-				 &\leq \sup_{A} \int_A \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
-				 &\leq \sup_{A} \int \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
-				 &= \int \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
+\text{TV}(\pi_1, \pi_2) &= \sup_{A} \abs{\int_A \left[\pi_1(\bpar) - \pi_2(\bpar)\right] d\bpar } \\
+				 &\leq \sup_{A} \int_A \abs{\pi_1(\bpar) - \pi_2(\bpar)} d\bpar \\
+				 &\leq \sup_{A} \int \abs{\pi_1(\bpar) - \pi_2(\bpar)} d\bpar \\
+				 &= \int \abs{\pi_1(\bpar) - \pi_2(\bpar)} d\bpar \\
 				 &= \norm{\pi_1 - \pi_2}_{L_1^\lambda}
 \end{align*}
 so the TV distance between the measures $\mu_1$ and $\mu_2$ is no larger than the $L_1$ distance between their densities $\pi_1$ and $\pi_2$. Trying to establish the opposite 
 inequality is tricky since we need to bring the absolute value outside of the integral. The trick is to split the integral into two parts to avoid absolute values. To this end, let 
-$B := \{\theta \in \mathcal{D}: \pi_1(\theta) \geq \pi_2(\theta)\}$. Then 
+$B := \{\bpar \in \mathcal{D}: \pi_1(\bpar) \geq \pi_2(\bpar)\}$. Then 
 \begin{align*}
-\norm{\pi_1 - \pi_2}_{L_1^\lambda} &= \int \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
-						      &= \int_B \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta +  \int_B \left(\pi_2(\theta)  - \pi_1(\theta)\right) d\theta \\
-						      &\leq \sup_A \int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta + \sup_A \int_A \left(\pi_2(\theta)  - \pi_1(\theta)\right) d\theta \\
-						      &\leq \sup_A \abs{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta} + \sup_A \abs{\int_A \left(\pi_2(\theta)  - \pi_1(\theta)\right) d\theta} \\
-						      &= 2 \sup_A \abs{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta} \\
+\norm{\pi_1 - \pi_2}_{L_1^\lambda} &= \int \abs{\pi_1(\bpar) - \pi_2(\bpar)} d\bpar \\
+						      &= \int_B \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar +  \int_B \left(\pi_2(\bpar)  - \pi_1(\bpar)\right) d\bpar \\
+						      &\leq \sup_A \int_A \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar + \sup_A \int_A \left(\pi_2(\bpar)  - \pi_1(\bpar)\right) d\bpar \\
+						      &\leq \sup_A \abs{\int_A \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar} + \sup_A \abs{\int_A \left(\pi_2(\bpar)  - \pi_1(\bpar)\right) d\bpar} \\
+						      &= 2 \sup_A \abs{\int_A \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar} \\
 						      &= 2 \cdot \text{TV}(\pi_1, \pi_2)
 \end{align*}
 So we have shown 
@@ -453,29 +484,29 @@ This might make us wonder if the constant in the first inequality is $\frac{1}{2
 \end{align*}
 Indeed this is the case. To show this we will need to be a bit more careful with the first bound. To start, note that 
 \begin{align*}
-\int_\mathcal{D} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta &= \int_B \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta + \int_{\mathcal{D} \setminus B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta \\
-											     &=  \int_B \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta - \int_{\mathcal{D} \setminus B} \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta \\
+\int_\mathcal{D} \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar &= \int_B \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar + \int_{\mathcal{D} \setminus B} \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar \\
+											     &=  \int_B \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar - \int_{\mathcal{D} \setminus B} \left(\pi_2(\bpar) - \pi_1(\bpar)\right) d\bpar \\
 \end{align*}
 But the lefthand side is $0$ since $\pi_1$ and $\pi_2$ are densities, so 
 \begin{align*}
-\int_B \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta &= \int_{\mathcal{D} \setminus B} \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta
+\int_B \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar &= \int_{\mathcal{D} \setminus B} \left(\pi_2(\bpar) - \pi_1(\bpar)\right) d\bpar
 \end{align*}
 a fact which we will exploit below. Now let $A$ be any measurable set. It follows that 
 \begin{align*}
-\abs{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta} &= \max\left\{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta, -\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta \right\} \\
-										      &=  \max\left\{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta, \int_A \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta \right\} \\
-										      &\leq \max\left\{\int_{A \cap B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta, \int_{A \cap (\mathcal{D} \setminus B)} \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta \right\} \\
-										      &\leq \max\left\{\int_{B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta, \int_{\mathcal{D} \setminus B} \left(\pi_2(\theta) - \pi_1(\theta)\right) d\theta \right\} \\
-										      &= \int_{B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta \\
-										      &= \frac{1}{2} \left[\int_{B} \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta + \int_{\mathcal{D} \setminus B} \left(\pi_2(\theta) - \pi_1(\theta) \right) d\theta \right] \\
-										      &= \frac{1}{2} \left[\int_{B} \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta + \int_{\mathcal{D} \setminus B} \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \right] \\
-										      &= \frac{1}{2} \int_{\mathcal{D}} \abs{\pi_1(\theta) - \pi_2(\theta)} d\theta \\
+\abs{\int_A \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar} &= \max\left\{\int_A \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar, -\int_A \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar \right\} \\
+										      &=  \max\left\{\int_A \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar, \int_A \left(\pi_2(\bpar) - \pi_1(\bpar)\right) d\bpar \right\} \\
+										      &\leq \max\left\{\int_{A \cap B} \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar, \int_{A \cap (\mathcal{D} \setminus B)} \left(\pi_2(\bpar) - \pi_1(\bpar)\right) d\bpar \right\} \\
+										      &\leq \max\left\{\int_{B} \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar, \int_{\mathcal{D} \setminus B} \left(\pi_2(\bpar) - \pi_1(\bpar)\right) d\bpar \right\} \\
+										      &= \int_{B} \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar \\
+										      &= \frac{1}{2} \left[\int_{B} \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar + \int_{\mathcal{D} \setminus B} \left(\pi_2(\bpar) - \pi_1(\bpar) \right) d\bpar \right] \\
+										      &= \frac{1}{2} \left[\int_{B} \abs{\pi_1(\bpar) - \pi_2(\bpar)} d\bpar + \int_{\mathcal{D} \setminus B} \abs{\pi_1(\bpar) - \pi_2(\bpar)} d\bpar \right] \\
+										      &= \frac{1}{2} \int_{\mathcal{D}} \abs{\pi_1(\bpar) - \pi_2(\bpar)} d\bpar \\
 										      &= \frac{1}{2} \norm{\pi_1 - \pi_2}_{L_1^{\lambda}(\mathcal{D})}
 \end{align*}
-The first inequality follows from the fact that intersecting the domain of integration of the first integral with $B$ removes values of $\theta$ which results in a negative integrand, and hence the 
+The first inequality follows from the fact that intersecting the domain of integration of the first integral with $B$ removes values of $\bpar$ which results in a negative integrand, and hence the 
 integral gets larger. The same reasoning applies to the second integral. The fifth and seventh lines both use the fact that was proved above. This inequality holds for every measurable set $A$ and thus 
 \begin{align*}
-\text{TV}(\pi_1, \pi_2) &= \sup_A \abs{\int_A \left(\pi_1(\theta) - \pi_2(\theta)\right) d\theta} \leq \frac{1}{2} \norm{\pi_1 - \pi_2}_{L_1^{\lambda}(\mathcal{D})}
+\text{TV}(\pi_1, \pi_2) &= \sup_A \abs{\int_A \left(\pi_1(\bpar) - \pi_2(\bpar)\right) d\bpar} \leq \frac{1}{2} \norm{\pi_1 - \pi_2}_{L_1^{\lambda}(\mathcal{D})}
 \end{align*}
 which establishes the reverse inequality and thus verifies 
 \begin{align*}
@@ -491,78 +522,92 @@ $\norm{\pi_1 - \pi_2}_{L_1^\lambda}$ is not affected by ``size'' of $\pi_1$ or $
 
 \subsection{Hellinger Distance}
 The Hellinger distance is perhaps the most popularly used measure of distance between probability distributions in the Bayesian inverse problem literature, for reasons that will be discussed below. I will motivate this motion of distance using the $\text{TV}$/$L_1$ notions discussed above. We established that $L_1$ notions of distance between probability densities yields a reasonable interpretation of the distance between two probability measures. It is natural to wonder: would replacing $L_1$ with $L_2$ also give us something useful? In short, not really. As mentioned in the previous section, the $L_1$ notion was reasonable since $\pi_1$ and $\pi_2$ are unit vectors with respect to $L_1$. However, $\pi_1$ and $\pi_2$ are \textit{not} unit vectors with respect to $L_2$. We see that 
-\[\norm{\pi_1 - \pi_2}_{L_2^\lambda} = \int (\pi_1(\theta) - \pi_2(\theta))^2 d\theta = \int \pi_1^2(\theta) d\theta + \int \pi_2^2(\theta) d\theta - 2\int \pi_1(\theta)\pi_2(\theta) d\theta\]
+\[\norm{\pi_1 - \pi_2}_{L_2^\lambda} = \int (\pi_1(\bpar) - \pi_2(\bpar))^2 d\bpar = \int \pi_1^2(\bpar) d\bpar + \int \pi_2^2(\bpar) d\bpar - 2\int \pi_1(\bpar)\pi_2(\bpar) d\bpar\]
 so changes in the first two terms will affect the distance, which is not a desirable property. But what if we just dropped those terms and considered a our notion of distance to be the inner product 
-\[- 2\int \pi_1(\theta)\pi_2(\theta) d\theta\]
+\[- 2\int \pi_1(\bpar)\pi_2(\bpar) d\bpar\]
 But this still doesn't make sense at all. Consider the two cases
 \begin{enumerate}
 \item $\pi_1(0) = \frac{1}{10} \text{ and } \pi_2(0) = \frac{2}{10}$
 \item $\pi_1(0) = \frac{9}{10} \text{ and } \pi_2(0) = 1$
 \end{enumerate}
-If we sampled from these distributions, then in the first case we would expect to observe the sample $0$ about twice as much from the second distribution compared to the first, while $0$ would appear with pretty similar frequency in the second example. The relevant terms in the inner product would be $\frac{1}{10} \cdot \frac{2}{10} = \frac{2}{100}$ and $\frac{9}{10} \cdot 1 = \frac{90}{100}$, so we would actually be \textit{penalizing} the first distribution for being closer, the opposite of what we want. To flip this around, it seems we would actually want to consider the quotient $\frac{\pi_1(\theta)}{\pi_2(\theta)}$ rather than the product of the densities, which is exactly what many notions of distance between probability measures considers (e.g. KL divergence). Obviously considering the quotient instead abandons the idea of $L_2$ distance. However, it turns out that with a slight tweak we can still define an $L_2$ measure that actually makes sense. 
-\textbf{Also discuss difference vs quotient wrt normalizing constants:} e.g. $\abs{\frac{\pi_1(\theta)}{Z_1} - \frac{\pi_2(\theta)}{Z_2}}$ (norm constants affect results). vs. 
-$\abs{\frac{\frac{\pi_1(\theta)}{Z_1}}{\frac{\pi_2(\theta)}{Z_2}}} = \frac{Z_2}{Z_1} \frac{\pi_1(\theta)}{\pi_2(\theta)}$ so norm constants will just scale the integral which is fine. 
+If we sampled from these distributions, then in the first case we would expect to observe the sample $0$ about twice as much from the second distribution compared to the first, while $0$ would appear with pretty similar frequency in the second example. The relevant terms in the inner product would be $\frac{1}{10} \cdot \frac{2}{10} = \frac{2}{100}$ and $\frac{9}{10} \cdot 1 = \frac{90}{100}$, so we would actually be \textit{penalizing} the first distribution for being closer, the opposite of what we want. To flip this around, it seems we would actually want to consider the quotient $\frac{\pi_1(\bpar)}{\pi_2(\bpar)}$ rather than the product of the densities, which is exactly what many notions of distance between probability measures considers (e.g. KL divergence). Obviously considering the quotient instead abandons the idea of $L_2$ distance. However, it turns out that with a slight tweak we can still define an $L_2$ measure that actually makes sense. 
+\textbf{Also discuss difference vs quotient wrt normalizing constants:} e.g. $\abs{\frac{\pi_1(\bpar)}{Z_1} - \frac{\pi_2(\bpar)}{Z_2}}$ (norm constants affect results). vs. 
+$\abs{\frac{\frac{\pi_1(\bpar)}{Z_1}}{\frac{\pi_2(\bpar)}{Z_2}}} = \frac{Z_2}{Z_1} \frac{\pi_1(\bpar)}{\pi_2(\bpar)}$ so norm constants will just scale the integral which is fine. 
 
 
 % Ensemble Kalman Inversion
 \section{Ensemble Kalman Inversion}
 In this section, we discuss the application of ensemble Kalman methods to solving optimization problems. In particular, these methods will be used 
-to solve non-linear least squares problems, which are introduced below. 
+to solve non-linear least squares problems, which are introduced below. Before this, we provide an intuitive view that illustrates why ensemble methods 
+may reasonably adapted for parameter estimation purposes. While a good place to start, this intuitive perspective offers little insight into when such 
+ensemble Kalman inversion (EKI) techniques might be appropriate. We therefore proceed to outline the exposition detailed in \cite{Chada} and 
+\cite{IPDA}. Their approach derives EKI algorithms as derivative-free ensemble approximations to classical non-linear least squares optimization algorithms, tailored 
+to particular non-linear objective functions. 
 
+% Intuition for EKI
+\subsection{Intuition for EKI}
+
+% Non-Linear Least Squares
 \subsection{Non-linear Least Squares}
 
 \subsubsection{Objective Function}
 Recall that (unregularized) linear least squares objectives are of the form 
 \begin{align*}
-&J(\theta) = \frac{1}{2} \norm{G\theta - y}^2, && \theta \in \R^D, y \in \R^N, G \in \R^{N \times D}
+&J(\bpar) = \frac{1}{2} \norm{G\bpar - y}^2, && \bpar \in \R^D, y \in \R^N, G \in \R^{N \times D}
 \end{align*}
-with the additional assumption that $N \geq D$. Note that the $1/2$ is included purely for algebraic convenience. 
-In other words, we might define the residuals $r(\theta) := G\theta - y$ and then the least-squares criterion would be $J(\theta) = \frac{1}{2} \norm{r(\theta)}^2$. So long as $G$ has linearly independent columns, this 
+where we additionally assume that $N \geq D$. Note that the $1/2$ is included purely for algebraic convenience. 
+In other words, we might define the residuals $r(\bpar) := G\bpar - y$ and then the least-squares criterion would be $J(\bpar) = \frac{1}{2} \norm{r(\bpar)}^2$. So long as $G$ has linearly independent columns, this 
 problem can be uniquely solved in closed form:
 \begin{align}
-(G^\top G)^{-1} G^\top y = \text{argmin}_{\theta \in \R^D} J(\theta) \label{linear_LS}
+(G^\top G)^{-1} G^\top y = \text{argmin}_{\bpar \in \R^D} J(\bpar) \label{linear_LS}
 \end{align}
 Non-linear least squares methods address the challenge of solving this minimization problem where the function $r: \R^D \to \R^N$ is no longer linear. For example, if we replace the linear forward 
-model $G$ with a non-linear function $g: \R^D \to \R^N$ then the residual vector would be a non-linear function of $\theta$:
+model $G$ with a non-linear function $g: \R^D \to \R^N$ then the residual vector would be a non-linear function of $\bpar$:
 \begin{align*}
-J(\theta) &= \frac{1}{2} \norm{g(\theta) - y}^2 = \frac{1}{2} \norm{r(\theta)}^2, && r(\theta) = g(\theta) - y
+J(\bpar) &= \frac{1}{2} \norm{g(\bpar) - y}^2 = \frac{1}{2} \norm{r(\bpar)}^2, && r(\bpar) = g(\bpar) - y
 \end{align*}
-The insertion of non-linearity means that $\min_{\theta} J(\theta)$ no longer has a closed-form solution. 
+The insertion of non-linearity means that $\min_{\bpar} J(\bpar)$ no longer has a closed-form solution. 
 
 We have thus far generalized the most basic least-squares setting, which resulted in an objective of the form
 \begin{align}
-J(\theta) = \frac{1}{2} \norm{r(\theta)}^2 \label{nonlin_LS_obj}
+J(\bpar) = \frac{1}{2} \norm{r(\bpar)}^2 \label{nonlin_LS_obj}
 \end{align}
 where $r: \R^D \to \R^N$ is a potentially non-linear function. The ensemble Kalman inversion (EKI) methods discussed below will seek to minimize objectives of this form. 
 We next show that weighted and regularized least-squares problems also result in objectives of the form \ref{nonlin_LS_obj}, meaning that the EKI algorithms will apply much more 
 generally to the inverse problems we have been considering in these notes. The two primary objective functions of interest are the weighted least-squares objective and the regularized 
 weighted least-squares objective. Stuart et al call these, respectively, the \textit{data-misfit} (DM) and \textit{Tikhonov-Phillips} (TP) objectives, and I will use their notation below. 
 \begin{align}
-J_{DM}(\theta) &= \frac{1}{2} \norm{y - g(\theta)}^2_{\Sigma_{\epsilon}} && \text{Data-Misfit} \\
-J_{TP}(\theta) &= \frac{1}{2} \norm{y - g(\theta)}^2_{\Sigma_{\epsilon}} + \frac{1}{2} \norm{\theta - \mu_0}^2_{\Sigma_0} && \text{Tikhonov-Phillips} 
+J_{DM}(\bpar) &= \frac{1}{2} \norm{y - g(\bpar)}^2_{\Sigma_{\epsilon}} && \text{Data-Misfit} \label{DM_objective} \\
+J_{TP}(\bpar) &= \frac{1}{2} \norm{y - g(\bpar)}^2_{\Sigma_{\epsilon}} + \frac{1}{2} \norm{\bpar - \mu_0}^2_{\Sigma_0} && \text{Tikhonov-Phillips} \label{TP_objective}
 \end{align}
 The data-misfit objective can be written in the general non-linear least squares form via
 \begin{align*}
-J_{DM}(\theta) = \frac{1}{2} (y - g(\theta))^\top \Sigma^{-1}_{\epsilon} (y - g(\theta)) &= \frac{1}{2} \norm{\Sigma_{\epsilon}^{-1/2}(y - g(\theta))}^2 \\
-																						&=: \frac{1}{2} \norm{r_{DM}(\theta)}^2
+J_{DM}(\bpar) = \frac{1}{2} (y - g(\bpar))^\top \Sigma^{-1}_{\epsilon} (y - g(\bpar)) &= \frac{1}{2} \norm{\Sigma_{\epsilon}^{-1/2}(y - g(\bpar))}^2 \\
+																						&=: \frac{1}{2} \norm{r_{DM}(\bpar)}^2
 \end{align*}
 The Tikhonov-Phillips objective can likewise be written in this form as
 \begin{align*}
-J_{TP}(\theta) &= \frac{1}{2} (y - g(\theta))^\top \Sigma^{-1}_{\epsilon} (y - g(\theta)) + \frac{1}{2} (\theta - \mu_0)^\top \Sigma^{-1}_0 (\theta - \mu_0) \\
-		       &= \frac{1}{2} \begin{pmatrix} y - g(\theta) \\ \mu_0 - \theta \end{pmatrix}^\top \begin{pmatrix} \Sigma_{\epsilon} & 0 \\ 0 & \Sigma_0 \end{pmatrix}^{-1} \begin{pmatrix} y - g(\theta) \\ \mu_0 - \theta \end{pmatrix}
+J_{TP}(\bpar) &= \frac{1}{2} (y - g(\bpar))^\top \Sigma^{-1}_{\epsilon} (y - g(\bpar)) + \frac{1}{2} (\bpar - \mu_0)^\top \Sigma^{-1}_0 (\bpar - \mu_0) \\
+		       &= \frac{1}{2} \begin{pmatrix} y - g(\bpar) \\ \mu_0 - \bpar \end{pmatrix}^\top \begin{pmatrix} \Sigma_{\epsilon} & 0 \\ 0 & \Sigma_0 \end{pmatrix}^{-1} \begin{pmatrix} y - g(\bpar) \\ \mu_0 - \bpar \end{pmatrix}
 \end{align*}
 Thus, the TP objective reduces to the DM objective in the extended parameter and data space
 \begin{align*}
-J_{TP}(\theta) &= \frac{1}{2} \norm{\tilde{y} - \tilde{g}(\theta)}^2_{\tilde{\Sigma}_{\epsilon}},
+J_{TP}(\bpar) &= \frac{1}{2} \norm{\dataVecEx - \fwdEx(\bpar)}^2_{\CovObsEx},
 \end{align*}
 where 
-\begin{align*}
-&\tilde{g}(\theta) := \begin{pmatrix} g(\theta) \\ \theta \end{pmatrix} && &\tilde{y} := \begin{pmatrix} y \\ \mu_0 \end{pmatrix} &&&\tilde{\Sigma}_{\epsilon} := \begin{pmatrix} \Sigma_\epsilon & 0 \\ 0 & \Sigma_0 \end{pmatrix} 
-\end{align*}
+\begin{align}
+&\fwdEx(\bpar) := \begin{pmatrix} g(\bpar) \\ \bpar \end{pmatrix} && &\dataVecEx := \begin{pmatrix} \dataVec \\ \meanPrior \end{pmatrix} &&&\CovObsEx := \begin{pmatrix} \CovObs & 0 \\ 0 & \CovPrior \end{pmatrix} \label{extended_space}
+\end{align}
 Thus, 
 \begin{align*}
-J_{TP}(\theta) &= \frac{1}{2} \norm{\tilde{\Sigma}^{-1/2}_{\epsilon} (\tilde{y} - \tilde{g}(\theta))}^2 := \norm{r_{TP}(\theta)}^2
+J_{TP}(\bpar) &= \frac{1}{2} \norm{\CovObsEx^{-1/2} (\dataVecEx - \fwdEx(\bpar))}^2 =: \frac{1}{2} \norm{r_{TP}(\bpar)}^2
 \end{align*}
+To summarize, the non-linear residuals implied by the data-misfit and Tikhonov-Phillips objectives functions are as follows.
+\begin{align}
+&r_{DM}(\bpar) = \CovObs^{-1/2}(\dataVec - \fwd(\bpar)) \label{residual_DM} \\
+&r_{TP}(\bpar) = \CovObsEx^{-1/2} (\dataVecEx - \fwdEx(\bpar))  \label{residual_TP} 
+\end{align}
+
 
 \subsubsection{Numerical Algorithms}
 The EKI algorithms that will shortly be introduced can be viewed as derivative-free ensemble versions of certain classical numerical schemes for solving non-linear least squares problems. We briefly 
@@ -571,32 +616,33 @@ introduce two such numerical schemes here.
 \bigskip
 \noindent
 \textbf{Gauss-Markov.}
-The idea behind Gauss-Newton is quite simple. Given a current iterate $\theta_t$, linearize $r(\theta)$ about $\theta_t$ then replace the non-linear objective with the linearized version and solve to obtain the 
-next iterate $\theta_{t+1}$. The linearized problem has a closed-form solution given by \ref{linear_LS}. This process is then iterated until convergence. Assuming that the derivative of the function $r$ 
+The idea behind Gauss-Newton is quite simple. Given a current iterate $\bpar_t$, linearize $r(\bpar)$ about $\bpar_t$ then replace the non-linear objective with the linearized version and solve to obtain the 
+next iterate $\bpar_{t+1}$. The linearized problem has a closed-form solution given by \ref{linear_LS}. This process is then iterated until convergence. Assuming that the derivative of the function $r$ 
 exists then the linear approximation is given by 
 \begin{align}
-r_t^{\text{lin}}(\theta) &:= r(\theta_t) + Dr(\theta_t)\left(\theta - \theta_t \right) 
+r_t^{\text{lin}}(\bpar) &:= r(\bpar_t) + Dr(\bpar_t)\left(\bpar - \bpar_t \right) 
 \end{align}
-For succinctness, I will write $D_t := Dr(\theta_t)$. We now solve for the next iterate:
+For succinctness, I will write $D_t := Dr(\bpar_t)$. We now solve for the next iterate:
 \begin{align*}
-\theta_{t + 1} := \text{argmin}_\theta r_t^{\text{lin}}(\theta)
+\bpar_{t + 1} &:= \text{argmin}_\bpar r_t^{\text{lin}}(\bpar)
 \end{align*}
-However, it is actually a bit cleaner to optimize for the \text{direction} $\theta - \theta_t$ rather than $\theta$ itself. Letting $v := \theta - \theta_t$ denote the direction, then we seek to solve
+However, it is actually a bit cleaner to optimize for the \text{direction} $\bpar - \bpar_t$ rather than $\bpar$ itself. Letting $v := \bpar - \bpar_t$ denote the direction, then we seek to solve
 \begin{align}
-v_t &:= \text{argmin}_v \norm{r(\theta_t) + D_t v}^2 \label{optimal_direction} \\
-	      &= \text{argmin}_v \norm{D_t v - [-r(\theta_t]}^2
+v_t &:= \text{argmin}_v \norm{r(\bpar_t) + D_t v}^2 \label{optimal_direction} \\
+	      &= \text{argmin}_v \norm{D_t v - [-r(\bpar_t]}^2
 \end{align}
-The second line makes it clear that this is simply the linear least squares problem \ref{linear_LS}, with $G = D_t$, $\theta = v$, and $y = -r(\theta_t)$. The solution is thus 
+The second line makes it clear that this is simply the linear least squares problem \ref{linear_LS}, with $G = D_t$, $\bpar = v$, and $y = -r(\bpar_t)$. The solution is thus 
 \begin{align*}
-v_t = -\left(D_t^\top D_t \right)^{-1} D_t^\top r(\theta_t)
+v_t = -\left(D_t^\top D_t \right)^{-1} D_t^\top r(\bpar_t)
 \end{align*}
 which requires $D_t$ to have full column rank (thus the assumption $N \geq D$ is essential). We can now define the next iterate as 
 \begin{align}
-\theta_{t + 1} &= \theta_t + \alpha_t v_t \label{line_search}
+\bpar_{t + 1} &= \bpar_t + \alpha_t v_t \label{line_search} \\
+		    &= \bpar_t - \alpha_t \left(D_t^\top D_t \right)^{-1} D_t^\top r(\bpar_t) \label{GN_update}
 \end{align}
-where $\alpha_t > 0$ is a step size parameter that determines how far to move away from $\theta_t$ in the direction $v_t$. Optimization methods of the form \ref{line_search} are known as 
+where $\alpha_t > 0$ is a step size parameter that determines how far to move away from $\bpar_t$ in the direction $v_t$. Optimization methods of the form \ref{line_search} are known as 
 \textit{line-search algorithms} due to the fact that the next iterate is found by searching along the line spanned by $v_t$. The step sizes $\alpha_t$ are typically chosen adaptively. While 
-$\alpha_t$ can in some sense control how much trust we place in the direction $v_t$ found via the linear approximation $r_t^{\text{lin}}(\theta)$, we should emphasize that the direction of $v_t$ is 
+$\alpha_t$ can in some sense control how much trust we place in the direction $v_t$ found via the linear approximation $r_t^{\text{lin}}(\bpar)$, we should emphasize that the direction of $v_t$ is 
 determined by placing complete trust in the linear approximation; the step size only determines how far we move in that direction. This is opposed to so-called \textit{trust-region} methods
 (e.g. such as Levenberg-Marquardt discussed below) which explicitly constrains \ref{optimal_direction} so that the solution lies in a ball where the linear approximation is ``trusted''. 
 
@@ -607,22 +653,51 @@ The Levenberg-Marquardt Method is quite similar to the general Gauss-Newton meth
 the ball in which the linear approximation is trusted when optimizing for the direction $v_t$. This method replaces the unconstrained optimization problem \ref{optimal_direction} with the following 
 constrained problem:
 \begin{align}
-v_t &:= \text{argmin}_v \norm{r(\theta_t) + D_t v}^2 \text{   s.t.} && \norm{v}^2_{\Sigma_0} \leq \delta_t \label{LM_constrained_opt}
+v_t &:= \text{argmin}_v \norm{r(\bpar_t) + D_t v}^2 \text{   s.t.} && \norm{v}^2_{\Sigma_0} \leq \delta_t \label{LM_constrained_opt}
 \end{align}
 The matrix $\Sigma_0$ can be thought of as expressing prior information regarding the smoothness of the function $r$, hence the zero subscript. The next iterate is then set to 
 \begin{align*}
-\theta_{t+1} &:= \theta_t + v_t
+\bpar_{t+1} &:= \bpar_t + v_t
 \end{align*}
 Using Lagrange multipliers, it can be shown that \ref{LM_constrained_opt} can be converted to the unconstrained optimization 
 \begin{align}
-v_t &:= \text{argmin}_v\left( \norm{r(\theta_t) + D_t v}^2 + \frac{1}{\alpha_t} \norm{v}^2_{\Sigma_0}\right) \label{LM_unconstrained_opt}
+v_t &:= \text{argmin}_v\left( \norm{r(\bpar_t) + D_t v}^2 + \frac{1}{\alpha_t} \norm{v}^2_{\Sigma_0}\right) \label{LM_unconstrained_opt}
 \end{align}
 where there is a one-to-one correspondence between $\delta_t$ and $\alpha_t$. We see that $\alpha_t$ acts as a sort of step-size parameter, in very similar fashion to the optimization perspective 
-for the gradient descent update. The formulation \ref{LM_unconstrained_opt} demonstrates the the Levenberg-Marquardt update consists of optimizing the increment to $\theta_t$ via a regularized 
-least-squares problem. In the context of a statistical model or inverse problem, where the residual $r(\theta)$ quantifies the error between the model using parameter $\theta$ and the observed data, then 
-using the Levenberg-Marquardt method can \textit{implicitly} regularize the problem even when there is no regularization term in $r(\theta)$. For example, in an ill-posed inverse problem $r(\theta)$ may be very 
+for the gradient descent update. The formulation \ref{LM_unconstrained_opt} demonstrates that the Levenberg-Marquardt update consists of optimizing the increment to $\bpar_t$ via a regularized 
+least-squares problem. In the context of a statistical model or inverse problem, where the residual $r(\bpar)$ quantifies the error between the model using parameter $\bpar$ and the observed data, then 
+using the Levenberg-Marquardt method can \textit{implicitly} regularize the problem even when there is no regularization term in $r(\bpar)$. For example, in an ill-posed inverse problem $r(\bpar)$ may be very 
 sensitive to the observed data, and hence the derivative $D_t$ will also be sensitive to the data. The regularization in \ref{LM_unconstrained_opt} can help to place less trust in $D_t$ in this setting and hence 
 help to discourage overfitting when solving the inverse problem.  
+
+% Iterative Extended Kalman Filter
+\subsection{Iterative Extended Kalman Filter}
+Before proceeding to ensemble Kalman methods, we first discuss the application of extended Kalman methods to the optimization problems described above. Recall that extended Kalman methods simply employ 
+linearization via the derivative, just as Gauss-Newton does. We begin by applying the Gauss-Newton algorithm to the Tikhonov-Phillips objective \ref{TP_objective}. We recall from \ref{residual_TP} 
+that the non-linear residual associated 
+with this objective is given by 
+\begin{align*}
+r_{TP}(\bpar) = \CovObsEx^{-1/2} (\dataVecEx -\fwdEx(\bpar))
+\end{align*}
+where $\CovObsEx^{-1/2}$, $\dataVecEx$ and $\fwdEx$ are given in \ref{extended_space}. We also recall the Gauss-Newton update from \ref{GN_update}:
+\[ \bpar_{t + 1} = \bpar_t - \alpha_t \left(D_t^\top D_t \right)^{-1} D_t^\top r(\bpar_t) \]
+where $D_t = D r(\bpar_t)$. One option is to simply plug $r_{TP}(\bpar)$ into this update. However, this leads to a bit of an algebraic mess. An easier approach is to instead start 
+with \ref{optimal_direction}. In either case, we must compute $D r(\bpar_t)$. To this end, 
+\begin{align*}
+D r_{TP}(\bpar) &= D \CovObsEx^{-1/2} (\dataVecEx - \fwdEx(\bpar)) \\ 
+		        &= D \begin{pmatrix} \CovObs^{-1/2} & 0 \\ 0 & \CovPrior^{-1/2} \end{pmatrix} \begin{pmatrix} \fwd(\bpar) \\ \bpar \end{pmatrix} \\
+		        &= -D\left(\CovObs^{-1/2} \fwd(\bpar) + \CovPrior^{-1/2}\bpar \right) \\
+			&= -\CovObs^{-1/2} D\fwd(\bpar) - \CovPrior^{-1/2}
+\end{align*}
+
+
+\begin{align*}
+D r_{TP}(\bpar) &= D \tilde{\Sigma}^{-1/2}_{\epsilon} (\tilde{y} - \tilde{\fwd}(\bpar)) \\
+			&= D \begin{pmatrix} \CovObs^{-1/2} & 0 \\ 0 & \CovPrior^{-1/2} \end{pmatrix} \begin{pmatrix} \fwd(\bpar) \\ \bpar \end{pmatrix} \\
+			&= -D\left(\CovObs^{-1/2} \fwd(\bpar) + \CovPrior^{-1/2}\bpar \right) \\
+			&= -\CovObs^{-1/2} D\fwd(\bpar) - \CovPrior^{-1/2}
+\end{align*}
+
 
 
 
@@ -637,15 +712,15 @@ relevance to inverse problems via their solution by ensemble Kalman inversion te
 \begin{thm}
 Consider the regularized linear least squares objective 
 \begin{align}
-\frac{1}{2} \norm{y - G\theta}^2_{\Sigma_\epsilon} + \frac{1}{2} \norm{\theta - \mu_0}^2_{\Sigma_0} \label{LLS_obj}
+\frac{1}{2} \norm{y - G\bpar}^2_{\Sigma_\epsilon} + \frac{1}{2} \norm{\bpar - \mu_0}^2_{\Sigma_0} \label{LLS_obj}
 \end{align}
 Define the Kalman gain $K = \Sigma_0 G^\top (G \Sigma_0 G^\top + \Sigma_{\epsilon})^{-1}$. Then, 
 \begin{enumerate}
 \item \ref{LLS_obj} can be written as 
 \begin{align}
-\norm{\theta - \mu}^2_\Sigma + c \label{LLN_post}
+\norm{\bpar - \mu}^2_\Sigma + c \label{LLN_post}
 \end{align}
-where $c$ is a constant with respect to $\theta$ and 
+where $c$ is a constant with respect to $\bpar$ and 
 \begin{align*}
 \Sigma &= \left[G^\top \Sigma^{-1}_{\epsilon} G + \Sigma^{-1}_0\right]^{-1} \\
 \mu &= \Sigma \left[G^\top \Sigma^{-1}_{\epsilon}y + \Sigma_0^{-1} \mu_0  \right]
@@ -666,9 +741,9 @@ where $c$ is a constant with respect to $\theta$ and
 \begin{enumerate}
 \item For the first result, we simply expand the expressions \ref{LLS_obj} and \ref{LLN_post} and equate their terms. To this end, we have
 \begin{align*}
-\ref{LLS_obj} &\propto \frac{1}{2} \theta^\top (G^\top \Sigma^{-1}_\epsilon G) \theta - \theta^\top G^\top \Sigma_\epsilon^{-1} y + \frac{1}{2} \theta^\top \Sigma_0^{-1} \theta - \theta^\top \Sigma_0^{-1} \mu_0 \\
-	             &= \frac{1}{2} \theta^\top [G^\top \Sigma_\epsilon^{-1} G + \Sigma_0^{-1}]\theta - \theta^\top [G^\top \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1}\mu_0] \\
-\ref{LLN_post} &\propto \frac{1}{2} \theta^\top \Sigma^{-1} \theta - \theta^\top \Sigma^{-1} \mu + \frac{1}{2} \mu^\top \Sigma^{-1} \mu 	           
+\ref{LLS_obj} &\propto \frac{1}{2} \bpar^\top (G^\top \Sigma^{-1}_\epsilon G) \bpar - \bpar^\top G^\top \Sigma_\epsilon^{-1} y + \frac{1}{2} \bpar^\top \Sigma_0^{-1} \bpar - \bpar^\top \Sigma_0^{-1} \mu_0 \\
+	             &= \frac{1}{2} \bpar^\top [G^\top \Sigma_\epsilon^{-1} G + \Sigma_0^{-1}]\bpar - \bpar^\top [G^\top \Sigma_{\epsilon}^{-1}y + \Sigma_0^{-1}\mu_0] \\
+\ref{LLN_post} &\propto \frac{1}{2} \bpar^\top \Sigma^{-1} \bpar - \bpar^\top \Sigma^{-1} \mu + \frac{1}{2} \mu^\top \Sigma^{-1} \mu 	           
 \end{align*}
 Setting the coefficients of the respective terms equal yields
 \begin{align*}
@@ -710,6 +785,16 @@ K &= \Sigma_0 G^\top \left(G\Sigma_0 G^\top + \Sigma_\epsilon \right)^{-1} && \t
 
 \end{enumerate}
 \end{proof}
+
+% Bibliography
+\begin{thebibliography}{20}
+\bibitem{IPDA} Sanz-Alonso, D., Stuart, A., \& Taeb, A. (2023). Inverse Problems and Data Assimilation (London Mathematical Society Student Texts). Cambridge: Cambridge University Press. doi:10.1017/9781009414319
+\bibitem{Chada} Neil K. Chada, Yuming Chen, Daniel Sanz-Alonso. Iterative ensemble Kalman methods: A unified perspective with some new variants. Foundations of Data Science, 2021, 3(3): 331-369. doi: 10.3934/fods.2021011
+\bibitem{Kovachki} Kovachki, Nikola & Stuart, Andrew. (2018). Ensemble Kalman Inversion: A Derivative-Free Technique For Machine Learning Tasks. 
+\bibitem{Garbuno-Iñigo2019} Garbuno-Iñigo, Alfredo et al. “Gradient Structure Of The Ensemble Kalman Flow With Noise.” arXiv: Dynamical Systems (2019): n. pag.
+\end{thebibliography}
+
+
 
 
 

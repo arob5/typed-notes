@@ -1,0 +1,117 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+% Covariance function/kernel. 
+\newcommand{\Ker}{k}
+\newcommand{\locSpace}{\mathcal{X}}
+\newcommand{\loc}{\mathbf{x}}
+\newcommand{\locTwo}{\loc^\prime}
+\newcommand{\locDum}{\mathbf{u}}
+\newcommand{\inputDim}{D}
+\newcommand{\rf}{Y}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Covariance Functions: Stationary and Non-Stationary}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% Spectral Representation 
+\section{Spectral Representation}
+
+% Process Convolutions
+\section{Process Convolutions}
+The idea of \textit{process convolutions} is a popular method in spatial statistics used to constructively generates a covariance function. The main idea is that a random field $\rf(\cdot)$ over an input space 
+$\locSpace$ can be defined via a convolution 
+\begin{align}
+\rf(\loc) &= \int_{\locSpace} \Ker_0(\loc - \locDum) dW(\locDum), \label{process_convolution}
+\end{align}
+where $\Ker_0(\cdot)$ is a (stationary) kernel and $W(\cdot)$ a stochastic process over $\locSpace$ \cite{Risser}. So the idea is to start with a ``simple'' stochastic process $W(\cdot)$ (often a white-noise process) and produce a 
+more complicated process $\rf(\cdot)$ by convolving it with a kernel $\Ker_0(\cdot)$. When $W(\cdot)$ is a Brownian motion or other form of GP, then the resulting stochastic process $W(\cdot)$ in \ref{process_convolution} is a 
+GP. We can obtain a simpler equivalent representation of \ref{process_convolution} in the Brownian motion case via
+\begin{align}
+\rf(\loc) &= \int_{\locSpace} \Ker_0(\loc - \locDum) V(\locDum) d\locDum, \label{process_convolution2}
+\end{align}
+where $V(\cdot)$ is a Gaussian white-noise process. The covariance function of the process $\rf(\cdot)$ implied by \ref{process_convolution2} is 
+\begin{align}
+\Ker(\loc, \locTwo) &= \int_{\locSpace} \Ker_0(\loc - \locDum)\Ker_0(\locTwo - \locDum) d\locDum \label{process_convolution_kernel}
+\end{align}
+Instead of working through all of the technical details regarding the stochastic integration \ref{process_convolution}, we instead opt for the simpler approach of taking \ref{process_convolution_kernel}
+as our starting point. Therefore, we need only verify that $\Ker(\cdot, \cdot)$ is PSD in order to establish that it is a valid covariance function (Paciorek). 
+
+\begin{prop} 
+Let $\Ker_0: \locSpace \to \R_+$ be a stationary kernel. Then the function $\Ker: \locSpace \times \locSpace \to \R_+$ defined in \ref{process_convolution_kernel} is symmetric PSD. 
+\end{prop}
+
+\begin{proof} 
+TODO
+\end{proof} 
+
+
+% Bibliography
+\begin{thebibliography}{20}
+\bibitem{Risser} Risser, Mark. (2016). Review: Nonstationary Spatial Modeling, with Emphasis on Process Convolution and Covariate-Driven Approaches. 
+\bibitem{Guinness} Joseph Guinness, Montserrat Fuentes (2016). Isotropic covariance functions on spheres: Some properties and modeling considerations, Journal of Multivariate Analysis, Volume 143
+Pages 143-152, ISSN 0047-259X.
+\bibitem{Porcu} Porcu, Emilio \& Bevilacqua, Moreno \& Schaback, Robert \& Oates, Chris. (2023). The Mat\'ern Model: A Journey through Statistics, Numerical Analysis and Machine Learning. 10.48550/arXiv.2303.02759. 
+\bibitem{Higdon} Higdon, David M.. “Space and Space-Time Modeling using Process Convolutions.” (2002).
+\bibitem{Higdon2} Higdon, David M. et al. “Non-Stationary Spatial Modeling.” (2022).
+\bibitem{Paciorek} Paciorek CJ, Schervish MJ. Spatial Modelling Using a New Class of Nonstationary Covariance Functions. Environmetrics. 2006;17(5):483-506. doi: 10.1002/env.785. PMID: 18163157; PMCID: PMC2157553.
+\end{thebibliography}
+
+\end{document}
+
+
