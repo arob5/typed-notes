@@ -33,7 +33,8 @@
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 
 % Covariance function/kernel. 
-\newcommand{\Ker}{k}
+\newcommand{\Ker}{K}
+\newcommand{\covFun}{C}
 \newcommand{\locSpace}{\mathcal{X}}
 \newcommand{\loc}{\mathbf{x}}
 \newcommand{\locTwo}{\loc^\prime}
@@ -77,28 +78,38 @@
 The idea of \textit{process convolutions} is a popular method in spatial statistics used to constructively generates a covariance function. The main idea is that a random field $\rf(\cdot)$ over an input space 
 $\locSpace$ can be defined via a convolution 
 \begin{align}
-\rf(\loc) &= \int_{\locSpace} \Ker_0(\loc - \locDum) dW(\locDum), \label{process_convolution}
+\rf(\loc) &= \int_{\locSpace} \Ker(\loc - \locDum) dW(\locDum) =  \int_{\locSpace} \Ker_{\loc}(\locDum) dW(\locDum), \label{process_convolution}
 \end{align}
-where $\Ker_0(\cdot)$ is a (stationary) kernel and $W(\cdot)$ a stochastic process over $\locSpace$ \cite{Risser}. So the idea is to start with a ``simple'' stochastic process $W(\cdot)$ (often a white-noise process) and produce a 
-more complicated process $\rf(\cdot)$ by convolving it with a kernel $\Ker_0(\cdot)$. When $W(\cdot)$ is a Brownian motion or other form of GP, then the resulting stochastic process $W(\cdot)$ in \ref{process_convolution} is a 
+where $\Ker(\cdot)$ is a (stationary) kernel and $W(\cdot)$ a stochastic process over $\locSpace$ \cite{Risser}. So the idea is to start with a ``simple'' stochastic process $W(\cdot)$ (often a white-noise process) and produce a 
+more complicated process $\rf(\cdot)$ via convolution with a kernel $\Ker(\cdot)$. The notation $\Ker_{\loc}(\locDum) = \Ker(\loc - \locDum)$ emphasizes the fact that the properties of the random field $\rf(\loc)$ at location 
+$\loc$ are determined by a kernel centered at $\loc$. In essence, the field is constructed by placing a kernel $\Ker_{\loc}$ at every location. Notice that for a fixed location $\loc$, $\Ker_{\loc}(\locDum)$ determines to what degree
+the latent process $W(\locDum)$ at location $\locDum$ influences $\rf(\loc)$ at $\loc$. 
+
+When $W(\cdot)$ is a Brownian motion or other form of GP, then the resulting stochastic process $\rf(\cdot)$ in \ref{process_convolution} is a 
 GP. We can obtain a simpler equivalent representation of \ref{process_convolution} in the Brownian motion case via
 \begin{align}
-\rf(\loc) &= \int_{\locSpace} \Ker_0(\loc - \locDum) V(\locDum) d\locDum, \label{process_convolution2}
+\rf(\loc) &= \int_{\locSpace} \Ker(\loc - \locDum) V(\locDum) d\locDum, \label{process_convolution2}
 \end{align}
 where $V(\cdot)$ is a Gaussian white-noise process. The covariance function of the process $\rf(\cdot)$ implied by \ref{process_convolution2} is 
 \begin{align}
-\Ker(\loc, \locTwo) &= \int_{\locSpace} \Ker_0(\loc - \locDum)\Ker_0(\locTwo - \locDum) d\locDum \label{process_convolution_kernel}
+\covFun(\loc, \locTwo) &= \int_{\locSpace} \Ker(\loc - \locDum)\Ker(\locTwo - \locDum) d\locDum =  \int_{\locSpace} \Ker_{\loc}(\locDum)\Ker_{\locTwo}(\locDum) d\locDum. \label{process_convolution_kernel}
 \end{align}
 Instead of working through all of the technical details regarding the stochastic integration \ref{process_convolution}, we instead opt for the simpler approach of taking \ref{process_convolution_kernel}
-as our starting point. Therefore, we need only verify that $\Ker(\cdot, \cdot)$ is PSD in order to establish that it is a valid covariance function (Paciorek). 
+as our starting point. Therefore, we need only verify that $\covFun(\cdot, \cdot)$ is PSD in order to establish that it is a valid covariance function \cite{Paciorek}. 
 
 \begin{prop} 
-Let $\Ker_0: \locSpace \to \R_+$ be a stationary kernel. Then the function $\Ker: \locSpace \times \locSpace \to \R_+$ defined in \ref{process_convolution_kernel} is symmetric PSD. 
+Let $\Ker: \locSpace \to \R_+$ be a stationary kernel. Then the function $\covFun: \locSpace \times \locSpace \to \R_+$ defined in \ref{process_convolution_kernel} is symmetric PSD. 
 \end{prop}
 
 \begin{proof} 
 TODO
 \end{proof} 
+
+\subsection{Paciorek and Schervish Generalization}
+See Paciorek thesis, as well as \cite{Paciorek}. 
+
+\subsection{Non-Euclidean Domains}
+See Sam Baugh thesis
 
 
 % Bibliography
