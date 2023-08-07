@@ -94,6 +94,13 @@ where $V(\cdot)$ is a Gaussian white-noise process. The covariance function of t
 \begin{align}
 \covFun(\loc, \locTwo) &= \int_{\locSpace} \Ker(\loc - \locDum)\Ker(\locTwo - \locDum) d\locDum =  \int_{\locSpace} \Ker_{\loc}(\locDum)\Ker_{\locTwo}(\locDum) d\locDum. \label{process_convolution_kernel}
 \end{align}
+Thus, the covariance $\covFun(\loc, \locTwo) = \Cov[\rf(\loc), \rf(\locTwo)]$ is given by the inner product between the local kernels $\Ker_{\loc}$ and $\Ker_{\locTwo}$. 
+This makes a lot of sense; the dependence between $\rf(\loc)$ and $\rf(\locTwo)$ is determined by considering the cumulative effect of the influence of location $\loc$ on location $\locTwo$ (and vice versa) 
+indirectly through each intermediate location $\locDum$. For example, $\Ker_{\loc}(\locDum)\Ker_{\locTwo}(\locDum)$ will be large if each of the terms in the product is large, meaning that the locations 
+$(\loc, \locDum)$ are highly dependent, as are the locations $(\locTwo, \locDum)$. Thus, by a sort of transitivity this will induce dependence between $(\loc, \locTwo)$. Conversely, if 
+$\Ker_{\locTwo}(\locDum) \approx 0$, then this will break the link between $\loc$ and $\locTwo$ via the intermediate location $\locDum$, and thus this ``route'' between the two locations will not contribute 
+any dependence. The covariance $\covFun(\loc, \locTwo)$ depends on the cumulative effect of such links over all intermediate locations $\locDum$. 
+
 Instead of working through all of the technical details regarding the stochastic integration \ref{process_convolution}, we instead opt for the simpler approach of taking \ref{process_convolution_kernel}
 as our starting point. Therefore, we need only verify that $\covFun(\cdot, \cdot)$ is PSD in order to establish that it is a valid covariance function \cite{Paciorek}. 
 
@@ -102,7 +109,17 @@ Let $\Ker: \locSpace \to \R_+$ be a stationary kernel. Then the function $\covFu
 \end{prop}
 
 \begin{proof} 
-TODO
+The symmetry $\covFun(\loc, \locTwo) = \covFun(\locTwo, \loc)$ is clearly observed in formula \ref{process_convolution_kernel}. To show positive semi-definiteness, consider arbitrary 
+$n \in \mathbb{N}$, $a_1, \dots, a_n \in \R$, and $\loc_1, \dots, \loc_n \in \locSpace$. Then, 
+\begin{align*}
+\sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j \covFun(\loc_i, \loc_j) 
+&= \sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j \int_{\locSpace} \Ker_{\loc_i}(\locDum) \Ker_{\loc_j}(\locDum) d\locDum \\
+&= \int_{\locSpace} \left(\sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j  \Ker_{\loc_i}(\locDum) \Ker_{\loc_j}(\locDum)\right) d\locDum \\
+&=  \int_{\locSpace} \left(\sum_{i = 1}^{n} a_i \Ker_{\loc_i}(\locDum)\right)  \left(\sum_{j = 1}^{n} a_j \Ker_{\loc_j}(\locDum)\right) d\locDum \\
+&=  \int_{\locSpace} \left(\sum_{i = 1}^{n} a_i \Ker_{\loc_i}(\locDum)\right)^2 d\locDum \\
+&\geq 0
+\end{align*}
+which establishes that $\covFun(\cdot, \cdot)$ is PSD. 
 \end{proof} 
 
 \subsection{Paciorek and Schervish Generalization}
