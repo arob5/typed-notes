@@ -27,6 +27,8 @@
 \newcommand{\N}{\mathcal{N}}
 \newcommand{\Cov}{\mathrm{Cov}}
 \newcommand{\Prob}{\mathbb{P}}
+\newcommand{\zeroVec}{\mathbf{0}}
+
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
@@ -39,6 +41,8 @@
 \newcommand{\loc}{\mathbf{x}}
 \newcommand{\locTwo}{\loc^\prime}
 \newcommand{\locDum}{\mathbf{u}}
+\newcommand{\locLag}{\mathbf{h}}
+\newcommand{\logLagDum}{\mathbf{s}}
 \newcommand{\inputDim}{D}
 \newcommand{\rf}{Y}
 
@@ -70,6 +74,38 @@
 \tableofcontents
 \newpage
 
+% Introduction to Covariance Functions
+\section{Introduction to Covariance Functions}
+
+\subsection{General Definition}
+
+\subsection{Stationary Processes}
+Isotropy and anisotropy; Mahalanobis distance to achieve the latter. 
+
+\subsubsection{Positive Definite Functions}
+Given that the covariance function for a stationary process can be written as a function only of the 
+displacement vector $\locLag := \loc - \locTwo$, then it is common to overload the notation for the covariance function as 
+\begin{align}
+\covFun(\locLag) := \covFun(\loc - \locTwo) := \covFun(\loc, \locTwo)
+\end{align}
+Thus, when specifically focusing on stationary processes we will often consider the function $\covFun: \locSpace \to \R_+$ as defined above, 
+in addition to the standard two-argument covariance function $\covFun(\cdot, \cdot)$. Notice that the PSD requirement on the latter induces 
+an analogous requirement on the former; namely, for all $n \in \mathbb{N}$, $a_1, \dots, a_n \in \R$, and $\loc_1, \dots, \loc_n \in \locSpace$, 
+\begin{align}
+\sum_{i = 1}^{n} \sum_{j = 1}^{n} a_i a_j \covFun(\loc_i - \loc_j) \geq 0
+\end{align} 
+Choosing $\loc_1 = \locLag$ and $\loc_2 = 0$ in the above definition, using the fact $\covFun(-\locLag) = \covFun(\locLag)$, and rearranging terms yields the inequality
+\begin{align*}
+\covFun(\zeroVec) \geq \frac{-2 a_1 a_2 \covFun(\locLag)}{a_1^2 + a_2^2}.
+\end{align*}
+Choosing $a_1 = 1$ and $a_2 = -1$, we then have 
+\begin{align}
+\covFun(\zeroVec) \geq \covFun(\locLag),
+\end{align}
+capturing the intuitive notion that dependence between two locations is greatest when the lag is $\zeroVec$; put differently, covariance between two locations cannot exceed the 
+(constant) process variance $\covFun(\zeroVec) = \Cov[\rf(\loc)]$. \textbf{TODO:} is it actually true that $\covFun(-\locLag) = \covFun(\locLag)$?; need to prove this. 
+
+
 
 % Common Covariance Functions
 \section{Common Covariance Functions}
@@ -94,6 +130,9 @@ more complicated process $\rf(\cdot)$ via convolution with a kernel $\Ker(\cdot)
 $\loc$ are determined by a kernel centered at $\loc$. In essence, the field is constructed by placing a kernel $\Ker_{\loc}$ at every location. Notice that for a fixed location $\loc$, $\Ker_{\loc}(\locDum)$ determines to what degree
 the latent process $W(\locDum)$ at location $\locDum$ influences $\rf(\loc)$ at $\loc$. 
 
+As we will see, the kernel convolution approach can be used to construct both stationary and nonstationary covariance functions. In general, the two adjustable parameters to produce different 
+covariance structures are the latent process $W(\locDum)$ and \textit{smoothing kernel} $\Ker(\cdot)$. Going forward, we will fix the former to be a GP. 
+
 When $W(\cdot)$ is a Brownian motion or other form of GP, then the resulting stochastic process $\rf(\cdot)$ in \ref{process_convolution} is a 
 GP. We can obtain a simpler equivalent representation of \ref{process_convolution} in the Brownian motion case via
 \begin{align}
@@ -111,7 +150,10 @@ $\Ker_{\locTwo}(\locDum) \approx 0$, then this will break the link between $\loc
 any dependence. The covariance $\covFun(\loc, \locTwo)$ depends on the cumulative effect of such links over all intermediate locations $\locDum$. 
 
 Instead of working through all of the technical details regarding the stochastic integration \ref{process_convolution}, we instead opt for the simpler approach of taking \ref{process_convolution_kernel}
-as our starting point. Therefore, we need only verify that $\covFun(\cdot, \cdot)$ is PSD in order to establish that it is a valid covariance function \cite{Paciorek}. 
+as our starting point. The first order of business is to ensure that the integral \ref{process_convolution_kernel} exists so that $\covFun(\cdot, \cdot)$ is well-defined. 
+
+
+Therefore, we need only verify that $\covFun(\cdot, \cdot)$ is PSD in order to establish that it is a valid covariance function \cite{Paciorek}. 
 
 \begin{prop} 
 Let $\Ker: \locSpace \to \R_+$ be a stationary kernel. Then the function $\covFun: \locSpace \times \locSpace \to \R_+$ defined in \ref{process_convolution_kernel} is symmetric PSD. 
@@ -131,6 +173,20 @@ $n \in \mathbb{N}$, $a_1, \dots, a_n \in \R$, and $\loc_1, \dots, \loc_n \in \lo
 which establishes that $\covFun(\cdot, \cdot)$ is PSD. 
 \end{proof} 
 
+It is not immediately obvious whether the covariance function \ref{process_convolution_kernel} is stationary. The following result gives a condition under which this is always the case. 
+
+\begin{prop} 
+Suppose the smoothing kernel satisfies $\Ker(\locLag) = \Ker(-\locLag)$ for all $\locLag \in \locSpace$. Then the covariance function given in \ref{process_convolution_kernel} is stationary. 
+\end{prop}
+
+\begin{proof} 
+This follows directly from applying the change of variables $\logLagDum := $ in the 
+\end{proof}
+
+
+
+
+
 \subsection{Paciorek and Schervish Generalization}
 See Paciorek thesis, as well as \cite{Paciorek}. 
 
@@ -148,6 +204,8 @@ Pages 143-152, ISSN 0047-259X.
 \bibitem{Higdon2} Higdon, David M. et al. “Non-Stationary Spatial Modeling.” (2022).
 \bibitem{Paciorek} Paciorek CJ, Schervish MJ. Spatial Modelling Using a New Class of Nonstationary Covariance Functions. Environmetrics. 2006;17(5):483-506. doi: 10.1002/env.785. PMID: 18163157; PMCID: PMC2157553.
 \bibitem{Higdon} Higdon, D. A process-convolution approach to modelling temperatures in the North Atlantic Ocean. Environmental and Ecological Statistics 5, 173–190 (1998). https://doi.org/10.1023/A:1009666805688
+\bibitem{Genton} Marc G. Genton. 2002. Classes of kernels for machine learning: a statistics perspective. J. Mach. Learn. Res. 2 (3/1/2002), 299–312.
+\bibitem{} 
 \end{thebibliography}
 
 \end{document}
