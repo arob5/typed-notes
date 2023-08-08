@@ -28,6 +28,8 @@
 \newcommand{\Cov}{\mathrm{Cov}}
 \newcommand{\Prob}{\mathbb{P}}
 \newcommand{\zeroVec}{\mathbf{0}}
+\newcommand{\Gaussian}{\mathcal{N}}
+\newcommand{\I}{\mathbf{I}}
 
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -42,9 +44,13 @@
 \newcommand{\locTwo}{\loc^\prime}
 \newcommand{\locDum}{\mathbf{u}}
 \newcommand{\locLag}{\mathbf{h}}
-\newcommand{\logLagDum}{\mathbf{s}}
+\newcommand{\locLagDum}{\mathbf{s}}
+\newcommand{\locMat}{\mathbf{X}}
 \newcommand{\inputDim}{D}
 \newcommand{\rf}{Y}
+\newcommand{\numKnot}{M}
+\newcommand{\knotIdx}{m}
+\newcommand{\kerMat}{\mathbf{K}}
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -136,9 +142,9 @@ covariance structures are the latent process $W(\locDum)$ and \textit{smoothing 
 When $W(\cdot)$ is a Brownian motion or other form of GP, then the resulting stochastic process $\rf(\cdot)$ in \ref{process_convolution} is a 
 GP. We can obtain a simpler equivalent representation of \ref{process_convolution} in the Brownian motion case via
 \begin{align}
-\rf(\loc) &= \int_{\locSpace} \Ker(\loc - \locDum) V(\locDum) d\locDum, \label{process_convolution2}
+\rf(\loc) &= \int_{\locSpace} \Ker(\loc - \locDum) Z(\locDum) d\locDum, \label{process_convolution2}
 \end{align}
-where $V(\cdot)$ is a Gaussian white-noise process. The covariance function of the process $\rf(\cdot)$ implied by \ref{process_convolution2} is 
+where $Z(\cdot)$ is a Gaussian white-noise process. The covariance function of the process $\rf(\cdot)$ implied by \ref{process_convolution2} is 
 \begin{align}
 \covFun(\loc, \locTwo) &= \int_{\locSpace} \Ker(\loc - \locDum)\Ker(\locTwo - \locDum) d\locDum =  \int_{\locSpace} \Ker_{\loc}(\locDum)\Ker_{\locTwo}(\locDum) d\locDum. \label{process_convolution_kernel}
 \end{align}
@@ -180,16 +186,63 @@ Suppose the smoothing kernel satisfies $\Ker(\locLag) = \Ker(-\locLag)$ for all 
 \end{prop}
 
 \begin{proof} 
-This follows directly from applying the change of variables $\logLagDum := $ in the 
+This follows directly from applying the change of variables $\locLagDum := \locDum - \loc$ in the integral \ref{process_convolution_kernel}. Note that the Jacobian for this 
+transformation is the identity, so we simply plug in the formula for the change-of-variables to obtain
+\begin{align*}
+\covFun(\loc, \locTwo) &= \int_{\locSpace} \Ker(\loc - \locDum)\Ker(\locTwo - \locDum) d\locDum \\ 
+				  &=   \int_{\locSpace} \Ker(-\locLagDum)\Ker([\locTwo - \loc] - \locLagDum) d\locLagDum \\
+				  &= \int_{\locSpace} \Ker(\locLagDum)\Ker([\locTwo - \loc] - \locLagDum) d\locLagDum
+\end{align*}
+where the final line uses the assumption $\Ker(\locLagDum) = \Ker(-\locLagDum)$. Notice that $\locLagDum$ is integrated out, leaving $\covFun(\loc, \locTwo)$ only a 
+function of the displacement $\locTwo - \loc$. That is, $\covFun(\cdot, \cdot)$ is stationary. 
 \end{proof}
 
+\textbf{TODO:} Show that isotropic $\Ker(\locLag)$ implies isotropic $\covFun(\locLag)$; discuss that when the local smoothing kernel $\Ker_{\loc}$ is allowed to vary with location $\loc$
+then kernel convolution produces non-stationary covariance function. 
+
+% Closed-Form Kernel Convolutions
+\subsection{Closed-Form Kernel Convolutions}
+Start by deriving closed-form result under Gaussian smoothing kernel. Discuss issues with this approach, as well as the ``pre-factor'' discussed in 
+Paciorek thesis section 2.2.
+
+\subsubsection{Paciorek and Schervish Generalization}
+See Paciorek thesis section 2.3, as well as \cite{Paciorek}. 
+
+% Discrete Kernel Convolution
+\subsection{Discrete Kernel Convolution}
+Sources: \cite{Higdon} and \cite{Gramacy} chapter 5. 
+
+Closed-form solutions for the integral \ref{process_convolution_kernel} are rare, holding only for special choices of the smoothing kernel. Generalizations typically require approximating
+the integral via numerical integration or Monte Carlo sampling. An alternative presented in \cite{Higdon} re-focuses the attention on \cite{process_convolution}, the generative model for the random 
+field 
+\begin{align*}
+\rf(\loc) &= \int_{\locSpace} \Ker(\loc - \locDum) Z(\locDum) d\locDum.
+\end{align*}
+For now we focus on the case where the smoothing kernel is constant across space. 
+Instead of approximating the integral defining the covariance function, the approach in \cite{Higdon} discretizes the above integral by considering a fixed set of \textit{knots}
+$\{\locDum_1, \dots, \locDum_{\numKnot}\} \subset \locSpace$. Using these knots to discretize the above integral yields an approximation to the GP prior on the random field
+\begin{align}
+\rf_{\numKnot}(\loc) &:= \sum_{\knotIdx = 1}^{\numKnot}  \Ker(\loc - \locDum_{\knotIdx}) Z(\locDum_{\knotIdx}), &&Z(\locDum_{\knotIdx}) \overset{iid}{\sim} \Gaussian(0, \sigma_{z}^2) \label{discrete_convolution_prior}
+\end{align}
+We immediately notice that, as long as $\Ker(\cdot)$ is continuous then so will be $Y(\cdot)$. Each fixed value for the set of Gaussians $\{Z(\locDum_{\knotIdx})\}_{\knotIdx = 1}^{\numKnot}$ 
+corresponds to a \textit{sample path} of the process $\rf(\cdot)$. We see that these sample paths are continuous. Before considering inference, let us consider sampling from the prior 
+\ref{discrete_convolution_prior} at a fixed set of locations $\locMat := \begin{pmatrix} \loc_1, \dots, \loc_N \end{pmatrix}^\top$. This amounts to simply drawing iid samples from the Gaussians 
+$Z(\locDum_{\knotIdx}) \overset{iid}{\sim} \Gaussian(0, \sigma_{z}^2)$, evaluating the smoothing kernel at locations determined by the chosen knots and sampling locations 
+$\{\Ker(\loc_n - \locDum_{\knotIdx})\}_{1 \leq n \leq N, 1 \leq \knotIdx \leq \numKnot}$, and then plugging the quantities into the formula \ref{discrete_convolution_prior}. We can write this procedure 
+in matrix form by defining the $N \times \numKnot$ smoothing kernel matrix $\kerMat$ with entries $\kerMat_{n \knotIdx} = \Ker(\loc_{n} - \locDum_{\knotIdx})$. Moreover, define 
+$\mathbf{z} \sim \Gaussian(\zeroVec, \sigma_{z}^2 \I_{\numKnot})$ and let $\rf_{\numKnot}(\locMat) := \begin{pmatrix} \rf_{\numKnot}(\loc_1), \dots, \rf_{\numKnot}(\loc_N) \end{pmatrix}^\top$. The projection of the model 
+\ref{discrete_convolution_prior} onto the finite set of locations $\locMat$ can thus be written as 
+\begin{align}
+\rf_{\numKnot}(\locMat) &= \kerMat \mathbf{z}, &&\mathbf{z} \sim \Gaussian(\zeroVec, \sigma_{z}^2 \I_{\numKnot}) \label{discrete_convolution_prior_projection}
+\end{align} 
+Prior samples $\rf(\locMat)$ are drawn by sampling the Gaussian vector $\mathbf{z}$ and computing the matrix-vector product \ref{discrete_convolution_prior_projection}. We note that 
+this illustration also doubles as a proof that the discrete convolution model \ref{discrete_convolution_prior} indeed defines a valid GP. The definition of a GP requires all of the 
+random vectors $\rf(\locMat)$ for arbitrary finite sets of locations $\locMat$ to be Gaussian. As a linear mapping of a Gaussian vector, $\kerMat \mathbf{z}$ is a Gaussian vector and hence 
+$\rf_{\numKnot}(\locMat)$ is indeed a GP. 
 
 
 
-
-\subsection{Paciorek and Schervish Generalization}
-See Paciorek thesis, as well as \cite{Paciorek}. 
-
+% Non-Euclidean Domains
 \subsection{Non-Euclidean Domains}
 See Sam Baugh thesis
 
@@ -202,10 +255,14 @@ Pages 143-152, ISSN 0047-259X.
 \bibitem{Porcu} Porcu, Emilio \& Bevilacqua, Moreno \& Schaback, Robert \& Oates, Chris. (2023). The Mat\'ern Model: A Journey through Statistics, Numerical Analysis and Machine Learning. 10.48550/arXiv.2303.02759. 
 \bibitem{Higdon} Higdon, David M.. “Space and Space-Time Modeling using Process Convolutions.” (2002).
 \bibitem{Higdon2} Higdon, David M. et al. “Non-Stationary Spatial Modeling.” (2022).
+\bibitem{Higdon3} Higdon, D. A process-convolution approach to modelling temperatures in the North Atlantic Ocean. Environmental and Ecological Statistics 5, 173–190 (1998). https://doi.org/10.1023/A:1009666805688
 \bibitem{Paciorek} Paciorek CJ, Schervish MJ. Spatial Modelling Using a New Class of Nonstationary Covariance Functions. Environmetrics. 2006;17(5):483-506. doi: 10.1002/env.785. PMID: 18163157; PMCID: PMC2157553.
 \bibitem{Higdon} Higdon, D. A process-convolution approach to modelling temperatures in the North Atlantic Ocean. Environmental and Ecological Statistics 5, 173–190 (1998). https://doi.org/10.1023/A:1009666805688
 \bibitem{Genton} Marc G. Genton. 2002. Classes of kernels for machine learning: a statistics perspective. J. Mach. Learn. Res. 2 (3/1/2002), 299–312.
-\bibitem{} 
+\bibitem{Dunlop} Dunlop, MM, MA Girolami, AM Stuart, and AL Teckentrup. 2018. “How Deep Are Deep Gaussian Processes?” The Journal of Machine Learning Research 19 (1): 2100–2145.
+\bibitem{Bell} Gaussian measures and Bochner’s theorem, Jordan Bell, University of Toronto (Lecture Notes). 
+\bibitem{Gramacy} Robert B. Gramacy, Surrogates: Gaussian Process Modeling, Design and Optimization for the Applied Sciences, 2020. Chapman Hall/CRC, Boca Raton, Florida. \url{http://bobby.gramacy.com/surrogates/}
+
 \end{thebibliography}
 
 \end{document}
