@@ -131,10 +131,14 @@ $\locSpace$ can be defined via a convolution
 \begin{align}
 \rf(\loc) &= \int_{\locSpace} \Ker(\loc - \locDum) dW(\locDum) =  \int_{\locSpace} \Ker_{\loc}(\locDum) dW(\locDum), \label{process_convolution}
 \end{align}
-where $\Ker(\cdot)$ is a (stationary) kernel and $W(\cdot)$ a stochastic process over $\locSpace$ \cite{Risser}. So the idea is to start with a ``simple'' stochastic process $W(\cdot)$ (often a white-noise process) and produce a 
-more complicated process $\rf(\cdot)$ via convolution with a kernel $\Ker(\cdot)$. The notation $\Ker_{\loc}(\locDum) = \Ker(\loc - \locDum)$ emphasizes the fact that the properties of the random field $\rf(\loc)$ at location 
-$\loc$ are determined by a kernel centered at $\loc$. In essence, the field is constructed by placing a kernel $\Ker_{\loc}$ at every location. Notice that for a fixed location $\loc$, $\Ker_{\loc}(\locDum)$ determines to what degree
-the latent process $W(\locDum)$ at location $\locDum$ influences $\rf(\loc)$ at $\loc$. 
+where $\Ker(\cdot)$ is a smoothing kernel and $W(\cdot)$ a stochastic process over $\locSpace$ \cite{Risser}. 
+So the idea is to start with a ``simple'' stochastic process $W(\cdot)$ (often a white-noise process) and produce a 
+more complicated process $\rf(\cdot)$ via convolution with a smoothing kernel $\Ker(\cdot)$. 
+The notation $\Ker_{\loc}(\locDum) = \Ker(\loc - \locDum)$ emphasizes the fact that the properties of the random field $\rf(\loc)$ at location 
+$\loc$ are determined by a kernel centered at $\loc$. In essence, the field is constructed by placing a kernel $\Ker_{\loc}$ at every location. 
+Notice that for a fixed location $\loc$, $\Ker_{\loc}(\locDum)$ determines to what degree the latent process $W(\locDum)$ at location $\locDum$ influences $\rf(\loc)$ at $\loc$. 
+I will be careful to use the term \textit{smoothing kernel} when referring to $\Ker(\cdot)$ to emphasize the fact that this function is not restricted to be PSD. I will 
+follow the convention in the kernel methods literature by reserving the word \textit{kernel} to indicate a PSD function. 
 
 As we will see, the kernel convolution approach can be used to construct both stationary and nonstationary covariance functions. In general, the two adjustable parameters to produce different 
 covariance structures are the latent process $W(\locDum)$ and \textit{smoothing kernel} $\Ker(\cdot)$. Going forward, we will fix the former to be a GP. 
@@ -148,12 +152,29 @@ where $Z(\cdot)$ is a Gaussian white-noise process. The covariance function of t
 \begin{align}
 \covFun(\loc, \locTwo) &= \int_{\locSpace} \Ker(\loc - \locDum)\Ker(\locTwo - \locDum) d\locDum =  \int_{\locSpace} \Ker_{\loc}(\locDum)\Ker_{\locTwo}(\locDum) d\locDum. \label{process_convolution_kernel}
 \end{align}
-Thus, the covariance $\covFun(\loc, \locTwo) = \Cov[\rf(\loc), \rf(\locTwo)]$ is given by the inner product between the local kernels $\Ker_{\loc}$ and $\Ker_{\locTwo}$. 
+Thus, the covariance $\covFun(\loc, \locTwo) = \Cov[\rf(\loc), \rf(\locTwo)]$ is given by the inner product between the local smoothing kernels $\Ker_{\loc}$ and $\Ker_{\locTwo}$. 
 This makes a lot of sense; the dependence between $\rf(\loc)$ and $\rf(\locTwo)$ is determined by considering the cumulative effect of the influence of location $\loc$ on location $\locTwo$ (and vice versa) 
 indirectly through each intermediate location $\locDum$. For example, $\Ker_{\loc}(\locDum)\Ker_{\locTwo}(\locDum)$ will be large if each of the terms in the product is large, meaning that the locations 
 $(\loc, \locDum)$ are highly dependent, as are the locations $(\locTwo, \locDum)$. Thus, by a sort of transitivity this will induce dependence between $(\loc, \locTwo)$. Conversely, if 
 $\Ker_{\locTwo}(\locDum) \approx 0$, then this will break the link between $\loc$ and $\locTwo$ via the intermediate location $\locDum$, and thus this ``route'' between the two locations will not contribute 
 any dependence. The covariance $\covFun(\loc, \locTwo)$ depends on the cumulative effect of such links over all intermediate locations $\locDum$. 
+
+On a brief technical note, we must ensure that the covariance function \ref{process_convolution_kernel} is actually well-defined. First, the variance of the process 
+\begin{align*}
+\covFun(\loc, \loc) &= \int_{\locSpace} \Ker^2(\loc - \locDum) d\locDum
+\end{align*}
+must be finite. To establish that the integral defining $\covFun(\loc, \locTwo)$ for $\loc \neq \locTwo$ is also defined (and assuming that the smoothing kernel is uniformly bounded 
+$\abs{\Ker(\loc)} \leq B$) then we require 
+\begin{align*}
+\abs{\covFun(\loc, \locTwo)} &= \abs{\int_{\locSpace} \Ker(\loc - \locDum)\Ker(\locTwo - \locDum) d\locDum} \\
+				  	   &\leq  \int_{\locSpace} \abs{\Ker(\loc - \locDum)\Ker(\locTwo - \locDum)} d\locDum \\
+					   &\leq B \int_{\locSpace} \abs{\Ker(\loc - \locDum)} d\locDum < \infty
+\end{align*}
+Combining these two requirements yields two required conditions on the smoothing kernel:
+\begin{align}
+&\int_{\locSpace} \abs{\Ker(\locDum)} d\locDum < \infty  \label{smoothing_kernel_condition1} \\
+&\int_{\locSpace} \Ker^2(\locDum) d\locDum < \infty \label{smoothing_kernel_condition2}
+\end{align}
 
 Instead of working through all of the technical details regarding the stochastic integration \ref{process_convolution}, we instead opt for the simpler approach of taking \ref{process_convolution_kernel}
 as our starting point. The first order of business is to ensure that the integral \ref{process_convolution_kernel} exists so that $\covFun(\cdot, \cdot)$ is well-defined. 
@@ -161,8 +182,9 @@ as our starting point. The first order of business is to ensure that the integra
 
 Therefore, we need only verify that $\covFun(\cdot, \cdot)$ is PSD in order to establish that it is a valid covariance function \cite{Paciorek}. 
 
-\begin{prop} 
-Let $\Ker: \locSpace \to \R_+$ be a stationary kernel. Then the function $\covFun: \locSpace \times \locSpace \to \R_+$ defined in \ref{process_convolution_kernel} is symmetric PSD. 
+\begin{prop} \label{process_convolution_kernel_PSD}
+Let $\Ker: \locSpace \to \R$ be a function satisfying \ref{smoothing_kernel_condition1} and \ref{smoothing_kernel_condition2}. 
+Then the function $\covFun: \locSpace \times \locSpace \to \R_+$ defined in \ref{process_convolution_kernel} is symmetric PSD. 
 \end{prop}
 
 \begin{proof} 
@@ -182,7 +204,8 @@ which establishes that $\covFun(\cdot, \cdot)$ is PSD.
 It is not immediately obvious whether the covariance function \ref{process_convolution_kernel} is stationary. The following result gives a condition under which this is always the case. 
 
 \begin{prop} 
-Suppose the smoothing kernel satisfies $\Ker(\locLag) = \Ker(-\locLag)$ for all $\locLag \in \locSpace$. Then the covariance function given in \ref{process_convolution_kernel} is stationary. 
+In addition to the assumptions in \ref{process_convolution_kernel_PSD}, suppose that $\Ker(\locLag) = \Ker(-\locLag)$ for all $\locLag \in \locSpace$. 
+Then the covariance function given in \ref{process_convolution_kernel} is stationary. 
 \end{prop}
 
 \begin{proof} 
@@ -238,7 +261,15 @@ $\mathbf{z} \sim \Gaussian(\zeroVec, \sigma_{z}^2 \I_{\numKnot})$ and let $\rf_{
 Prior samples $\rf(\locMat)$ are drawn by sampling the Gaussian vector $\mathbf{z}$ and computing the matrix-vector product \ref{discrete_convolution_prior_projection}. We note that 
 this illustration also doubles as a proof that the discrete convolution model \ref{discrete_convolution_prior} indeed defines a valid GP. The definition of a GP requires all of the 
 random vectors $\rf(\locMat)$ for arbitrary finite sets of locations $\locMat$ to be Gaussian. As a linear mapping of a Gaussian vector, $\kerMat \mathbf{z}$ is a Gaussian vector and hence 
-$\rf_{\numKnot}(\locMat)$ is indeed a GP. 
+$\rf_{\numKnot}(\locMat)$ is indeed a GP. From a modeling perspective, note that \ref{discrete_convolution_prior} specifies a zero-mean GP prior, with variance given by 
+\begin{align*}
+\Var[\rf_{\numKnot}(\loc)] 
+&= \sum_{\knotIdx = 1}^{\numKnot} \Ker^2(\loc - \locDum_{\knotIdx}) \Var[Z(\locDum_{\knotIdx})] \\
+&= \sigma_z^2 \sum_{\knotIdx = 1}^{\numKnot} \Ker^2(\loc - \locDum_{\knotIdx})
+\end{align*}
+Thus, the discretization yields a non-stationary representation even with a spatially invariant smoothing kernel, as opposed to the exact case \ref{process_convolution} 
+(\textbf{TODO}: check this).
+
 
 
 
@@ -262,7 +293,7 @@ Pages 143-152, ISSN 0047-259X.
 \bibitem{Dunlop} Dunlop, MM, MA Girolami, AM Stuart, and AL Teckentrup. 2018. “How Deep Are Deep Gaussian Processes?” The Journal of Machine Learning Research 19 (1): 2100–2145.
 \bibitem{Bell} Gaussian measures and Bochner’s theorem, Jordan Bell, University of Toronto (Lecture Notes). 
 \bibitem{Gramacy} Robert B. Gramacy, Surrogates: Gaussian Process Modeling, Design and Optimization for the Applied Sciences, 2020. Chapman Hall/CRC, Boca Raton, Florida. \url{http://bobby.gramacy.com/surrogates/}
-
+\bibitem{Sans} Sans Ó, B., Schmidt, A.M. and Nobre, A.A. (2008), Bayesian spatio-temporal models based on discrete convolutions. Can J Statistics, 36: 239-258. https://doi.org/10.1002/cjs.5550360205
 \end{thebibliography}
 
 \end{document}
