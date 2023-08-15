@@ -275,13 +275,13 @@ I find it helpful to rearrange this as
 \[\frac{P(x, A)}{\pi(A)} \geq \beta\]
 provided that $\pi(A) > 0$ (note that if $\pi(A) = 0$ then the inequality trivially holds). We now see that in particular, for $C$ to be a small set there cannot exist $x \in C$ such that 
 $P(x, A) = 0$ and $\pi(A) > 0$, since then the lefthand side would be $0$. This makes a lot of sense. Since $\pi(A) > 0$ then $A$ is ``important'' with respect to the target distribution, in the sense that it has non-zero 
-probability. The above definition ensures that that probability of transitioning from any point in the small set to $A$ is strictly positive. From the perspective of MCMC this is good because we want to make sure we 
+probability. The above definition ensures that the probability of transitioning from any point in the small set to $A$ is strictly positive. From the perspective of MCMC this is good because we want to make sure we 
 are sampling from the set $A$. If the current state of the chain is in the small set $C$, then there is a guaranteed path to visit $A$ in the next step (i.e. there is a positive probability of doing so). Note that the definition 
 of small set is actually a little stronger than this though; not only does it guarantee a non-zero transition probability, but also provides a lower bound $\beta$ on the probability, relative to $\pi(A)$. This means that if 
 $\pi(A)$ is tiny then $P(x, A)$ could potentially be quite small and still satisfy the bound, but if $\pi(A)$ is quite large the bound will force $P(x, A)$ to be larger.
 
 So the small set intuitively provides a path between $C$ and any other set $A$ with $\pi(A) > 0$. However, this is not enough to guarantee that there are no ``islands'' that the chain won't be able to reach. While there 
-are no such islands if the chain is already in $C$ what if the chain never actually reaches $C$? The definition of irreducibility removes this possibility, thus excluding cases where such islands can exist. Indeed, recall 
+are no such islands if the chain is already in $C$, what if the chain never actually reaches $C$? The definition of irreducibility removes this possibility, thus excluding cases where such islands can exist. Indeed, recall 
 that the definition of irreducibility is that for all $x \in \mathcal{X}$, there exists $k(x) \in \mathbb{N}$ such that 
 \[P^{k(x)}(x, C) > 0\]
 In words: for any current state $x$, there is a positive probability of reaching the small set $C$ in a finite number of steps $k(x)$. Note that the number of steps required to reach the small set with a certain probability might 
@@ -297,9 +297,9 @@ The justification for this estimator is provided by the strong law of large numb
 We know that the samples $\{X_k\}$ returned by an MCMC algorithm are not independent, nor identically distributed. However, we hope that the marginal distribution of 
 the state $X_k$ is approaching $\pi$ as $k$ grows large. Therefore, it is not unreasonable to wonder if we are justified in using the same estimator $\hat{\pi}_K(\phi)$ as we 
 did in the simple Monte Carlo case and still obtain a good estimate for $\pi(\phi)$ so long as the number of samples $K$ is large enough. In other words, we hope that if we 
-run the chain large enough then we can sort of treat the samples $X_k$ as if they were independent, and compute the standard sample mean in order to estimate expectations
+run the chain long enough then we can sort of treat the samples $X_k$ as if they were independent, and compute the standard sample mean in order to estimate expectations
 of interest. In order to justify doing this, we require an analog of the SLLN 
-\[\hat{\pi}^N(\phi) \overset{a.s.}{\to} \pi(\phi) \text{ as } N \to \infty\]
+\[\hat{\pi}^K(\phi) \overset{a.s.}{\to} \pi(\phi) \text{ as } K \to \infty\]
 that applies when the $X_k$ are not iid; in other words, we need a ``SLLN for Markov chains''. The below theorem states that, under the relatively mild condition or irreducibility, the 
 SLLN does indeed hold for Markov chains. 
 \begin{thm} 
@@ -326,7 +326,7 @@ $\phi(X_k)$ starting at the $(i-1)^{\text{st}}$ reset and taking place before th
 Q_i := \sum_{k = T_{i-1}}^{T_i - 1} \phi(X_k)
 \end{align*}
 We will be able to prove that the $\{Q_i\}$ are in fact iid. While the $\{\phi(X_k)\}$ are certainly not iid, the sum of these random variables within each reset are. At this point, we still 
-apply the SLLN directly to the $\{Q_i\}$ since the lower and upper bounds on the sum $ \sum_{k = T_{i-1}}^{T_i - 1} \phi(X_k)$ are random variables. In other words, there are a random 
+cannot apply the SLLN directly to the $\{Q_i\}$ since the lower and upper bounds on the sum $ \sum_{k = T_{i-1}}^{T_i - 1} \phi(X_k)$ are random variables. In other words, there are a random 
 number of terms in this sum! Thus, we will have to derive a similar sum with non-random bounds in order to apply the SLLN. There are many technical details in order to make all these arguments 
 rigorous, but it is most important to keep the big picture in mind. 
 
@@ -335,7 +335,7 @@ rigorous, but it is most important to keep the big picture in mind.
 \textbf{Step 1: extended Markov chain construction.} The first step is to define the formal mechanism by which we will keep track of when ``resets'' occur. To do so, we introduce 
 indicator random variables $Y_k \in \{0, 1\}$ such that $Y_k = 1$ indicates a reset has occurred at time $k$. Formally, we extend the current Markov chain $\{X_k\}$ to add the $Y_k$ as an 
 additional state variable. Thus, the new extended state space is $\mathcal{X} \times \{0, 1\}$ and the extended Markov chain looks like $\{(X_k, Y_k)\}$. We define the initial condition 
-$Y_0 = 0$. n order to complete this definition, we 
+$Y_0 = 0$. In order to complete this definition, we 
 must define the transition kernel for the extended Markov chain. The transition dynamics we define will rely on the notion of irreducibility and the small set, in order to capture the notion of 
 ``resetting''. To this end, first recall that the assumption of irreducibility guaranteed the existence of a measure $\mu$ on $\mathcal{X}$, a set $C \in \mathcal{F}$, and 
 $\beta \in (0, 1)$ satisfying 
@@ -349,7 +349,7 @@ of the extended chain.
 \Prob(X_k \in A, Y_k = 0|X_{k-1} = x, Y_{k-1}) &= \tilde{P}(x, A) := P(x, A) - s(x) \mu(A) 
 \end{align*} 
 We must verify that these transition probabilities are actually valid, but first we make some observations. Notice that that the transition probabilities do not depend on the current 
-state of $Y_{k-1}$, but do depend on the current state of $X_{k-1} = x$. We also observe that if this current state $x$ is not in the small set $C$, then the probability of the next state having 
+state of $Y_{k-1}$, but do depend on the current state $x$ of $X_{k-1} $. We also observe that if this current state $x$ is not in the small set $C$, then the probability of the next state having 
 $Y_{k} = 1$ is zero. Thus, if $Y_{k} = 1$ then we know that $X_{k-1} \in C$; i.e. the previous state $X_{k-1}$ was in the small set. So $Y_{k}$ acts as a ``flag'' indicating that 
 $X_{k-1}$ was in $C$; but it is a ``probabilistic flag'', in the sense that if $X_{k-1} \in C$ then $Y_k$ is set to $1$ with probability $\beta$. Indeed, 
 \[\Prob(Y_k = 1|X_{k-1} \in C, Y_{k-1}) = \Prob(Y_k = 1, X_k \in \mathcal{X}|X_{k-1} \in C, Y_{k-1}) = \beta \mu(\mathcal{X}) = \beta\]
@@ -357,7 +357,7 @@ We now verify that the transition probabilities are valid; i.e. that they are bo
 \[s(x) \mu(A) \leq \beta \mu(A) \leq \beta \mu(\mathcal{X}) = \beta < 1\]
 so the first transition probability is indeed in $[0, 1]$. For the second transition probability, we have $\tilde{P}(x, A) = P(x, A) \in [0, 1]$ if $x \notin C$. If $x \in C$ then 
 \[\tilde{P}(x, A) = P(x, A) - \beta \mu(A) \geq \beta \mu(A) - \beta \mu(A) = 0\]
-where the inequality follows from the definition of the small set. We also clearly have $\tilde{P}(x, A) \leq 1$ so this transition probability is valid as well. The transition probabilities sum to one, 
+where the inequality follows from the definition of the small set. We also clearly have $\tilde{P}(x, A) \leq 1$ so this transition probability is bounded in $[0, 1]$ as well. The transition probabilities sum to one, 
 since 
 \[\Prob(X_k \in \mathcal{X}, Y_k \in \{0, 1\}) = s(x)\mu(\mathcal{X}) + \tilde{P}(x, \mathcal{X}) = s(x)\mu(\mathcal{X}) + P(x, \mathcal{X}) - s(x)\mu(\mathcal{X}) =  P(x, \mathcal{X}) = 1\]
 
@@ -378,8 +378,15 @@ Now here is the big idea. If $x \in C$ then
 \begin{align*}
 \Prob(X_k \in A|X_{k-1} = x) = P(x, A) \geq \beta \mu(A)
 \end{align*}
-In general this transition probability is $P(x, A)$, which has dependence on the value of previous state $x$. However, the small set assumption gives a lower bound on the transition 
-probability $\beta \mu(A)$ which is independent of the previous state! This is what we mean by ``resetting''. The sample $X_k$ can be treated more like an independent sample (from $\mu$). 
+In general this transition probability is $P(x, A)$, which has dependence on the value of previous state $x$. However, the small set assumption gives a lower bound $\beta \mu(A)$  on the transition 
+probability which is independent of the previous state! This is what we mean by ``resetting''. When $x \in C$, the sample $X_k$ can be treated almost like an independent sample (from $\mu$). 
+Put differently, given the knowledge that $X_{k-1} \in C$ (that is, given $\{Y_k = 1\}$) then $X_k$ has distribution $\mu$, independent of $X_{k - 1}$. Indeed, 
+\begin{align}
+\Prob(X_k \in A | X_{k - 1} = x, Y_k = 1) &= \frac{\Prob(X_k \in A, Y_k = 1| X_k = x)}{\Prob(Y_k = 1| X_{k - 1} = x)} = \frac{s(x) \mu(A)}{s(x)} = \frac{\beta \mu(A)}{\beta} = \mu(A) \label{fresh_sample}
+\end{align}
+The second equality uses the definition of the extended Markov chain transition dynamics and the third uses the implication 
+\[Y_k = 1 \implies X_{k-1} = x \in C \implies s(x) = \beta\]
+
 
 \bigskip
 \noindent
@@ -389,10 +396,11 @@ reset (i.e. regeneration). We now rigorously define these random variables recur
 T_0 &:= \min\{k \in \mathbb{N}: Y_k = 1\} \\
  T_i &:= \min\{k \in \mathbb{N}: k > T_{i - 1}, Y_k = 1\}, \ i = 1, 2, 3, \dots
 \end{align*}
-
-
-\end{proof} 
-
+Let us consider the distribution of the difference in consecutive regeneration times $T_{i} - T_{i-1}$. Conditioning on $T_{i-1}$ gives the knowledge that $Y_{T_{i-1}} = 1$ and hence 
+$X_{k-1} \in C$. Hence, using \ref{fresh_sample}, we have 
+\[X_{T_i} | T_{i - 1} \sim \mu\]
+Thus, if we initialize the chain with $X_0 \sim \mu$ then $X_{T_i} | T_{i - 1} \sim \mu$ means that the chain has returned to its starting distribution. Put differently, the distribution of 
+$T_0$ when $X_0 \sim \mu$ is equal to the distribution of $T_i - T_{i - 1}$ (under any distribution for $X_0$). 
 
 
 

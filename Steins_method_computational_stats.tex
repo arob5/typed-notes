@@ -1,0 +1,153 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Common math commands. 
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand{\R}{\mathbb{R}}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\Exp}[1]{\exp\mathopen{}\left\{#1\right\}\mathclose{}}
+\newcommand{\Log}[1]{\log\mathopen{}\left\{#1\right\}\mathclose{}}
+\newcommand{\BigO}{\mathcal{O}}
+
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+% Linear algebra.
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\oneVec}[1][]{\boldsymbol{1}_{#1}}
+\newcommand{\idMat}{\mathbf{I}}
+\newcommand{\bS}{\mathbf{S}}
+\newcommand{\bK}{\mathbf{K}}
+\newcommand{\ba}{\mathbf{a}}
+
+% Probability. 
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Gaussian}{\mathcal{N}}
+\newcommand{\GaussianDens}{\phi}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Stein's Method in Computational Statistics}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% Introduction to Stein's Lemma
+\section{Introduction to Stein's Lemma}
+Here we provide a brief introduction to, and proof of, Stein's lemma. Note that various results due to Stein have been dubbed \textit{Stein's lemma}, and the one we present here is that which provides a 
+characterization of the Gaussian distribution. This seemingly simple result has had far-reaching consequences in probability theory and theoretical statistics, and more recently in applied statistics. We begin 
+with the univariate case before generalizing to the multivariate result, and then finally introduce the operator theoretic viewpoint which will prove to be very useful. But first, a definition. 
+
+\begin{definition}
+Let $[a, b] \subset \R$. Then $f: [a, b] \to \R$ is said to be \textbf{absolutely continuous} provided that the derivative $f^\prime$ of $f$ exists almost everywhere, is Lebesgue integrable, and satisfies 
+\[
+\int_{a}^{x} f^\prime(t) dt = f(x) - f(a) \text{ for all } x \in [a, b]
+\]
+We say that a function defined on the entire real line $f: \R \to \R$ is absolutely continuous if the above definition holds for every compact interval $[a, b]$. 
+\end{definition}
+In words, a function is absolutely continuous if it allows the fundamental theorem of calculus (FTC) to hold. The typical basic statement of the FTC
+(see, e.g. \cite{Abbott}, theorem 7.5.1) assumes that $f^\prime$ is integrable and defined everywhere on $[a, b]$. Thus, the above definition considers a potentially larger class of functions 
+for which the theorem holds. In particular, differentiability need only hold almost everywhere on $[a, b]$. We note that a more standard $\epsilon$-$\delta$ definition of absolute continuity is 
+typically the first provided, but we favor the above equivalent definition, as it identifies the key condition we require of the function $f$ in Stein's lemma; namely, that it satisfy the FTC. 
+We now proceed with the main result. 
+
+\begin{thm} 
+(\textbf{Stein's Lemma}) Let $Z \sim \Gaussian(0, 1)$ and $f: \R \to \R$ be an absolutely continuous function. Then 
+\[
+\E Z f(Z) = \E f^\prime(Z)
+\]
+\end{thm}
+
+\begin{proof} \footnote{In this one-dimensional case, there is also a shorter proof that simply involves the application 
+				   of integration by parts to $\E f^\prime(Z)$ and the identity $\GaussianDens^\prime(x) = -x \GaussianDens(x)$, but the slightly
+				   longer proof presented here is more amenable to generalization.}
+
+Let $\GaussianDens(x) = \frac{e^{-x^2/2}}{\sqrt{2\pi}}$ denote the standard Gaussian density. From the chain rule, we have the simple identity 
+\begin{align}
+\GaussianDens^\prime(x) &= -x \frac{e^{-x^2/2}}{\sqrt{2\pi}} = -x \GaussianDens(x) \label{Gaussian_dens_identity}
+\end{align}
+
+We have, 
+\begin{align*}
+\E f^\prime(Z) 
+&= \int f^\prime(x) \GaussianDens(x) dx \\
+&= \int f^\prime(x) \int_{-\infty}^{x} \GaussianDens^\prime(t) dt dx &&\text{by FTC and } \lim_{x \to -\infty} \GaussianDens(x) = 0 \\
+&= -\int \int_{-\infty}^{x} f^\prime(x) t \GaussianDens(t) dt dx 	   &&\text{by \ref{Gaussian_dens_identity}} \\
+&= \int \int_{x}^{\infty} f^\prime(x) t \GaussianDens(t) dt dx		   &&\text{flip integration bounds} \\
+&= \int_{0}^{\infty} \int_{x}^{\infty} f^\prime(x) t \GaussianDens(t) dt dx + \int_{-\infty}^{0} \int_{x}^{\infty} f^\prime(x) t \GaussianDens(t) dt dx &&\text{split integration domain} \\
+&= \int_{0}^{\infty} \int_{x}^{\infty} f^\prime(x) t \GaussianDens(t) dt dx - \int_{-\infty}^{0} \int_{-\infty}^{x} f^\prime(x) t \GaussianDens(t) dt dx &&\text{flip integration bounds} \\
+&= \int_{0}^{\infty} \int_{0}^{t} f^\prime(x) t \GaussianDens(t) dx dt - \int_{-\infty}^{0} \int_{t}^{0} f^\prime(x) t \GaussianDens(t) dx dt &&\text{Fubini, reverse integration order} \\
+&= \int_{0}^{\infty} t \GaussianDens(t) \left[\int_{0}^{t} f^\prime(x) dx \right] dt - \int_{-\infty}^{0}  t \GaussianDens(t) \left[\int_{t}^{0} f^\prime(x)  dx\right] dt \\
+&= \int_{0}^{\infty} t \GaussianDens(t) \left[f(t) - f(0) \right] dt - \int_{-\infty}^{0}  t \GaussianDens(t) \left[f(0) - f(t) \right] dt && \text{absolute continuity} \\
+&= \E Z f(Z) - f(0) \E Z &&\text{group terms} \\
+&= \E Z f(Z) &&\E Z = 0
+\end{align*}
+
+\end{proof} 
+
+
+% Bibliography
+\begin{thebibliography}{20}
+\bibitem{Ross} Nathan Ross "Fundamentals of Stein’s method," Probability Surveys, Probab. Surveys 8(none), 210-293, (2011)
+\bibitem{Gorham} Gorham, Jackson and Lester W. Mackey. “Measuring Sample Quality with Stein's Method.” NIPS (2015).
+\bibitem{Chen} Chen, Wilson Ye et al. “Stein Points.” International Conference on Machine Learning (2018).
+\bibitem{Barp} Barp, Alessandro \& Briol, Francois-Xavier \& Duncan, Andrew \& Girolami, Mark \& Mackey, Lester. (2019). Minimum Stein Discrepancy Estimators. 
+\bibitem{Xu} Xu, Wenkai. “Standardisation-function Kernel Stein Discrepancy: A Unifying View on Kernel Stein Discrepancy Tests for Goodness-of-fit.” International Conference on Artificial Intelligence and Statistics (2021).
+\bibitem{Chen2} Chen, Wilson Ye et al. “Stein Point Markov Chain Monte Carlo.” International Conference on Machine Learning (2019).
+\bibitem{Huggins} Huggins, Jonathan and Lester W. Mackey. “Random Feature Stein Discrepancies.” Neural Information Processing Systems (2018).
+\bibitem{Anastasiou} Anastasiou, Andreas \& Barp, Alessandro \& Briol, François-Xavier \& Ebner, Bruno \& Gaunt, Robert \& Ghaderinezhad, Fatemeh \& Gorham, Jackson \& Gretton, Arthur \& Ley, Christophe \& Liu, Qiang \& Mackey, Lester \& Oates, Chris \& Reinert, Gesine \& Swan, Yvik. (2021). Stein's Method Meets Statistics: A Review of Some Recent Developments. 
+\bibitem{Shi} Shi, Jiaxin \& Liu, Chang \& Mackey, Lester. (2021). Sampling with Mirrored Stein Operators. 
+\bibitem{Detommaso} Detommaso, Gianluca \& Cui, Tiangang \& Spantini, Alessio \& Marzouk, Youssef \& Scheichl, Robert. (2018). A Stein variational Newton method. 
+\bibitem{Liu} Qiang Liu, Jason Lee, and Michael Jordan. A kernelized stein discrepancy for goodness-of-fit tests. In International conference on machine learning, 276–284. PMLR, 2016.
+\bibitem{Liu2} Qiang Liu and Dilin Wang. Stein variational gradient descent: a general purpose bayesian inference algorithm. 2019. arXiv:1608.04471.
+\bibitem{blog1} Stein variational gradient descent, Random Walks (Blog post).
+\bibitem{Abbott} Abbott Stephen and Springer Science Business Media. 2015. Understanding Analysis. 2nd ed. New York etc: Springer.
+\end{thebibliography}
+
+\end{document}
+
+
