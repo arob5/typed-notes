@@ -25,13 +25,25 @@
 \newcommand{\Var}{\mathrm{Var}}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\N}{\mathcal{N}}
-\newcommand{\Ker}{\mathrm{Ker}}
 \newcommand{\Cov}{\mathrm{Cov}}
 \newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Exp}[1]{\exp\mathopen{}\left\{#1\right\}\mathclose{}}
+\newcommand{\Log}[1]{\log\mathopen{}\left\{#1\right\}\mathclose{}}
+
+
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+% RKHS commands
+\newcommand{\featureMap}{\phi}
+\newcommand{\RKHS}{\mathcal{H}}
+\newcommand{\Ker}{k}
+\newcommand{\dataSpace}{\mathcal{X}}
+\newcommand{\meanEmb}[1]{\mu_{#1}}
+\newcommand{\MMD}{\text{MMD}}
+\newcommand{\MMDSpace}{\mathcal{F}}
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -50,6 +62,7 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{thm}{Theorem}
 \newtheorem{corollary}{Corollary}
+\newtheorem{notation}{Notation}
 
 % Title and author
 \title{An Introduction to Reproducing Kernel Hilbert Spaces in Statistics and Machine Learning}
@@ -273,7 +286,7 @@ or
 \section{Maximum Mean Discrepancy and Two-Sample Testing}
 \subsection{Maximum Mean Discrepancy}
 Here we consider the classical problem of distinguishing between two probability distributions $P$ and $Q$ given iid samples from each. In particular, we want to use data 
-$X_1, \dots, X_N \overset{iid}{\sim} P$ and $Y_1, \dots, Y_M \overset{iid}{\sim} Q$ to test whether $P \neq Q$. Classical approaches to this problem typically make distributional 
+$X_1, \dots, X_M \overset{iid}{\sim} P$ and $Y_1, \dots, Y_N \overset{iid}{\sim} Q$ to test whether $P \neq Q$. Classical approaches to this problem typically make distributional 
 assumptions about $P$ and $Q$; the approach considered here is a non-parametric one. 
 
 In addition to providing a method of non-parametric two-sample testing, the methods discussed here will yield a metric on probability distributions that is amenable to estimation 
@@ -281,14 +294,74 @@ from samples. Since the test statistic in the two-sample test will be defined in
 $P = Q$ if and only if $\E_P[f(X)] = \E_Q[f(X)]$ for all $f \in C(\mathcal{X})$, the space of bounded continuous functions on a separable metric space 
 $\mathcal{X}$. This fact might lead us to define a metric something like 
 \begin{align*}
-d(P, Q) = \sup_{f \in C(\mathcal{X})} \abs{\E_P[f(X)] - \E_Q[f(X)]}
+d(P, Q) = \sup_{f \in C(\mathcal{X})} \left(\E_P[f(X)] - \E_Q[f(X)]\right)
 \end{align*}
+[\textbf{TODO}: why isn't there an absolute value here?]
 The above mentioned lemma implies that $P = Q$ if and only if $d(P, Q) = 0$, as required by any metric $d(\cdot, \cdot)$. However, for practical purposes the function space 
-$C(\mathcal{X})$ is too ``rich'' to work with. The first task is thus to reduce this to a more tractable function space, while maintaining enough richness to guarantee 
-$P = Q \iff d(P, Q) = 0$. The authors in \cite{Gretton1} define the function class $\mathcal{F}$ to be the unit ball in an RKHS $\mathcal{H}$. As we will see, the ability to implicitly work in this 
-function space via a kernel $k(\cdot, \cdot)$ will prove to be a very practical benefit. First, a couple technicalities: the space $\mathcal{X}$ is assumed to be compact, and 
-the RKHS \mathcal{H} is assumed to be universal, meaning that it is dense in $C()$
+$C(\mathcal{X})$ is too ``rich'' to work with. The first task is thus to reduce this to a more tractable function space $\mathcal{F} \subset C(\mathcal{X})$, 
+while maintaining enough richness to guarantee $P = Q \iff d(P, Q) = 0$. The metric will then take the form given in the following definition. 
 
+\begin{definition}
+Let $\mathcal{F}$ be a class of functions $f: \mathcal{X} \to \R$. Then the \textbf{maximum mean discrepancy (MMD)} is defined as 
+\begin{align}
+\MMD(P, Q; \MMDSpace) := \sup_{f \in \mathcal{F}} \left(\E_P[f(X)] - \E_Q[f(Y)]\right),
+\end{align}
+which can be empirically estimated as 
+\begin{align}
+\MMD_{M,N}(P, Q; \MMDSpace) := \sup_{f \in \mathcal{F}} \left(\frac{1}{M} \sum_{i = 1}^{M} f(X_i) - \frac{1}{N} \sum_{i = 1}^{N} f(Y_i)\right)
+\end{align}
+\end{definition}
+
+Provided that $\mathcal{F}$ is rich enough to retain the property $P = Q \iff \MMD(P, Q; \MMDSpace) = 0$ then this is a theoretically well-grounded metric. However, in its current form 
+it appears completely intractable as it requires computing a supremum over sample means taken over infinitely many functions. The key idea to make this 
+feasible is to define $\mathcal{F}$ implicitly via a kernel $k(\cdot, \cdot)$. Indeed, \cite{Gretton1} proposes choosing $\mathcal{F}$ to be the unit ball in an RKHS 
+$\mathcal{H}$. It is proved in \cite{Gretton2} that this choice retains the required properties to define a metric [\textbf{TODO}: add this proof, it is not long]. 
+Before proceeding, we must specify a couple technicalities: the space $\mathcal{X}$ is assumed to be compact, and 
+the RKHS $\mathcal{H}$ is assumed to be universal, meaning that it is dense in $C(\mathcal{X})$ with respect to $L_\infty$. To have a concrete example in mind,
+Gaussian and Laplace kernels induce universal RKHS. 
+
+The task is now to exploit the RKHS structure to obtain a practically computable estimator for the MMD. To this end, we first establish some notation. 
+\begin{notation}
+\begin{enumerate}
+Let $\Ker(\cdot, \cdot)$ be a kernel with associated RKHS $\RKHS$.
+	\item Define the \textbf{feature map} $\featureMap: \dataSpace \to \RKHS$ by $\featureMap(x) = \Ker(x, \cdot)$. 
+	\item Define the \textbf{mean embedding} $\meanEmb{P} := \E_{x \sim P}\left[\featureMap(x) \right] = \E_{x \sim P}\left[\Ker(x, \cdot) \right] $
+\end{enumerate}
+\end{notation}
+The feature map maps a feature in the original space $x \in \dataSpace$ to a derived feature $\featureMap(x) \in \RKHS$ in the infinite-dimensional feature space. 
+The mean embedding is the expected derived feature under a distribution $P$ on $\dataSpace$. We also recall the \textit{reproducing property} for the kernel; for 
+$f \in \RKHS$ and $x \in \dataSpace$, 
+\begin{align}
+f(x) &= \left\langle \Ker(x, \cdot), f \right\rangle = \left\langle \featureMap(x), f \right\rangle.
+\end{align}
+
+We are now ready to prove the following result, which establishes 1.) a useful theoretical interpretation of the MMD as the distance between kernel mean embeddings in 
+$\RKHS$, and 2.) a useful practical expression of the MMD written in terms of $\Ker(\cdot, \cdot)$, such that it is amenable to estimation from samples. 
+
+\begin{lemma} 
+Let $\MMDSpace = \{f \in \RKHS: \norm{f}_{\RKHS} = 1\}$ where $\RKHS$ is the RKHS induced by a universal kernel $\Ker(\cdot, \cdot)$. Then, 
+\begin{enumerate}
+\item $\MMD(P, Q; \MMDSpace) = \norm{\meanEmb{P} - \meanEmb{Q}}_{\RKHS} = \norm{\E_{x \sim P}[\featureMap(x)] - \E_{y \sim Q}[\featureMap(y)]}_{\RKHS}$.
+\item 
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+For the first result we have, 
+\begin{align*}
+\MMD(P, Q; \MMDSpace) 
+&= \sup_{f \in \MMDSpace} \left(\E_P[f(x)] - \E_Q[f(y)]\right) \\
+&= \sup_{\norm{f}_{\RKHS} = 1} \left(\E_P \langle \featureMap(x), f \rangle - \E_Q \langle \featureMap(y), f \rangle\right) &&\text{reproducing property} \\
+&= \sup_{\norm{f}_{\RKHS} = 1} \left(\langle \E_P [\featureMap(x)], f \rangle_{\RKHS} - \langle \E_Q [\featureMap(y)], f \rangle_{\RKHS} \right) &&\text{linearity} \\
+&= \sup_{\norm{f}_{\RKHS} = 1} \langle \E_P [\featureMap(x)] - \E_Q [\featureMap(y)], f \rangle_{\RKHS}  &&\text{bilinearity} \\
+&= \sup_{\norm{f}_{\RKHS} = 1} \langle \meanEmb{P} - \meanEmb{Q}, f \rangle_{\RKHS}  &&\text{definition of mean embedding} \\
+&= \frac{\left\langle \meanEmb{P} - \meanEmb{Q},  \meanEmb{P} - \meanEmb{Q} \right\rangle_{\RKHS}}{\norm{ \meanEmb{P} - \meanEmb{Q}}_{\RKHS}}  &&(\dagger) \\
+&= \norm{ \meanEmb{P} - \meanEmb{Q}}_{\RKHS} &&\langle g, g \rangle_{\RKHS} = \norm{g}^2_{\RKHS}
+\end{align*}
+where $(\dagger)$ follows from the fact that the inner product is maximized when the vectors are aligned. Since $f$ is constrained to have unit norm, the 
+maximizer is $f = (\meanEmb{P} - \meanEmb{Q}) / \norm{\meanEmb{P} - \meanEmb{Q}}_{\RKHS}$.
+
+\end{proof}
 
 
 Useful: https://stats.stackexchange.com/questions/276497/maximum-mean-discrepancy-distance-distribution
@@ -304,6 +377,8 @@ Useful: https://stats.stackexchange.com/questions/276497/maximum-mean-discrepanc
 % Bibliography
 \begin{thebibliography}{20}
 \bibitem{Gretton1} Arthur Gretton, Karsten M. Borgwardt, Malte Rasch, Bernhard Schölkopf, and Alexander J. Smola. 2006. A kernel method for the two-sample-problem. In Proceedings of the 19th International Conference on Neural Information Processing Systems (NIPS'06). MIT Press, Cambridge, MA, USA, 513–520.
+\bibitem{Gretton2} A. Gretton, K. Borgwardt, M. Rasch, B. Scholkopf, and A. Smola. A kernel method for the two sample
+problem. Technical Report 157, MPI for Biological Cybernetics, 2007.
 \end{thebibliography}
 
 \end{document}
