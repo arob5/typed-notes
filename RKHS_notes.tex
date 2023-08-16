@@ -342,7 +342,7 @@ $\RKHS$, and 2.) a useful practical expression of the MMD written in terms of $\
 Let $\MMDSpace = \{f \in \RKHS: \norm{f}_{\RKHS} = 1\}$ where $\RKHS$ is the RKHS induced by a universal kernel $\Ker(\cdot, \cdot)$. Then, 
 \begin{enumerate}
 \item $\MMD(P, Q; \MMDSpace) = \norm{\meanEmb{P} - \meanEmb{Q}}_{\RKHS} = \norm{\E_{x \sim P}[\featureMap(x)] - \E_{y \sim Q}[\featureMap(y)]}_{\RKHS}$.
-\item 
+\item $\MMD^2(P, Q; \MMDSpace) = \E_{x, x^\prime \sim P}\left[\Ker(x, x^\prime)\right] + \E_{y, y^\prime \sim P}\left[\Ker(y, y^\prime)\right] - 2 \E_{x \sim P}\E_{y \sim Q} \left[\Ker(x, y)\right]$
 \end{enumerate}
 \end{lemma}
 
@@ -361,7 +361,26 @@ For the first result we have,
 where $(\dagger)$ follows from the fact that the inner product is maximized when the vectors are aligned. Since $f$ is constrained to have unit norm, the 
 maximizer is $f = (\meanEmb{P} - \meanEmb{Q}) / \norm{\meanEmb{P} - \meanEmb{Q}}_{\RKHS}$.
 
+Now for the second result, 
+\begin{align*}
+\MMD^2(P, Q; \MMDSpace) 
+&= \norm{\meanEmb{P} - \meanEmb{Q}}^2_{\RKHS} &&\text{previous result} \\
+&= \left\langle \meanEmb{P} - \meanEmb{Q}, \meanEmb{P} - \meanEmb{Q} \right\rangle &&\langle g, g \rangle_{\RKHS} = \norm{g}^2_{\RKHS} \\
+&= \left\langle \meanEmb{P}, \meanEmb{P} \right\rangle_{\RKHS} + \left\langle \meanEmb{Q}, \meanEmb{Q} \right\rangle_{\RKHS} - 2 \left\langle \meanEmb{P}, \meanEmb{Q} \right\rangle_{\RKHS} &&\text{bilinearity} \\
+&= \left\langle \E_{x \sim P}\left[\Ker(x, \cdot)\right], \E_{x^\prime \sim P}\left[\Ker(x^\prime, \cdot)\right] \right\rangle_{\RKHS} + &&\text{def of mean embedding} \\
+	&\qquad \left\langle \E_{y \sim Q}\left[\Ker(y, \cdot)\right], \E_{y \sim Q}\left[\Ker(y, \cdot)\right] \right\rangle_{\RKHS} - \\
+	&\qquad 2 \left\langle \E_{x \sim P}\left[\Ker(x, \cdot)\right], \E_{y \sim Q}\left[\Ker(y, \cdot)\right] \right\rangle_{\RKHS} \\
+&= \E_{x, x^\prime \sim P} \left[\langle \Ker(x, \cdot), \Ker(x^\prime, \cdot)\rangle \right] + &&\text{linearity} \\
+	&\qquad \E_{y, y^\prime \sim Q} \left[\langle \Ker(y, \cdot), \Ker(y^\prime, \cdot)\rangle \right] - \\
+	&\qquad \E_{x \sim P} \E_{y \sim Q} \left[\langle \Ker(x, \cdot), \Ker(y, \cdot) \right] \\
+&= \E_{x, x^\prime \sim P}\left[\Ker(x, x^\prime) \right] + \E_{y, y^\prime \sim P}\left[\Ker(y, y^\prime) \right] - 2 \E_{x \sim P} \E_{y \sim Q}\left[\Ker(x, y)\right] &&\text{reproducing prop}
+\end{align*}
 \end{proof}
+
+While the definition of MMD is given as a supremum over the difference in expectations taken over a set of test functions, $\MMDSpace$, the above result gives an alternative definition 
+when $\MMDSpace$ is taken as the unit ball in an RKHS; namely, the MMD is the distance between the expected derived features in the feature space $\RKHS$. The feature map 
+$\featureMap(x)$ may capture complicated, non-linear structure in $x$; such structure is compared in the space $\RKHS$. The second result writes the MMD in terms of expectations 
+of kernels, something we can readily estimate given iid samples from $P$ and $Q$. 
 
 
 Useful: https://stats.stackexchange.com/questions/276497/maximum-mean-discrepancy-distance-distribution

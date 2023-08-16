@@ -96,10 +96,13 @@ typically the first provided, but we favor the above equivalent definition, as i
 We now proceed with the main result. 
 
 \begin{thm} 
-(\textbf{Stein's Lemma}) Let $Z \sim \Gaussian(0, 1)$ and $f: \R \to \R$ be an absolutely continuous function. Then 
-\[
-\E Z f(Z) = \E f^\prime(Z)
-\]
+(\textbf{Stein's Lemma}) Let $Z \sim \Gaussian(0, 1)$ and $f: \R \to \R$ be an absolutely continuous function satisfying $\E\abs{f^\prime(Z)} < \infty$. Then 
+\begin{align}
+\E Z f(Z) = \E f^\prime(Z) \label{characterizing_Gaussian_eqn}
+\end{align}
+
+Conversely, suppose \ref{characterizing_Gaussian_eqn} holds for a random variable $W$ for all absolutely continuous and bounded functions $f: \R \to \R$. 
+Then $W \sim \Gaussian(0, 1)$. 
 \end{thm}
 
 \begin{proof} \footnote{In this one-dimensional case, there is also a shorter proof that simply involves the application 
@@ -134,7 +137,7 @@ We have,
 \begin{thebibliography}{20}
 \bibitem{Ross} Nathan Ross "Fundamentals of Stein’s method," Probability Surveys, Probab. Surveys 8(none), 210-293, (2011)
 \bibitem{Gorham} Gorham, Jackson and Lester W. Mackey. “Measuring Sample Quality with Stein's Method.” NIPS (2015).
-\bibitem{Gorham2} Gorham, Jackson & Mackey, Lester. (2017). Measuring Sample Quality with Kernels. 
+\bibitem{Gorham2} Gorham, Jackson \& Mackey, Lester. (2017). Measuring Sample Quality with Kernels. 
 \bibitem{Chen} Chen, Wilson Ye et al. “Stein Points.” International Conference on Machine Learning (2018).
 \bibitem{Barp} Barp, Alessandro \& Briol, Francois-Xavier \& Duncan, Andrew \& Girolami, Mark \& Mackey, Lester. (2019). Minimum Stein Discrepancy Estimators. 
 \bibitem{Xu} Xu, Wenkai. “Standardisation-function Kernel Stein Discrepancy: A Unifying View on Kernel Stein Discrepancy Tests for Goodness-of-fit.” International Conference on Artificial Intelligence and Statistics (2021).
