@@ -24,6 +24,7 @@
 \newcommand{\Exp}[1]{\exp\mathopen{}\left\{#1\right\}\mathclose{}}
 \newcommand{\Log}[1]{\log\mathopen{}\left\{#1\right\}\mathclose{}}
 \newcommand{\BigO}{\mathcal{O}}
+\newcommand{\indicator}[1]{\mathbb{I}[#1]}
 
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
@@ -47,6 +48,11 @@
 \newcommand{\Prob}{\mathbb{P}}
 \newcommand{\Gaussian}{\mathcal{N}}
 \newcommand{\GaussianDens}{\phi}
+\newcommand{\GaussianCDF}{\Phi}
+
+% Stein/Kernels. 
+\newcommand{\Ker}{k}
+\newcommand{\functionSpace}{\mathcal{F}}
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -95,7 +101,7 @@ for which the theorem holds. In particular, differentiability need only hold alm
 typically the first provided, but we favor the above equivalent definition, as it identifies the key condition we require of the function $f$ in Stein's lemma; namely, that it satisfy the FTC. 
 We now proceed with the main result. 
 
-\begin{thm} 
+\begin{thm} \label{Steins_lemma}
 (\textbf{Stein's Lemma}) Let $Z \sim \Gaussian(0, 1)$ and $f: \R \to \R$ be an absolutely continuous function satisfying $\E\abs{f^\prime(Z)} < \infty$. Then 
 \begin{align}
 \E Z f(Z) = \E f^\prime(Z) \label{characterizing_Gaussian_eqn}
@@ -104,6 +110,30 @@ We now proceed with the main result.
 Conversely, suppose \ref{characterizing_Gaussian_eqn} holds for a random variable $W$ for all absolutely continuous and bounded functions $f: \R \to \R$. 
 Then $W \sim \Gaussian(0, 1)$. 
 \end{thm}
+
+Before proceeding with the proof, we discuss the general interpretation of this result and then state an intermediate result that will be useful in proving the converse stated above. 
+While both directions of the lemma have proved very useful in applications, the converse is really what makes this quite interesting. We know that there are many ways to uniquely 
+characterize distributions: the distribution function, moment generating function, and characteristic function are three such examples. The above result provides yet another way to 
+uniquely characterize the standard normal distribution; namely, $Z \sim \Gaussian(0, 1)$ is uniquely characterized by the relation 
+\begin{align}
+\E\left[Z f(Z) - f^\prime(Z)\right] = 0, \text{ for all } f \in \functionSpace \label{characterizing_Gaussian_eqn_2}
+\end{align}
+where $\functionSpace$ is the set of absolutely continuous functions on $\R$. Note that we have simply rearranged the equation \ref{characterizing_Gaussian_eqn}, as this 
+form will be more useful going forward. 
+We will see later that similar characterizing relations can be established for distributions other than 
+Gaussian. 
+
+Now we present a lemma that will be used in the proof of the converse portion of \ref{Steins_lemma}. The final goal is to show that if $\E W f(W) = \E f^\prime(W)$ holds for 
+all absolutely continuous and bounded $f$, then $W \sim \Gaussian(0, 1)$. To establish this, we will use a sneaky approach. For fixed $x \in \R$ consider, 
+\[
+wf_x(w) - f_x^\prime(w) = \indicator{w \leq x} - \GaussianCDF(w).
+\]
+We notice that this is an ordinary differential equation (ODE), and that the lefthand side is \ref{characterizing_Gaussian_eqn_2}, but without the expectation.  
+
+
+
+
+
 
 \begin{proof} \footnote{In this one-dimensional case, there is also a shorter proof that simply involves the application 
 				   of integration by parts to $\E f^\prime(Z)$ and the identity $\GaussianDens^\prime(x) = -x \GaussianDens(x)$, but the slightly
@@ -133,6 +163,11 @@ We have,
 \end{proof} 
 
 
+% Stein Discrepencies
+\section{Stein Discrepancies}
+\subsection{Integral Probability Metrics}
+
+
 % Bibliography
 \begin{thebibliography}{20}
 \bibitem{Ross} Nathan Ross "Fundamentals of Stein’s method," Probability Surveys, Probab. Surveys 8(none), 210-293, (2011)
@@ -150,6 +185,7 @@ We have,
 \bibitem{Liu2} Qiang Liu and Dilin Wang. Stein variational gradient descent: a general purpose bayesian inference algorithm. 2019. arXiv:1608.04471.
 \bibitem{blog1} Stein variational gradient descent, Random Walks (Blog post).
 \bibitem{Abbott} Abbott Stephen and Springer Science Business Media. 2015. Understanding Analysis. 2nd ed. New York etc: Springer.
+\bibitem{LiuBlog} A short introduction to kernelized Stein discrepancy, Qiang Liu (notes). 
 \end{thebibliography}
 
 \end{document}
