@@ -54,6 +54,9 @@
 \newcommand{\Ker}{k}
 \newcommand{\functionSpace}{\mathcal{F}}
 \newcommand{\steinOperator}{\mathcal{A}}
+\newcommand{\dist}{P}
+\newcommand{\distApprox}{Q}
+\newcommand{\steinDisc}{\mathcal{S}}
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -87,7 +90,12 @@
 \section{Introduction to Stein's Lemma}
 Here we provide a brief introduction to, and proof of, Stein's lemma. Note that various results due to Stein have been dubbed \textit{Stein's lemma}, and the one we present here is that which provides a 
 characterization of the Gaussian distribution. This seemingly simple result has had far-reaching consequences in probability theory and theoretical statistics, and more recently in applied statistics. We begin 
-with the univariate case before generalizing to the multivariate result, and then finally introduce the operator theoretic viewpoint which will prove to be very useful. But first, a definition. 
+with the univariate case before generalizing to the multivariate result, and then finally introduce the operator theoretic viewpoint which will prove to be very useful. 
+
+% A New Characterization of the Standard Normal Distribution
+\subsection{A New Characterization of the Standard Normal Distribution}
+Stein's lemma provides a unique way to characterize the distribution $Z \sim \Gaussian(0, 1)$ by considering the behavior of $\Gaussian(0, 1)$ when expectations are taken over 
+a certain class of functions. This class of functions is defined by a continuity property, which is given below. 
 
 \begin{definition}
 Let $[a, b] \subset \R$. Then $f: [a, b] \to \R$ is said to be \textbf{absolutely continuous} provided that the derivative $f^\prime$ of $f$ exists almost everywhere, is Lebesgue integrable, and satisfies 
@@ -224,9 +232,64 @@ of the righthand side is also zero, which implies
 Since equality of distribution functions implies equality in distribution, we have $W \sim \Gaussian(0,1)$, which completes the proof. 
 \end{proof} 
 
+% Generalizing to other Gaussian Distributions
+\subsection{Generalizing to other Gaussian Distributions}
+In this section we generalize Stein's lemma to non-standard univariate normal distributions and then to multivariate normal distributions. [\textbf{TODO}]
 
+% The Operator Theoretic Viewpoint 
+\subsection{The Operator Theoretic Viewpoint}
+Having demonstrated Stein's lemma in various Gaussian settings, we now introduce more generic notation and the framework which will be quite useful going forward. Returning to 
+the $\Gaussian(0, 1)$ setting recall the characterizing equation \ref{characterizing_Gaussian_eqn} for the Gaussian distribution, 
+\[
+\E\left[f^\prime(Z) - Z f(Z) \right] = 0, \text{ for all } f \in \functionSpace
+\]
+where $\functionSpace$ is the set of all absolutely continuous functions. We note that this can equivalently be written as 
+\begin{align}
+\E\left[(\steinOperator f)(Z) \right] = 0, \text{ for all } f \in \functionSpace, \label{Stein_characterizing_relation}
+\end{align}
+where 
+\begin{align}
+\steinOperator f(x) := f^\prime(x) - xf(x).
+\end{align}
+Notice that $\steinOperator$ is a \textit{linear operator}; it maps functions to functions. In this case the function $f(x)$ is mapped to the new function 
+$f^\prime(x) - xf(x)$. The linearity of $\steinOperator$ follows immediately from linearity of differentiation. In the literature, $\steinOperator$ is referred to as 
+a \textit{Stein operator}, $\functionSpace$ the Stein class, and \ref{Stein_characterizing_relation} the \textit{Stein characterizing relation}, respectively. We have 
+presented specific instantiations of these objects in the case of Gaussian distributions, but different Stein operator-Stein class pairs can be found to establish 
+characterizing relations for many different distributions $\dist$. Perhaps a more useful way to state the Stein characterizing relation for distribution $\dist$
+ is
+ \begin{align}
+ \distApprox = \dist \iff \E_{X \sim \distApprox} \left[(\steinOperator f)(X) \right] = 0 \text{ for all } f \in \functionSpace, \label{Stein_characterizing_relation_2}
+ \end{align}
+ where $\distApprox$ is any other probability distribution. The relation \ref{Stein_characterizing_relation_2} provides us a binary test for equality in distribution; 
+ the power of Stein's method will come from the connection of this idea to a notion of distance between probability distributions. This will allow for a more 
+ quantitative description of how ``far apart'' distributions $\dist$ and $\distApprox$ are, which will prove very useful in establishing results such as rates of convergence, 
+ as well as providing the basis of practical algorithms in computational statistics. 
+
+ 
 % Stein Discrepencies
 \section{Stein Discrepancies}
+In this section, we make the crucial step of connecting Stein's lemma to the notion of \textit{probability metrics}, distance functions that quantify discrepancy between 
+probability distributions. 
+
+\subsection{Introduction}
+The Stein characterizing relation \ref{Stein_characterizing_relation_2} points towards a seemingly reasonable notion of discrepancy between target distribution $\dist$ and 
+any other distribution $\distApprox$. 
+
+\begin{definition}
+Let $\dist$ be a probability distribution with Stein operator $\steinOperator$ and Stein class $\functionSpace$. Let $\distApprox$ be another probability distribution. 
+The \textbf{Stein discrepancy} between $\dist$ and $\distApprox$ is defined as 
+\begin{align}
+\steinDisc(\dist, \distApprox) := \sup_{f \in \functionSpace} \norm{\E_{X \sim \distApprox} \left[(\steinOperator f)(X) \right]},
+\end{align}
+\end{definition}
+Here, $\norm{\cdot}$ is a valid norm; if we are considering univariate distributions then this is often just absolute value, but the above definition applies to multivariate distributions 
+as well. 
+The Stein characterizing equation guarantees that $\steinDisc(\dist, \distApprox) = 0$ if and only if $\dist = \distApprox$, but provides no guarantee that $\steinDisc$ defines a valid 
+metric. Nonetheless, we hope that $\steinDisc$ captures salient properties describing the difference between $\dist$ and $\distApprox$. In order to put this notion on firm ground, we 
+must establish connections between $\steinDisc$ and valid probability metrics. In particular, we eventually want to show that bounding $\steinDisc$ will imply bounds on other metrics of 
+interest. There are many flavors of probability metrics, and it turns out that Stein discrepancies share a close connection with a particular class of metrics, known as integral probability 
+metrics. 
+
 \subsection{Integral Probability Metrics}
 
 
