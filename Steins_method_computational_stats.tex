@@ -53,6 +53,7 @@
 % Stein/Kernels. 
 \newcommand{\Ker}{k}
 \newcommand{\functionSpace}{\mathcal{F}}
+\newcommand{\steinOperator}{\mathcal{A}}
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -116,7 +117,7 @@ While both directions of the lemma have proved very useful in applications, the 
 characterize distributions: the distribution function, moment generating function, and characteristic function are three such examples. The above result provides yet another way to 
 uniquely characterize the standard normal distribution; namely, $Z \sim \Gaussian(0, 1)$ is uniquely characterized by the relation 
 \begin{align}
-\E\left[Z f(Z) - f^\prime(Z)\right] = 0, \text{ for all } f \in \functionSpace \label{characterizing_Gaussian_eqn_2}
+\E\left[f^\prime(Z) - Z f(Z)\right] = 0, \text{ for all } f \in \functionSpace \label{characterizing_Gaussian_eqn_2}
 \end{align}
 where $\functionSpace$ is the set of absolutely continuous functions on $\R$. Note that we have simply rearranged the equation \ref{characterizing_Gaussian_eqn}, as this 
 form will be more useful going forward. 
@@ -125,15 +126,67 @@ Gaussian.
 
 Now we present a lemma that will be used in the proof of the converse portion of \ref{Steins_lemma}. The final goal is to show that if $\E W f(W) = \E f^\prime(W)$ holds for 
 all absolutely continuous and bounded $f$, then $W \sim \Gaussian(0, 1)$. To establish this, we will use a sneaky approach. For fixed $x \in \R$ consider, 
+\begin{align}
+f_x^\prime(w) - wf_x(w) = \indicator{w \leq x} - \GaussianCDF(x). \label{Gaussian_ODE}
+\end{align}
+We notice that this is an ordinary differential equation (ODE), and that the lefthand side matches the lefthand of \ref{characterizing_Gaussian_eqn_2}, but without the expectation 
+and as a function of the variable $w$. Notice that if the expectation (with respect to $W$) of the righthand side is zero, then 
 \[
-wf_x(w) - f_x^\prime(w) = \indicator{w \leq x} - \GaussianCDF(w).
+\Prob(W \leq x) = \E_{w \sim W}[\indicator{w \leq x} ] = \GaussianCDF(x),
 \]
-We notice that this is an ordinary differential equation (ODE), and that the lefthand side is \ref{characterizing_Gaussian_eqn_2}, but without the expectation.  
+implying $W \sim \Gaussian(0, 1)$, which is precisely what we want to show. Moreover, the expectation of the righthand side is zero when the same is true of the 
+lefthand side; that is, $\E_{w \sim W}[wf_x(w) - f_x^\prime(w)] = 0$, which is the characterizing relation \ref{characterizing_Gaussian_eqn}. Thus, if we can show that the 
+ODE \ref{Gaussian_ODE} has a solution $f_x$ for each $x \in \R$ (and that the $f_x$ are absolutely continuous and bounded) then this will imply that $W \sim \Gaussian(0, 1)$. 
+The following lemma shows the existence of such solutions. 
 
+\begin{lemma} \label{Gaussian_ODE_lemma}
+The ODE \ref{Gaussian_ODE} has unique, bounded solution 
+\begin{align}
+f_x(w) &= e^{w^2/2} \int_{w}^{\infty} e^{-t^2/2} \left[\GaussianCDF(x) - \indicator{t \leq x} \right] dt.
+\end{align}
+\end{lemma}
 
+\begin{proof} 
+We notice that \ref{Gaussian_ODE} is a linear, inhomogenous equation
+\[\steinOperator f_x = b\]
+where $\steinOperator f_x(w) := f_x^\prime(w) - w f_x(w)$ and $b(w) = \indicator{w \leq x} - \GaussianCDF(x)$. 
+Thus, the general solution is of the form 
+\[f_x = f_x^{\text{part}} + \text{Null}(\steinOperator),\]
+where $f_x^{\text{part}}$ is a particular solution of \ref{Gaussian_ODE} and $\text{Null}(\steinOperator)$ the null space of the linear operator $\steinOperator$. 
+For the particular solution, we employ the method of integrating factors, multiplying both sides of the equation by $e^{-w^2/2}$,
+\[
+e^{-w^2/2} f_x^\prime(w) - e^{-w^2/2} wf_x(w) = e^{-w^2/2} b(w)
+\]
+Observing that the lefthand side takes the form of a derivative product rule, then 
+\[
+D_{t} \left[f_x(t) e^{-t^2/2} \right] = e^{-t^2/2} b(t),
+\] 
+where we have also changed variables from $w$ to $t$. We then integrate 
+\[
+\int_{w}^{\infty} D_{t} \left[f_x(t) e^{-t^2/2} \right] dt = \int_{w}^{\infty} e^{-t^2/2} b(t) dt,
+\]
+and apply the fundamental theorem of calculus to obtain 
+\[
+0 - f_x(w) e^{-w^2/2} = \int_{w}^{\infty} e^{-t^2/2} b(t) dt.
+\]
+Solving for $f_x(w)$ and plugging in the expression for $b(t)$ we obtain the particular solution 
+\[
+f_x^{\text{part}}(w) = e^{w^2/2} \int_{w}^{\infty} e^{-t^2/2} \left[\GaussianCDF(x) - \indicator{t \leq x}\right] dt.
+\]
+To find a basis for $\text{Null}(\steinOperator)$ we solve the homogenous equation $D_{w} \left[f_x(w) e^{-w^2/2} \right] = 0$. The derivative being zero implies the 
+antiderivative of the lefthand side must be a constant 
+\[
+f_x(w) e^{-w^2/2} = C,
+\]
+which means $f_x(w) = C e^{w^2/2}$. Therefore, the general solution is of the form 
+\[
+f_x(w) = e^{w^2/2} \int_{w}^{\infty} e^{-t^2/2} \left[\GaussianCDF(x) - \indicator{t \leq x}\right] dt + C e^{w^2/2}.
+\]
+It remains to show that this family of solutions contains a unique bounded solution. See \cite{Ross} lemma 2.2 for a proof that the choice $C = 0$ implies 
+a bounded solution with $\norm{f_x}_{\infty} \leq \sqrt{\pi/2}$, while all other values of $C$ imply unbounded solutions. 
+\end{proof}
 
-
-
+With lemma \ref{Gaussian_ODE_lemma} in hand, we are ready to proceed with the proof of Stein's lemma, theorem \ref{Steins_lemma}. 
 
 \begin{proof} \footnote{In this one-dimensional case, there is also a shorter proof that simply involves the application 
 				   of integration by parts to $\E f^\prime(Z)$ and the identity $\GaussianDens^\prime(x) = -x \GaussianDens(x)$, but the slightly
@@ -160,6 +213,15 @@ We have,
 &= \E Z f(Z) &&\E Z = 0
 \end{align*}
 
+Now, for the converse we know from \ref{Gaussian_ODE_lemma} that the ODE 
+\[
+f_x^\prime(w) - wf_x(w) = \indicator{w \leq x} - \GaussianCDF(x)
+\]
+has a unique bounded, absolutely continuous solution $f_x$ for each x. Under the assumption that $\E\left[f^\prime(W) - Wf_x(W)\right] = 0$ for all bounded, absolutely 
+continuous functions $f$ this implies the expectation of the lefthand side satisfies $\E_{w \sim W} \left[f_x^\prime(w) - wf_x(w)\right] = 0$. Therefore, for all $x$ the expectation 
+of the righthand side is also zero, which implies 
+\[\Prob(W \leq x) = \E_{w \sim W}\left[\indicator{w \leq x}\right] = \GaussianCDF(x).\]
+Since equality of distribution functions implies equality in distribution, we have $W \sim \Gaussian(0,1)$, which completes the proof. 
 \end{proof} 
 
 
