@@ -41,9 +41,12 @@
 \newcommand{\RKHS}{\mathcal{H}}
 \newcommand{\Ker}{k}
 \newcommand{\dataSpace}{\mathcal{X}}
+\newcommand{\dimSpace}{D}
 \newcommand{\meanEmb}[1]{\mu_{#1}}
 \newcommand{\MMD}{\text{MMD}}
 \newcommand{\MMDSpace}{\mathcal{F}}
+\newcommand{\rVec}{\mathbf{X}}
+\newcommand{\rVecTwo}{\mathbf{Y}}
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -342,10 +345,13 @@ $\RKHS$, and 2.) a useful practical expression of the MMD written in terms of $\
 
 \begin{lemma} 
 Let $\MMDSpace = \{f \in \RKHS: \norm{f}_{\RKHS} = 1\}$ where $\RKHS$ is the RKHS induced by a universal kernel $\Ker(\cdot, \cdot)$. Then, 
-\begin{enumerate}
-\item $\MMD(P, Q; \MMDSpace) = \norm{\meanEmb{P} - \meanEmb{Q}}_{\RKHS} = \norm{\E_{x \sim P}[\featureMap(x)] - \E_{y \sim Q}[\featureMap(y)]}_{\RKHS}$.
-\item $\MMD^2(P, Q; \MMDSpace) = \E_{x, x^\prime \sim P}\left[\Ker(x, x^\prime)\right] + \E_{y, y^\prime \sim P}\left[\Ker(y, y^\prime)\right] - 2 \E_{x \sim P}\E_{y \sim Q} \left[\Ker(x, y)\right]$
-\end{enumerate}
+\begin{align}
+\MMD(P, Q; \MMDSpace) = \norm{\meanEmb{P} - \meanEmb{Q}}_{\RKHS} = \norm{\E_{x \sim P}[\featureMap(x)] - \E_{y \sim Q}[\featureMap(y)]}_{\RKHS} \label{MMD_mean_embedding}
+\end{align}
+and
+\begin{align}
+\MMD^2(P, Q; \MMDSpace) = \E_{x, x^\prime \sim P}\left[\Ker(x, x^\prime)\right] + \E_{y, y^\prime \sim P}\left[\Ker(y, y^\prime)\right] - 2 \E_{x \sim P}\E_{y \sim Q} \left[\Ker(x, y)\right] \label{MMD_kernel}
+\end{align}
 \end{lemma}
 
 \begin{proof}
@@ -384,7 +390,25 @@ when $\MMDSpace$ is taken as the unit ball in an RKHS; namely, the MMD is the di
 $\featureMap(x)$ may capture complicated, non-linear structure in $x$; such structure is compared in the space $\RKHS$. The second result writes the MMD in terms of expectations 
 of kernels, something we can readily estimate given iid samples from $P$ and $Q$. 
 
+% Estimating MMD
 \subsubsection{Estimating MMD}
+
+% Specific MMD Examples
+\subsubsection{Specific MMD Examples}
+Here we present common choices for the kernel $\Ker(\cdot, \cdot)$, which lead to different instantiations of MMD. 
+
+\bigskip
+\noindent
+\textbf{Energy Distance.} Letting $\rVec$ and $\rVecTwo$ denote random vectors in $\R^\dimSpace$, we consider a kernel equal to the negative Euclidean distance between the vectors,
+\begin{align}
+\Ker(\rVec, \rVecTwo) := -\norm{\rVec - \rVecTwo}_2.
+\end{align}
+Plugging into \ref{MMD_kernel}, we then obtain the MMD 
+\begin{align}
+\MMD^2(P, Q; \MMDSpace) = 2 \E_{\rVec \sim P}\E_{\rVecTwo \sim Q}\norm{\rVec - \rVecTwo}_2. -  \E_{\rVec, \rVec^\prime \sim P}\norm{\rVec - \rVec^\prime}_2 -  \E_{\rVecTwo, \rVecTwo^\prime \sim P}\norm{\rVecTwo - \rVecTwo^\prime}_2. \label{energy_distance}
+\end{align}
+This is identical to the \textit{energy distance} defined, for example, in \cite{Mak}. 
+
 
 
 \section{References:}
@@ -402,7 +426,7 @@ of kernels, something we can readily estimate given iid samples from $P$ and $Q$
 problem. Technical Report 157, MPI for Biological Cybernetics, 2007.
 \bibitem{Muandet} Krikamol Muandet; Kenji Fukumizu; Bharath Sriperumbudur; Bernhard Schölkopf, Kernel Mean Embedding of Distributions: A Review and Beyond , now, 2017.
 \bibitem{Hofmann} Thomas Hofmann, Bernhard Schölkopf, Alexander J. Smola. "Kernel methods in machine learning." The Annals of Statistics, 36(3) 1171-1220 June 2008.
-
+\bibitem{Mak} Mak, Simon \& Joseph, V. Roshan. (2017). Support points. Annals of Statistics. 46. 10.1214/17-AOS1629. 
 \end{thebibliography}
 
 \end{document}

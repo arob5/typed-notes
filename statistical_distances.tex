@@ -33,6 +33,13 @@
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 
+% Specific to this document. 
+\newcommand{\rVec}{\mathbf{X}}
+\newcommand{\rVecTwo}{\mathbf{Y}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\dist}{P}
+\newcommand{\distApprox}{Q}
+
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
 \setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
@@ -392,18 +399,47 @@ they think is most likely, regardless of their true beliefs.
 
 \subsection{Continuous Ranked Probability Score}
 The continuous ranked probability score (CRPS) is a popular strictly proper scoring rule that applies to continuous random variables. It is defined as the $L^2$ error between the CDF $F$ of the predictive distribution and the 
-empirical distribution function (EDF) based on the observed outcome $x$. 
-\[\text{CRPS}(F, x) = -\int_{-\infty}^{\infty} \left(F(y) - 1\{x \leq y\} \right)^2 dy \]
+empirical distribution function (EDF) based on the observed outcome $x$
+\begin{align} 
+\text{CRPS}(F, x) = -\int_{-\infty}^{\infty} \left(F(y) - 1\{x \leq y\} \right)^2 dy. \label{CRPS}
+\end{align}
 As opposed to the logarithmic scoring rule, the CRPS has the advantage of being defined in terms of the CDF instead of the density, making it much more amenable to estimation via samples. It also depends on the predictive 
 distribution over all $y$, not just the predictive distribution at the value $x$. This allows the CRPS to take into account the quality of nearby predictions when assessing the forecast, which may be a desirable property. It can be 
 shown that the above integral is equivalent to 
-\[\text{CRPS}(F, x) = \frac{1}{2} \E_F \abs{X - X^\prime} - \E_F \abs{X - x}\]
+\begin{align}
+\text{CRPS}(F, x) = \frac{1}{2} \E_F \abs{X - X^\prime} - \E_F \abs{X - x}, \label{CRPS2}
+\end{align}
 where $X, X^\prime \overset{ind}{\sim} F$. The second term is simply the mean absolute error, meaning that large errors reduce the score (note the negative sign). The first term is a measure of spread in the forecast; this term 
 will be large when the spread in the forecast is small, rewarding confident predictions. Therefore, the CRPS can be seen as balancing prediction accuracy and confidence. 
 
 Closed-form expressions for CRPS: http://cran.nexr.com/web/packages/scoringRules/vignettes/crpsformulas.html
 
-
+\subsection{Energy Score}
+The \textit{energy score} is the multivariate generalization of the CRPS. Suppose now that we are considering distributions over $\R^D$. We directly generalize \ref{CRPS2} by defining the energy score
+\begin{align}
+\text{ES}(P, \bx) &= \frac{1}{2} \E_{\rVec, \rVec^\prime \sim P} \norm{\rVec - \rVec^\prime}_2 - \E_{\rVec \sim P}  \norm{\rVec - \bx}_2. 
+\end{align}
+This scoring rule is strictly proper and, moreover, the generalization 
+\begin{align}
+\text{ES}_{\beta}(P, \bx) &= \frac{1}{2} \E_{\rVec, \rVec^\prime \sim P} \norm{\rVec - \rVec^\prime}^\beta_2 - \E_{\rVec \sim P}  \norm{\rVec - \bx}^\beta_2
+\end{align}
+is strictly proper when $\beta \in (0, 2)$. We focus on the common $\beta = 1$ case. The expected energy score with respect to baseline distribution $Q$ is thus 
+\begin{align}
+\text{ES}_{\beta}(P, Q) := \E_{\bx \sim Q} \left[\text{ES}(P, \bx)\right] = \frac{1}{2} \E_{\rVec, \rVec^\prime \sim P} \norm{\rVec - \rVec^\prime}_2 - \E_{\rVec \sim P, \bx \sim Q}  \norm{\rVec - \bx}_2. \label{expected_ES}
+\end{align}
+It turns out that the expected energy score has close connections with the \textit{energy distance} defined, for example, in \cite{Mak}. To recover the energy distance, we recall the 
+divergence function associated with the score \text{ES}
+\begin{align}
+d_{\text{ES}}(P, Q) &= \text{ES}(Q, Q) - \text{ES}(P, Q),
+\end{align}
+where we note that $Q$ is interpreted as the true or baseline distribution here. We denote samples from $P$ and $Q$ as $\rVec \sim P$ and $\rVecTwo \sim Q$, respectively. 
+However, it turns out that in the special case of the energy score, this divergence will actually be symmetric. 
+Indeed, plugging in \ref{expected_ES} we find 
+\begin{align}
+d_{\text{ES}}(P, Q) &=  \E_{\rVec \sim P, \rVecTwo \sim Q}  \norm{\rVec - \rVecTwo}_2 - \frac{1}{2} \E_{\rVec, \rVec^\prime \sim P} \norm{\rVec - \rVec^\prime}_2 - \frac{1}{2} \E_{\rVecTwo, \rVecTwo^\prime \sim Q} \norm{\rVecTwo - \rVecTwo^\prime}_2,
+\end{align}
+which is precisely two times the energy distance, as defined in \ref{Mak}. It is shown in \ref{Mak} that the energy distance is a valid metric on probability distributions. Thus, the divergence function of the energy score actually induces a valid probability 
+metric, which is not the case in general. 
 
 \section{TODOs:}
 \begin{enumerate}
@@ -412,6 +448,16 @@ Closed-form expressions for CRPS: http://cran.nexr.com/web/packages/scoringRules
 \item Larry Wasserstein's intermediate statistics notes https://www.stat.cmu.edu/~larry/=stat705/Lecture27.pdf have a lot of good content, including MMD, integral probability metrics, f-divergences. 
 \item Good posts of TV and Hellinger distance: https://djalil.chafai.net/blog/2010/10/14/back-to-basics-total-variation-distance/
 \end{enumerate}
+
+% Bibliography
+\begin{thebibliography}{20}
+\bibitem{Gretton1} Arthur Gretton, Karsten M. Borgwardt, Malte Rasch, Bernhard Schölkopf, and Alexander J. Smola. 2006. A kernel method for the two-sample-problem. In Proceedings of the 19th International Conference on Neural Information Processing Systems (NIPS'06). MIT Press, Cambridge, MA, USA, 513–520.
+\bibitem{Gretton2} A. Gretton, K. Borgwardt, M. Rasch, B. Scholkopf, and A. Smola. A kernel method for the two sample
+problem. Technical Report 157, MPI for Biological Cybernetics, 2007.
+\bibitem{Muandet} Krikamol Muandet; Kenji Fukumizu; Bharath Sriperumbudur; Bernhard Schölkopf, Kernel Mean Embedding of Distributions: A Review and Beyond , now, 2017.
+\bibitem{Hofmann} Thomas Hofmann, Bernhard Schölkopf, Alexander J. Smola. "Kernel methods in machine learning." The Annals of Statistics, 36(3) 1171-1220 June 2008.
+\bibitem{Mak} Mak, Simon \& Joseph, V. Roshan. (2017). Support points. Annals of Statistics. 46. 10.1214/17-AOS1629. 
+\end{thebibliography}
 
 \end{document}
 
