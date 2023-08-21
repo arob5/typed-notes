@@ -25,6 +25,7 @@
 \newcommand{\Log}[1]{\log\mathopen{}\left\{#1\right\}\mathclose{}}
 \newcommand{\BigO}{\mathcal{O}}
 \newcommand{\indicator}[1]{\mathbb{I}[#1]}
+\newcommand{\indicatorSub}[1]{\mathbb{I}_{#1}} % Subscript indicator notation
 
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
@@ -34,6 +35,9 @@
 % Linear algebra.
 \newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
 \newcommand{\bx}{\mathbf{x}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bX}{\mathbf{X}}
+\newcommand{\bY}{\mathbf{Y}}
 \newcommand{\bw}{\mathbf{w}}
 \newcommand{\oneVec}[1][]{\boldsymbol{1}_{#1}}
 \newcommand{\idMat}{\mathbf{I}}
@@ -41,22 +45,31 @@
 \newcommand{\bK}{\mathbf{K}}
 \newcommand{\ba}{\mathbf{a}}
 
+
 % Probability. 
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\Var}{\mathrm{Var}}
 \newcommand{\Cov}{\mathrm{Cov}}
 \newcommand{\Prob}{\mathbb{P}}
+\newcommand{\CDF}{F}
 \newcommand{\Gaussian}{\mathcal{N}}
 \newcommand{\GaussianDens}{\phi}
 \newcommand{\GaussianCDF}{\Phi}
 
 % Stein/Kernels. 
 \newcommand{\Ker}{k}
-\newcommand{\functionSpace}{\mathcal{F}}
+\newcommand{\functionSpace}{\mathcal{F}} % Generic function space
+\newcommand{\IPMClass}{\mathcal{F}} % Space of functions used to define integral probability metric 
+\newcommand{\steinClass}{\mathcal{G}}
+\newcommand{\RKHS}{\mathcal{H}}
+\newcommand{\fIPM}{f} % Function in the class used to define integral probability metric. 
+\newcommand{\fStein}{g} % Function in the Stein class
 \newcommand{\steinOperator}{\mathcal{A}}
 \newcommand{\dist}{P}
 \newcommand{\distApprox}{Q}
 \newcommand{\steinDisc}{\mathcal{S}}
+\newcommand{\metric}{d}
+\newcommand{\Dim}{D}
 
 \setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
 \setlist[1]{leftmargin=\parindent}
@@ -241,11 +254,11 @@ In this section we generalize Stein's lemma to non-standard univariate normal di
 Having demonstrated Stein's lemma in various Gaussian settings, we now introduce more generic notation and the framework which will be quite useful going forward. Returning to 
 the $\Gaussian(0, 1)$ setting recall the characterizing equation \ref{characterizing_Gaussian_eqn} for the Gaussian distribution, 
 \[
-\E\left[f^\prime(Z) - Z f(Z) \right] = 0, \text{ for all } f \in \functionSpace
+\E\left[f^\prime(Z) - Z f(Z) \right] = 0, \text{ for all } f \in \steinClass
 \]
 where $\functionSpace$ is the set of all absolutely continuous functions. We note that this can equivalently be written as 
 \begin{align}
-\E\left[(\steinOperator f)(Z) \right] = 0, \text{ for all } f \in \functionSpace, \label{Stein_characterizing_relation}
+\E\left[(\steinOperator f)(Z) \right] = 0, \text{ for all } f \in \steinClass, \label{Stein_characterizing_relation}
 \end{align}
 where 
 \begin{align}
@@ -253,12 +266,12 @@ where
 \end{align}
 Notice that $\steinOperator$ is a \textit{linear operator}; it maps functions to functions. In this case the function $f(x)$ is mapped to the new function 
 $f^\prime(x) - xf(x)$. The linearity of $\steinOperator$ follows immediately from linearity of differentiation. In the literature, $\steinOperator$ is referred to as 
-a \textit{Stein operator}, $\functionSpace$ the Stein class, and \ref{Stein_characterizing_relation} the \textit{Stein characterizing relation}, respectively. We have 
+a \textit{Stein operator}, $\steinClass$ the Stein class, and \ref{Stein_characterizing_relation} the \textit{Stein characterizing relation}, respectively. We have 
 presented specific instantiations of these objects in the case of Gaussian distributions, but different Stein operator-Stein class pairs can be found to establish 
 characterizing relations for many different distributions $\dist$. Perhaps a more useful way to state the Stein characterizing relation for distribution $\dist$
  is
  \begin{align}
- \distApprox = \dist \iff \E_{X \sim \distApprox} \left[(\steinOperator f)(X) \right] = 0 \text{ for all } f \in \functionSpace, \label{Stein_characterizing_relation_2}
+ \distApprox = \dist \iff \E_{X \sim \distApprox} \left[(\steinOperator f)(X) \right] = 0 \text{ for all } f \in \steinClass, \label{Stein_characterizing_relation_2}
  \end{align}
  where $\distApprox$ is any other probability distribution. The relation \ref{Stein_characterizing_relation_2} provides us a binary test for equality in distribution; 
  the power of Stein's method will come from the connection of this idea to a notion of distance between probability distributions. This will allow for a more 
@@ -269,7 +282,10 @@ characterizing relations for many different distributions $\dist$. Perhaps a mor
 % Stein Discrepencies
 \section{Stein Discrepancies}
 In this section, we make the crucial step of connecting Stein's lemma to the notion of \textit{probability metrics}, distance functions that quantify discrepancy between 
-probability distributions. 
+probability distributions. In particular, for a target distribution $\dist$, Stein's lemma states that $\E_{X \sim \distApprox} \left[(\steinOperator f)(X) \right] = 0$ if and only if 
+$\dist = \distApprox$. We seek to go a step farther, providing a method to quantify the distance between $\dist$ and $\distApprox$. For example, if 
+$\E_{X \sim \distApprox} \left[(\steinOperator f)(X) \right]$ is non-zero but small for all functions $f \in \steinClass$ it is reasonable to think that this might imply that 
+$\dist$ and $\distApprox$ are ``close''. 
 
 \subsection{Introduction}
 The Stein characterizing relation \ref{Stein_characterizing_relation_2} points towards a seemingly reasonable notion of discrepancy between target distribution $\dist$ and 
@@ -279,7 +295,7 @@ any other distribution $\distApprox$.
 Let $\dist$ be a probability distribution with Stein operator $\steinOperator$ and Stein class $\functionSpace$. Let $\distApprox$ be another probability distribution. 
 The \textbf{Stein discrepancy} between $\dist$ and $\distApprox$ is defined as 
 \begin{align}
-\steinDisc(\dist, \distApprox) := \sup_{f \in \functionSpace} \norm{\E_{X \sim \distApprox} \left[(\steinOperator f)(X) \right]},
+\steinDisc(\dist, \distApprox) := \sup_{f \in \steinClass} \norm{\E_{X \sim \distApprox} \left[(\steinOperator f)(X) \right]},
 \end{align}
 \end{definition}
 Here, $\norm{\cdot}$ is a valid norm; if we are considering univariate distributions then this is often just absolute value, but the above definition applies to multivariate distributions 
@@ -290,7 +306,99 @@ must establish connections between $\steinDisc$ and valid probability metrics. I
 interest. There are many flavors of probability metrics, and it turns out that Stein discrepancies share a close connection with a particular class of metrics, known as integral probability 
 metrics. 
 
+% Integral Probability Metrics
 \subsection{Integral Probability Metrics}
+Integral probability metrics define the distance between $\dist$ and $\distApprox$ by considering the difference between expectations computed using the two distributions over a 
+family of test functions $\IPMClass$. 
+\begin{definition}
+The \textbf{integral probability metric (IPM)} associated with a set of test functions $\IPMClass$ is defined as 
+\begin{align}
+\metric(\dist, \distApprox; \IPMClass) 
+&:= \sup_{f \in \IPMClass} \abs{\int f(x) P(dx) - \int f(y) Q(dy) } \\
+&= \sup_{f \in \IPMClass} \abs{\E_{X \sim P}\left[f(X)\right] - \E_{Y \sim Q}\left[f(Y)\right] }
+\end{align}
+\end{definition}  
+In order to be a valid metric on the space of probability distributions, the space $\IPMClass$ must be rich enough to guarantee 
+$\metric(\dist, \distApprox; \IPMClass) \iff P = Q$. Different choices of $\IPMClass$ prioritize different features of the distributions and yield 
+different IBMs. Some common examples are given below. 
+\begin{enumerate}
+\item \textbf{The Kolmogorov Metric.} Consider the class of indicator functions 
+\[
+ \IPMClass = \{\indicatorSub{(\infty, \bx]}(\cdot) : \bx \in \R^{\Dim} \},
+\]
+where 
+\[
+\indicatorSub{(\infty, \bx]}(\by) := \indicator{y_1 \leq x_1, \dots, y_{\Dim} \leq x_{\Dim}}.
+\]
+This choice induces the metric 
+\begin{align*}
+\metric_{\text{Kol}}(\dist, \distApprox) 
+&:= \sup_{\fIPM \in \IPMClass} \abs{\E_{X \sim P}\left[\fIPM(X)\right] - \E_{Y \sim Q}\left[\fIPM(Y)\right] } \\
+&= \sup_{\bx \in \R^{\Dim}} \abs{\Prob(\bX \leq \bx) - \Prob(\bY \leq \bx) } \\
+&= \sup_{\bx \in \R^{\Dim}} \abs{\CDF_{\bX}(\bx) - \CDF_{\bY}(\bx) }.
+\end{align*}
+This distance, known as the \textit{Kolmogorov metric}, simply measures the maximum distance between the distribution functions of the two distributions. 
+Note that establishing a bound on $\metric_{Kol}(\dist, \distApprox; \IPMClass)$ is equivalent to uniformly bounding (over all $\bx \in \R^{\Dim}$) the distance between 
+the two distribution functions. Thus, establishing convergence in the Kolmogorov metric is equivalent to establishing convergence in distribution. 
+
+\item \textbf{The 1-Wasserstein Metric.} Consider the class of 1-Lipschitz functions (i.e. the class of contractions) 
+\[
+ \IPMClass = \{\fIPM: \R^{\Dim} \to \R : \abs{\fIPM(\bx) - \fIPM(\by)} \leq \norm{\bx - \by}_{2} \}.
+\]
+This choice induces a distance $\metric_W(\cdot, \cdot)$ known as the \textit{Wasserstein metric}, which also has a useful interpretation in terms of measure transport. If $\Dim = 1$ one can show that 
+\[
+\metric_W(\dist, \distApprox) = \int \abs{\CDF_X(t) - \CDF_Y(t)} dt.
+\]
+[\textbf{TODO}: check]
+Thus, while $\metric_{\text{Kol}}(\dist, \distApprox)$ measures the maximal distance between the distribution functions, in one dimension $\metric_W(\dist, \distApprox)$ measures the \textit{integrated} 
+distance between them. While this characterization does not hold for $\Dim > 1$, one can still establish other connections between these two IPMs. In particular, one can show that bounding 
+the 1-Wasserstein distance implies a bound on the Kolmogorov distance. Another useful property is that convergence in Wasserstein distance implies convergence in mean. Indeed, consider the function
+$\fIPM(\bx) = \bx_j$ for $1 \leq j \leq \Dim$. Then 
+\[
+\abs{\fIPM(\bx) - \fIPM(\by)}^2 = \abs{\bx_j - \by_j}^2 \leq \norm{\bx - \by}_2^2,
+\]
+which, by taking square roots of each side, shows that $\fIPM$ is 1-Lipschitz. Thus, convergence in Wasserstein distance implies convergence of each marginal mean, and hence convergence in mean. 
+
+\item \textbf{Total Variation Metric.} Consider the class of indicator functions of Borel sets
+\[
+\IPMClass = \{\indicatorSub{B}(\cdot) : B \text{ is a Borel set} \}.
+\]
+The induces the \textit{total variation (TV)} metric 
+\begin{align*}
+\metric_{\text{TV}}(\dist, \distApprox) 
+&:= \sup_{\fIPM \in \IPMClass} \abs{\E_{X \sim P}\left[\fIPM(X)\right] - \E_{Y \sim Q}\left[\fIPM(Y)\right] } \\
+&=  \sup_{B} \abs{\Prob(\bX \in B) - \Prob(\bY \in B) }. \\
+\end{align*}
+
+\item \textbf{Maximum Mean Discrepancy.} Finally, let $\Ker(\cdot, \cdot)$ be a kernel with associated reproducing kernel Hilbert space (RKHS) $\RKHS$. 
+Consider the function class, 
+\begin{align*}
+\IPMClass &= \{\fIPM \in \RKHS : \norm{\fIPM}_{\RKHS} \leq 1\},
+\end{align*}
+that is, the unit ball of the RKHS. The induced metric is called the maximum mean discrepancy (MMD) and will be discussed in more depth later on. 
+
+% The Stein Equation
+\subsection{The Stein Equation}
+We now make the connection between Stein discrepancies and IPMs. The formal link is made via the \textit{Stein equation}, as defined below. 
+\begin{definition}
+Let $\dist$ be a distribution with Stein operator $\steinOperator$ and Stein class $\steinClass$. Moreover, let $\functionSpace \subset L^1(\dist)$ be a set of functions 
+which induces an IPM $\metric_{\functionSpace}(\cdot, \cdot)$. The \textbf{Stein equation} associated with these objects is defined as 
+\begin{align}
+(\steinOperator \fStein)(x) &= \fIPM(x) - \E_{X \sim \dist}\left[\fIPM(X) \right],
+\end{align}
+where $\fStein \in \steinClass$ and $\fIPM \in \functionSpace$. 
+\end{definition}
+Notice the similarity of this definition to the ODE defined in \ref{Gaussian_ODE}. The lefthand sides are equal, while the Stein equation has generalized the ODE by replacing 
+the indicator function by a function $\fIPM \in \IPMClass$. To motivate why this might be a reasonable definition to investigate the relationship between Stein discrepancies and 
+IPMs, take the expectation of each side with respect to another distribution $\distApprox$,
+\begin{align*}
+\E_{x \sim \distApprox}\left[(\steinOperator \fStein)(x) \right] &= \E_{x \sim \distApprox}\left[\fIPM(x) \right] - \E_{X \sim \dist}\left[\fIPM(X) \right]. 
+\end{align*}
+We know from Stein's lemma that the lefthand side is zero if $\dist = \distApprox$. We also know from the definition of the IPM that the righthand side is zero if $P = Q$. 
+However, the IPM provides more information in quantifying a sense of closeness between the distributions. By providing a link to the Stein characterization, the Stein equation 
+allows the translation of these properties to the Stein discrepancy.  
+
+\end{enumerate}
 
 
 % Bibliography
