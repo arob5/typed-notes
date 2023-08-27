@@ -61,7 +61,7 @@ $M << N$ so-called pseudo data points (which may or may not be a subset of the o
 of $M$, rather than as $N^3$. When $M$ is much smaller than $N$ this can result in large computational gains, at the cost of some approximation error.
 
 % Background
-\section{Background}
+\section{Some Useful Tools}
 
 % Factor Graphs
 \subsection{Factor Graphs} 
@@ -262,6 +262,53 @@ only at the sampling locations (not the desired complete approximate eigenvector
 \item \href{https://stats.stackexchange.com/questions/261149/nystroem-method-for-kernel-approximation}{Nice post}; add this as an alternative derivation. 
 \item First consider case that $\kerMat$ is actually rank $R$. 
 \end{enumerate}
+
+% The Woodbury Matrix Identity 
+\subsection{The Woodbury Matrix Identity}
+We begin by stating the so-called \textit{Woodbury matrix identity} or alternatively the \textit{matrix inversion identity} and then discuss how it can be applied to GPs. 
+
+\begin{prop} (Stuart et al, Lemma 8.6) \label{Woodbury}
+Let $A \in \R^{p \times p}$, $U \in \R^{p \times q}$, $B \in \R^{q \times q}$, $V \in \R^{q \times p}$. If $A$ and $B$ are positive definite then $A + UBV$ is invertible 
+and 
+\[(A + UBV)^{-1} = A^{-1} - A^{-1} U\left(B^{-1} + VA^{-1}U\right)^{-1}VA^{-1}\]
+\end{prop}
+Now, how is this useful in this setting? Recall that many of the computational difficulties for GPs stem from performing expensive matrix operations on the dense 
+kernel matrix $\kerMat$. Various GP approximation methods discussed in this paper seek to accelerate these operations by replacing $\kerMat$
+with a sparse, or low-rank, approximation $\kerMatApprox \approx \kerMat$. Approximate kernel matrices often take the form of an outer product of a basis matrix 
+$\kerBasisMat \in \R^{\Ndesign \times \NpseudoData}$,
+\begin{align}
+\kerMatApprox = \kerBasisMat \kerBasisMat^\top. \label{basis_approx}
+\end{align}
+The basis matrix $\kerBasisMat$ may result from a direct approximation of a basis representation of the kernel function (e.g. random Fourier features). Alternatively, it may result 
+from a combination of applying the Nystrom approximation with inducing points. Indeed, consider an inducing point design $\designMatInducing \in \R^{\NpseudoData \times \inputDim}$ 
+with corresponding kernel matrix $\kerMatInducing = \GPKer(\designMatInducing)$. Similarly, denote the cross-covariances between the design and inducing points as 
+$\crossCovInducing = \GPKer(\designMat, \designMatInducing)$. The Nystrom approximation then produces
+\begin{align}
+\kerMat \approx \kerMatApprox := \crossCovInducing \kerMatInducing^{-1} \crossCovInducing^\top. \label{inducing_approx}
+\end{align}
+To see that \ref{inducing_approx} can also be written in the form \ref{basis_approx}, note that the Cholesky decomposition gives $\kerMatInducing^{-1} = \mathbf{L} \mathbf{L}^\top$. Then, 
+$ \crossCovInducing \kerMatInducing^{-1} \crossCovInducing^\top = \kerBasisMat \kerBasisMat^\top$ where $\kerBasisMat = \crossCovInducing \mathbf{L}$.
+
+Our goal is now to show that the Woodbury identity can leverage low-rank basis representation \ref{basis_approx} to produce faster GP training and predictions. The key computational savings 
+come from cheaper approximations of the expensive $\BigO(\Ndesign^3)$ operations of computing matrix inverses and determinants. We begin by addressing the former by applying the 
+Woodbury identity to the low-rank approximation of the inverse kernel matrix. 
+\begin{align*}
+\left(\kerMat + \nugget \I[\Ndesign] \right)^{-1} &\approx \left(\kerBasisMat \kerBasisMat^\top + \nugget \I[\Ndesign] \right)^{-1} = \nugget^{-2} \left[\I[\Ndesign] - \kerBasisMat \left(\kerBasisMat^\top \kerBasisMat + \nugget^2 \I[\NpseudoData] \right) \kerBasisMat^\top \right] 	\end{align*}
+
+
+
+
+
+
+
+Recall the GP predictive equations, 
+\begin{align}
+\GPMeanPred[\Ndesign](\predictMat) &= \GPMean(\predictMat) + \GPKer(\predictMat, \designMat) \left(\kerMat + \nugget^2 \I[\Ndesign] \right)^{-1} \left(\yObs - \GPMean(\designMat) \right) \\
+\GPKerPred[\Ndesign](\predictMat) &= \GPKer(\predictMat) - \GPKer(\predictMat, \designMat) \left(\kerMat + \nugget^2 \I[\Ndesign] \right)^{-1} \GPKer(\designMat, \predictMat)
+\end{align}
+Plugging in the 
+
+
 
 
 % Local Approximate GPs

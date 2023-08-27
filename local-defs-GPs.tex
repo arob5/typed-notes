@@ -11,6 +11,9 @@
 \newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
 \newcommand{\R}{\mathbb{R}}
 \newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\Exp}[1]{\exp\mathopen{}\left\{#1\right\}\mathclose{}}
+\newcommand{\Log}[1]{\log\mathopen{}\left\{#1\right\}\mathclose{}}
+\newcommand{\BigO}{\mathcal{O}}
 
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
@@ -20,6 +23,7 @@
 % Linear algebra.
 \newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
 \newcommand{\oneVec}[1]{\boldsymbol{1}_{#1}}
+\newcommand{\I}[1][]{\mathbf{I}_{#1}}
 \newcommand{\bu}{\mathbf{u}} 
 \newcommand{\bv}{\mathbf{v}} 
 \newcommand{\bW}{\mathbf{W}} 
@@ -48,7 +52,10 @@
 \newcommand{\designIdx}{n} % The primary variable to index the design/training points. 
 \newcommand{\Ndesign}{N} % Number of observed data points (i.e. design points)
 \newcommand{\designMat}{\mathbf{X}} % Matrix of input design points.  
-\newcommand{\fObs}[1][\designIdx]{\mathbf{\f}_{#1}} % Vector of observed target function evaluations.  
+\newcommand{\predictMat}{\tilde{\mathbf{X}}}
+\newcommand{\fObs}[1][]{\mathbf{\f}_{#1}} % Vector of observed target function evaluations.  
+\newcommand{\yObs}[1][]{\mathbf{y}_{#1}} % Vector of (potentially noisy) observations. 
+\newcommand{\nugget}{\tau}
 \newcommand{\GPMean}{\mu} % Generic GP prior mean function
 \newcommand{\GPKer}{k} % Generic GP prior covariance function
 \newcommand{\designData}{\mathcal{D}} % Set of training/design inputs and responses  
@@ -58,6 +65,10 @@
 
 % Scalable/approximate GPs
 \newcommand{\NpseudoData}{M} % Number of pseudo-data points/inducing points. 
-
+\newcommand{\kerMatApprox}{\hat{\mathbf{K}}} % Approximation to the kernel matrix.
+\newcommand{\kerBasisMat}{\boldsymbol{\Phi}} % Basis matrix, outer product of this matrix produces kernel matrix approximation. 
+\newcommand{\designMatInducing}{\mathbf{U}} % Matrix of inducing points/pseudoinputs. 
+\newcommand{\kerMatInducing}{\mathbf{K}_{\NpseudoData}}
+\newcommand{\crossCovInducing}{\mathbf{K}_{\Ndesign \NpseudoData}}
 
 
