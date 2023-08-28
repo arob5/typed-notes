@@ -293,7 +293,7 @@ Our goal is now to show that the Woodbury identity can leverage low-rank basis r
 come from cheaper approximations of the expensive $\BigO(\Ndesign^3)$ operations of computing matrix inverses and determinants. We begin by addressing the former by applying the 
 Woodbury identity to the low-rank approximation of the inverse kernel matrix. 
 \begin{align*}
-\left(\kerMat + \nugget \I[\Ndesign] \right)^{-1} &\approx \left(\kerBasisMat \kerBasisMat^\top + \nugget \I[\Ndesign] \right)^{-1} = \nugget^{-2} \left[\I[\Ndesign] - \kerBasisMat \left(\kerBasisMat^\top \kerBasisMat + \nugget^2 \I[\NpseudoData] \right) \kerBasisMat^\top \right] 	\end{align*}
+\left(\kerMat + \nugget \I[\Ndesign] \right)^{-1} &\approx \left(\kerBasisMat \kerBasisMat^\top + \nugget \I[\Ndesign] \right)^{-1} = \nugget^{-2} \left[\I[\Ndesign] - \kerBasisMat \left(\kerBasisMat^\top \kerBasisMat + \nugget^2 \I[\NpseudoData] \right)^{-1} \kerBasisMat^\top \right] 	\end{align*}
 
 
 
@@ -330,7 +330,7 @@ Plugging in the
 \bibitem{Schölkopf} B. Schölkopf, A. Smola and K. Müller, "Nonlinear Component Analysis as a Kernel Eigenvalue Problem," in Neural Computation, vol. 10, no. 5, pp. 1299-1319, 1 July 1998, doi: 10.1162/089976698300017467.
 \bibitem{Schwaighofer} Anton Schwaighofer and Volker Tresp. 2002. Transductive and inductive methods for approximate Gaussian process regression. In Proceedings of the 15th International Conference on Neural Information Processing Systems (NIPS'02). MIT Press, Cambridge, MA, USA, 977–984.
 \bibitem{Snelson} Snelson, Edward and Ghahramani, Zoubin. Sparse Gaussian Processes using Pseudo-inputs. Advances in Neural Information Processing Systems. % This is essentially coresets for GPs. 
-
+\bibitem{Katzfuss} Katzfuss, Matthias & Guinness, Joseph & Lawrence, Earl. (2020). Scaled Vecchia approximation for fast computer-model emulation. 
 \end{thebibliography}
 
 \end{document}
