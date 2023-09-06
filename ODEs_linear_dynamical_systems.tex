@@ -35,6 +35,11 @@
 \newcommand{\bw}{\mathbf{w}}
 \newcommand{\be}{\mathbf{e}}
 
+% Differential Equations
+\newcommand{\state}{x}
+\newcommand{\stateb}{\mathbf{x}}
+
+
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
@@ -294,12 +299,71 @@ The convention is to just write this as
 \[\frac{1}{21} e^{-5t} + C_1 e^{2t} + C_2 e^{4t}  \]
 \textbf{TODO}: add some initial conditions. 
 
+% Harmonic Oscillator
+\subsection{The Harmonic Oscillator}
+While we have mostly been focusing on big ideas, we take a bit of time here to discuss solutions to a specific second order ODE, the harmonic oscillator. 
+Just as $\dot{\state} = \lambda \state$ is the canonical first order ODE with closed-form solutions, the simple harmonic oscillator enjoys a similar status 
+among second order ODEs.To motivate this system from a physical perspective, consider a mass $m$ attached to a horizontal (so that we can ignore 
+gravity) spring. We let the state $\state$ denote the horizontal displacement from the steady-state position of rest, with a positive sign indicating displacement 
+to the right. Hooke's law states the empirical observation that the displacement of the mass is proportional to the force applied,
+\[F \propto -\state.\]
+The negative sign captures the intuitive notion that the restoring force of the spring is in the opposite direction of the displacement. 
+This proportionality is typically expressed by introducing a constant $k$ such that $F = -k \state$, where the \textit{spring constant} $k$ depends on the stiffness 
+properties of the spring. Applying Newton's second law, we obtain 
+\[F = ma = m\ddot{x} = -k \state\]
+We thus arrive at the differential equation 
+\begin{align}
+m\ddot{x} + k \state = 0.
+\end{align}
+Here we will often simplify matters by considering unit spring constant $k = 1$. We also add some boundary conditions by assuming the initial 
+displacement is $\state_0$ and that the mass starts at rest. These assumptions yields the initial value problem  
+\begin{align}
+&m \ddot{x} + \state = 0, && \state_0 := \state(0), v_0 := \dot{\state}(0) = 0. \label{harmonic_oscillator}
+\end{align}
+We could have also motivated this equation in many other ways, for example by considering the motion of pendulums (with small period of oscillation) instead of springs. 
+As hinted at, this second order ODE has a closed-form solution. Given the fundamental importance of this equation, we consider multiple solution methods. 
+
+\subsubsection{Closed-Form Solution}
+
+\textbf{Method 1: Guess.} Using some intuition is a good place to start. Given our physical intuition that the spring will oscillate, it is reasonable to think that the solution
+will involve sines and cosines. This also aligns with out mathematical intuition, since \ref{harmonic_oscillator} tells us that the solution $\state(t)$ must be a function that 
+whose (scaled) second derivative cancels out the function itself. Now, should the solution be a pure sine wave, pure cosine wave, or a mixture of the two. Well, if 
+$\state_0 = 0$ then we know the sine wave satisfies the initial condition since $\sin(0) = 0$. However, if the $\state_0 \neq 0$ then we must consider a cosine way to 
+achieve the non-zero initial condition.
+ Let's consider the more general latter case. To satisfy the initial displacement condition we must consider $\state_0 \cos(t)$.
+ Thus, proposing the solution $\state(t) = \state_0 \cos(t)$ and plugging into the lefthand side of 
+\ref{harmonic_oscillator} yields $\state_0 (1 - m)\cos(t)$, which is non-zero except when $m = 1$. To correct for the mass constant, we instead posit the solution 
+$\state(t) = \state_0 \cos\left(\frac{t}{\sqrt{m}}\right)$. Plugging this in to the lefthand side of \ref{harmonic_oscillator} now gives zero, as required. All that is left is to 
+check the initial velocity condition. We have 
+\[
+\dot{\state}(0) = - \state_0 \sin\left(0\right) = 0, 
+\]
+which satisfies the initial condition. We have thus found the solution to the initial value problem to be
+\[
+\state(t) = \state_0 \cos\left(\frac{t}{\sqrt{m}}\right),
+\]
+
+
+
 % Numerical Methods for Solving General ODEs
 \section{Numerical Methods for Solving General ODEs}
 
 \subsection{Forward Euler}
 Introduce in the intuitive way of simply stepping in the direction of the gradient. Also emphasize the alternative derivation based on discretizing the integral used to 
 step forward in time. 
+
+% Prep for Multiscale methods course
+\section{Prep for Multiscale Methods Course}
+\begin{itemize}
+\item Generic solution of ODE as an integral (see Brunton and Saarka)
+\item Multiple ways to solve $\dot{x} = ax$. 
+\item Fourier series solution of the heat equation (see Stanford course notes). 
+\item Basic numerical solution of ODEs. 
+\item Strogatz lecture on WKB; motivating example of simple harmonic oscillator
+\end{itemize}
+
+
+
 
 
 \end{document}
