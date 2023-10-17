@@ -325,7 +325,7 @@ As hinted at, this second order ODE has a closed-form solution. Given the fundam
 
 \subsubsection{Closed-Form Solution}
 
-\textbf{Method 1: Guess.} Using some intuition is a good place to start. Given our physical intuition that the spring will oscillate, it is reasonable to think that the solution
+\textbf{Method 1: Guess sinusoids.} Using some intuition is a good place to start. Given our physical intuition that the spring will oscillate, it is reasonable to think that the solution
 will involve sines and cosines. This also aligns with out mathematical intuition, since \ref{harmonic_oscillator} tells us that the solution $\state(t)$ must be a function that 
 whose (scaled) second derivative cancels out the function itself. Now, should the solution be a pure sine wave, pure cosine wave, or a mixture of the two. Well, if 
 $\state_0 = 0$ then we know the sine wave satisfies the initial condition since $\sin(0) = 0$. However, if the $\state_0 \neq 0$ then we must consider a cosine way to 
@@ -340,8 +340,78 @@ check the initial velocity condition. We have
 \]
 which satisfies the initial condition. We have thus found the solution to the initial value problem to be
 \[
-\state(t) = \state_0 \cos\left(\frac{t}{\sqrt{m}}\right),
+\state(t) = \state_0 \cos\left(\frac{t}{\sqrt{m}}\right).
 \]
+Note that we can easily generalize this solution to the case of non-unit spring constant $k$. Assuming $k \neq 0$ we can divide through by $k$ to obtain the ODE
+\[
+\frac{m}{k} \ddot{x} + \state = 0,
+\]
+which is in the same form as the problem we just solved. Thus, the solution in this more general case is 
+\[
+\state(t) = \state_0 \cos\left(\sqrt{\frac{k}{m}} t \right).
+\]
+The $\sqrt{\frac{k}{m}}$ term here is the \textit{natural frequency}, which depends on the stiffness of the spring and the mass of the object. The system will 
+complete one full oscillation in $2\pi \frac{m}{k}$ units of time. Note that $\omega := \frac{m}{k}$ is often referred to as the \textit{angular frequency}. 
+Finally, note that this cosine solution cannot accommodate any non-zero initial velocity $v_0 := \dot{\state}(0)$. To generalize to this case, a natural guess would 
+be that we must introduce a sine wave. Indeed, this is the case and the general solution can be seen to be
+\[
+\state(t) = \state_0 \cos\left(\sqrt{\frac{k}{m}} t \right) + v_0  \sqrt{\frac{m}{k}} \sin\left(\sqrt{\frac{k}{m}} t  \right)
+\]
+
+\bigskip
+\noindent
+\textbf{Method 2: Guess exponential.} We know that another reasonable guess when we want derivatives of functions to look like the functions themselves is 
+the exponential. However, we know that this system experiences oscillation, not exponential growth or decay; thus, the exponential under consideration here 
+will be of the complex variety. Since Euler's formula states
+\[
+e^{it} = \cos(t) + i \sin(t),
+\]
+the complex exponential is essentially a different way to package the cosine and sine terms we discovered using the previous method. To this end, let us 
+suppose the solution of
+\begin{align*}
+&\ddot{\state} + \state = 0, && \state(0) = x_0, \dot{\state}(0) = v_0 
+\end{align*}
+is of the form $\state(t) = e^{\lambda t}$. Again, we are anticipating $\lambda$ to be a complex number here. Note that we are again taking $m = k = 1$ for simplicity, 
+but this can easily be generalized. Computing the first two derivatives of $\state(t)$ and plugging into the ODE yields 
+\[
+\lambda^2 e^{\lambda t} + e^{\lambda t} = 0, 
+\]
+or $\lambda^2 = -1$. Thus, we have imaginary solutions $\lambda = \pm i$. Since this ODE is linear, then by superposition, linear combinations of solutions remain 
+solutions. Thus, the solution is of the form 
+\[
+\state(t) = C_1 e^{it} + C_2 e^{-it},
+\]
+for some, potentially complex, constants $C_1 = a_1 + b_1 i$, $C_2 = a_2 + b_2 i$. It remains to find $C_1$ and $C_2$ by plugging in the initial conditions. 
+Note that since the ODE solution is real, then the imaginary part of the solution must necessarily be zero. We will see how this plays out in the algebra. 
+Initial position and velocity conditions give 
+\begin{align*}
+\state(0) &= C_1 + C_2 &&\implies &&&C_1 + C_2 = \state_0 \\
+\dot{\state}(0) &= i C_1 - i C_2 &&\implies &&&i(C_2 - C_1) = v_0.
+\end{align*}
+To solve the system of equations on the righthand side we equate the real and imaginary parts. This gives another system of equations 
+\begin{align*}
+(a_1 + a_2) + (b_1 + b_2)i &= x_0 \\
+(a_1 - a_2)i - (b_1 - b_2) &= v_0.
+\end{align*}
+Since the imaginary term must vanish to achieve a real solution, we have the additional constraints $b_1 + b_2 = 0$ and $a_1 - a_2 = 0$. We now have four independent 
+linear equations in four unknowns, which can be solved to obtain 
+\begin{align*}
+&a_1 = \frac{x_0}{2}, a_2 = \frac{x_0}{2} \\
+&b_1 = -\frac{v_0}{2}, b_2 = \frac{v_0}{2}.
+\end{align*}
+With the constants determined, we have solved the problem. Let us now apply Euler's formula to write the solution in terms of sines and cosines in order to see that it 
+is equivalent to the solution previously found. We have 
+\begin{align*}
+\state(t) &= C_1 e^{it} + C_2 e^{-it} \\
+	    &= \left[C_1 + C_2\right] \cos(t) + \left[ C_1 - C_2\right]i \sin(t) \\
+	    &= \state_0 \cos(t) + v_0 \sin(t),
+\end{align*}
+which agrees with the previous solution! 
+
+\bigskip
+\noindent
+\textbf{Method 3: Suspend Variables.} For the final approach, we consider extending the state space to include the velocity $v$ as an additional state. 
+
 
 
 

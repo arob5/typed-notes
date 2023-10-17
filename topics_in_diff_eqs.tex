@@ -18,10 +18,7 @@
 \pgfplotsset{compat=1.8}
 \usepackage{tikz}
 
-%
 % Custom Commands
-%
-
 \newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
 \newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
 \newcommand*{\suchthat}{\,\mathrel{\big|}\,}
@@ -39,10 +36,8 @@
 \newcommand{\be}{\mathbf{e}}
 
 % Differential Equations
-\newcommand{\state}{\mathbf{y}}
-\newcommand{\smallpar}{\epsilon}
-\newcommand{\spatialvar}{\mathbf{x}}
-
+\newcommand{\state}{x}
+\newcommand{\stateb}{\mathbf{x}}
 
 
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
@@ -70,7 +65,7 @@
 \newtheorem{corollary}{Corollary}
 
 % Title and author
-\title{Perturbation and Multiscale Methods  
+\title{Topics in Differential Equations and Dynamical Systems}
 \author{Andrew Roberts}
 
 \begin{document}
@@ -79,25 +74,19 @@
 \tableofcontents
 \newpage
 
-% Asymptotic Expansions
-\section{Asymptotic Expansions}
+% Fredholm Alternative and Adjoint Operators
+\section{Fredholm Alternative and Adjoint Operators}
 
+\subsection{Fredholm Alternative}
+The \textit{Fredholm alternative} refers to a few different theorems, which concern linear algebra, integral equations, and PDEs, among other things. 
+We begin with the simplest, finite-dimensional case. 
 
-% WKB Method
-\section{The WKB Method}
+\subsubsection{Finite Linear Systems}
 
-\subsection{Motivating Example: The Simple Harmonic Oscillator}
+\subsection{Adjoints of Differential Operators}
+Motivate that adjoint equation essentially arises from integration by parts. But since it's not necessarily defined on the whole space, and since 
+boundary conditions might mess up the exact adjoint equivalence, we instead define what's known as the formal adjoint. 
 
-
-% Prep for Multiscale methods course
-\section{Prep for Multiscale Methods Course}
-\begin{itemize}
-\item Generic solution of ODE as an integral (see Brunton and Saarka)
-\item Multiple ways to solve $\dot{x} = ax$. 
-\item Fourier series solution of the heat equation (see Stanford course notes). 
-\item Basic numerical solution of ODEs. 
-\item Strogatz lecture on WKB; motivating example of simple harmonic oscillator
-\end{itemize}
 
 
 

@@ -1,0 +1,166 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Custom Commands
+\newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand*{\suchthat}{\,\mathrel{\big|}\,}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Ker}{\mathrm{Ker}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\be}{\mathbf{e}}
+
+% SDEs
+\newcommand{\state}[1][t]{X_{#1}}
+\newcommand{\stateValue}[1][t]{x_{#1}}
+\newcommand{\BM}[1][t]{B_{#1}} % Brownian Motion
+\newcommand{\op}[1][t]{\mathcal{P}_{#1}} % Transition Operator, i.e. one-parameter semi-group
+\newcommand{\opId}{\mathcal{I}} % Identity operator. 
+\newcommand{\gen}{\mathcal{L}} % Infinitesimal generator
+
+
+\DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Topics in Stochastic Differential Equations}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% Generator and Adjoint
+\section{Time-Homogenous Diffusions}
+We are considering the SDE 
+\begin{align}
+ d\state = \mu(\state) dt + \sigma(\state) d\BM, \label{time_hom_SDE}
+\end{align}
+where $\mu(\state)$ and $\sigma(\state)$ are assumed time-independent for now. Under this assumption, the solution $\state$ to the SDE has a transition 
+kernel which only depends on the time increment; i.e. it is \textbf{time-homogenous}. By \textbf{diffusion}, we mean a solution to an SDE 
+(i.e. \ref{time_hom_SDE}), or more generally a continuous-time Markov process with continuous sample paths. 
+
+In particular, we often want to understand the evolution of $f(\state)$, some function of the SDE solution. The question is: how can we study the properties 
+of the random process $f(\state)$? A common approach is to instead consider a \textit{non-random} quantity associated with $f(\state)$, which reduces the 
+problem to a (presumably easier) deterministic one. Some examples of non-random quantities might be the expectation, probability density, or transition 
+density of $f(\state)$. As a starting point, let us consider analyzing the behavior of expectations such as $\E[f(\state) | \state[0] = \stateValue[0]]$. 
+Given that we want to understand the evolution of this quantity, a natural thing to do is to consider its time derivative. Appealing to the definition of the 
+derivative, we have 
+\begin{align*}
+\frac{d}{dt} \E[f(\state) | \state[0] = \stateValue[0]] 
+&= \lim_{h \to 0} \frac{\E[f(\state[t+h]) | \state[0] = \stateValue[0]] - \E[f(\state[t]) | \state[0] = \stateValue[0]]}{h} \\
+&=  \lim_{h \to 0} \frac{\E[f(\state[h]) | \state[0] = \stateValue[0]] - \E[f(\state[0]) | \state[0] = \stateValue[0]]}{h} \\
+&=  \lim_{h \to 0} \frac{\E[f(\state[h]) | \state[0] = \stateValue[0]] - \E[f(\state[0]) | \state[0] = \stateValue[0]]}{h} \\
+&=  \lim_{h \to 0} \frac{\E[f(\state[h]) | \state[0] = \stateValue[0]] - f(\stateValue[0])}{h}
+\end{align*}
+In the second step we have used the time-homogeneity property, which allowed us to just consider $t = 0$. The expression on the right is very important, 
+and therefore we introduce a few definitions. First, define the operator $\op$ defined by 
+\[
+(\op f)(\stateValue[]) := \E[f(\state) | \state[0] = \stateValue[]].
+\]
+
+As a specific example, if we take $f(u) = \mathbbm{1}_B(u)$ for some Borel set $B$, then this becomes 
+\[
+(\op f)(\stateValue[]) = \E[\mathbbm{1}_B(\state) | \state[0] = \stateValue[]] = \Prob(\state \in B | \state[0] = \stateValue[]).
+\]
+
+Similarly, choosing $f(u) = \mathbbm{1}(u \leq y)$ yields the transition distribution function for a time-homogenous process:
+\[
+(\op f)(\stateValue[]) = \E[\mathbbm{1}(\state \leq y) | \state[0] = \stateValue[]] = \Prob(\state \leq y | \state[0] = \stateValue[]).
+\]
+
+Let's now plug this new definition for $\op$ back into the derivative expression we had before. Doing so, and letting $\opId$ denote the identity operator, yields 
+\begin{align*}
+\frac{d}{dt} (\op f)(\stateValue[0]) 
+&= \lim_{h \to 0} \frac{(\op[h] f)(\stateValue[0]) - f(\stateValue[0])}{h} \\
+&= \lim_{h \to 0} \frac{(\op[h] f)(\stateValue[0]) - (\opId f)(\stateValue[0])}{h} \\
+&= \lim_{h \to 0} \frac{(\op[h] - \opId)[f](\stateValue[0])}{h} \\
+&= \left(\lim_{h \to 0} \frac{\op[h] - \opId}{h}\right)[f](\stateValue[0])
+\end{align*}
+
+We can thus view the expression in parentheses as another operator that acts on $f$ in order to give the instantaneous time-evolution of the quantity 
+$\E[f(\state) | \state[0] = \stateValue[0]]$. This new operator, called the \textbf{infinitesimal generator} is very important, and is the subject of the next section. 
+
+\subsection{The Generator}
+The \textbf{infinitesimal generator}, or just \textbf{generator}, of a time-homogenous Markov process is defined as the operator
+\begin{align}
+\gen = \lim_{h \to 0} \frac{\op[h] - \opId}{h},
+\end{align}
+which is just the expression we stumbled across in the previous section. In fact, what we showed in that section is 
+\begin{align}
+\frac{d}{dt} (\op f)(\stateValue[0]) = \frac{d}{dt} \E[f(\state) | \state[0] = \stateValue[0]] = (\gen f)(\stateValue[0]). \label{generator_time_deriv}
+\end{align}
+Currently, this quantity is quite-abstract; however, we will shortly derive the specific form it takes for the time-homogenous SDE \ref{time_hom_SDE}. Before that, 
+we give a bit more motivation about why the generator will be such a key object to study. 
+
+Let's again consider the case where we choose $f(u) = \mathbbm{1}(u \leq y)$ so that $(\op f)(\stateValue[]) = \Prob(\state \leq y | \state[0] = \stateValue[])$ is the 
+transition distribution function. Under certain conditions, the transition density $p(t, \stateValue[], y)$ -- the derivative of this distribution function -- will also exist. 
+Notice that this form of the transition density relies on the time-homogeneity assumption; it gives the density of transitioning from state $x$ to state $y$ in a time 
+interval of length $t$, independent of the actual starting time. In this case, the expression \ref{generator_time_deriv} becomes 
+\begin{align*}
+\frac{d}{dt} \Prob(\state \leq y | \state[0] = \stateValue[0]) = p(t, \stateValue[0], y) = (\gen f)(\stateValue[0]), 
+\end{align*}
+so we see that the generator is intimately tied to the transition distribution of the diffusion process. 
+This will lead to some powerful results. Peaking ahead, we might 
+reasonably call the process \textbf{stationary} if its transition distribution is not changing; i.e. 
+\begin{align*}
+\frac{d}{dt} \Prob(\state \leq y | \state[0] = \stateValue[]) = (\gen f)(\stateValue[]) = 0,
+\end{align*} 
+which means that $\Prob(\state \leq y | \state[0] = \stateValue[]) = $ is not a function of $t$. We notice that this reasonable definition can be 
+re-stated in terms of the null space of the generator. We have been considering functions of the form $f_y(u) = \mathbbm{1}(u \leq y)$. The above 
+equality states that in order for the process to be stationary, such functions must be in the null space of $\gen$. 
+
+
+
+
+\end{document}
+
+
