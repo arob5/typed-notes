@@ -42,6 +42,7 @@
 \newcommand{\op}[1][t]{\mathcal{P}_{#1}} % Transition Operator, i.e. one-parameter semi-group
 \newcommand{\opId}{\mathcal{I}} % Identity operator. 
 \newcommand{\gen}{\mathcal{L}} % Infinitesimal generator
+\newcommand{\ito}{\text{It}\hat{\text{o}}}
 
 
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
@@ -127,8 +128,14 @@ Let's now plug this new definition for $\op$ back into the derivative expression
 \end{align*}
 
 We can thus view the expression in parentheses as another operator that acts on $f$ in order to give the instantaneous time-evolution of the quantity 
-$\E[f(\state) | \state[0] = \stateValue[0]]$. This new operator, called the \textbf{infinitesimal generator} is very important, and is the subject of the next section. 
+$\E[f(\state) | \state[0] = \stateValue[0]]$. This new operator, called the \textbf{infinitesimal generator} is very important. We have thus defined 
+two fundamental operators, $\op$ and $\gen$, which are explored in detail in the following two sections. 
 
+% The Markov Semigroup
+\subsection{The Markov Semigroup}
+\textbf{TODO} 
+
+% The Generator 
 \subsection{The Generator}
 The \textbf{infinitesimal generator}, or just \textbf{generator}, of a time-homogenous Markov process is defined as the operator
 \begin{align}
@@ -156,7 +163,61 @@ reasonably call the process \textbf{stationary} if its transition distribution i
 \end{align*} 
 which means that $\Prob(\state \leq y | \state[0] = \stateValue[]) = $ is not a function of $t$. We notice that this reasonable definition can be 
 re-stated in terms of the null space of the generator. We have been considering functions of the form $f_y(u) = \mathbbm{1}(u \leq y)$. The above 
-equality states that in order for the process to be stationary, such functions must be in the null space of $\gen$. 
+equality states that in order for the process to be stationary, such functions must be in the null space of $\gen$. We will return to these ideas when we consider
+\textbf{ergodic processes}. 
+
+We now derive the generator of the time-independent SDE. 
+\begin{thm} 
+The generator $\gen$ for the time-homogenous $\ito$ process 
+\[ d\state = \mu(\state) dt + \sigma(\state) d\BM \] 
+is given by 
+\begin{align}
+(\gen f)(x) = \mu(x) f^\prime(x) + \frac{1}{2} \sigma^2(x) f^{\prime\prime}(x) 
+\end{align}
+
+\end{thm}
+
+\begin{proof} 
+There are multiple ways to arrive at this formula. Here we consider a straightforward application of the $\ito$ formula. Let $f \in \mathcal{C}^2$ have compact support. 
+We apply the $\ito$ formula to $f(\state)$ to obtain 
+\begin{align*}
+f(\state)
+&= f^\prime(\state) d\state + \frac{1}{2} f^{\prime\prime}(\state) d[\state, \state](t) \\
+&= f^\prime(\state) d\state + \frac{1}{2} f^{\prime\prime}(\state) \sigma^2(\state) dt \\
+&= f^\prime(\state) \left[\mu(\state) dt + \sigma(\state) d\BM \right] + \frac{1}{2} f^{\prime\prime}(\state) \sigma^2(\state) dt \\
+&= \left[f^\prime(\state)\mu(\state) +  \frac{1}{2} f^{\prime\prime}(\state) \sigma^2(\state) \right] dt + f^\prime(\state) \sigma(\state) d\BM
+\end{align*}
+
+Now, we notice that the expression in brackets is precisely what we are claiming to be the generator $(\gen f)(\state)$. Plugging this notation in, we have shown
+\begin{align}
+f(\state) = (\gen f)(\state) dt +  f^\prime(\state) \sigma(\state) d\BM. \label{Ito_formula_generator}
+\end{align}
+
+Converting this differential to its integral representation (i.e. integrating from $0$ to $t$), we obtain 
+\[
+f(\state) - f(\state[0]) = \int_{0}^{t} (\gen f)(\state[s]) ds + \int_{0}^{t} f^\prime(\state[s]) \sigma(\state[s]) d\BM[s]
+\]
+We now consider taking the expectation, conditional on $\state[0] = \stateValue[]$, of both sides. This yields 
+\[
+\E[f(\state) | \state[0] = \stateValue[]] - f(\state[]) = \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds + \E\left[\int_{0}^{t} f^\prime(\state[s]) \sigma(\state[s]) d\BM[s] \bigg| \state[0] = \stateValue[] \right] 
+\]
+We have applied Fubini's theorem for the first term on the righthand side. We make a few observations. First, note that the lefthand side is precisely $(\op f)(\state[]) - f(\state[])$. The second term on the righthand side 
+is an $\ito$ integral. Using the assumption that $f$, and hence $f^\prime$, has compact support, then we conclude the expectation of this $\ito$ integral is zero. Applying these two observations, we now have
+\[
+(\op f)(\state[]) - f(\state[])  = \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds.
+\] 
+Now, we can recover the definition of the generator on the lefthand side by dividing through by $t$ and letting $t \to 0$. Doing so gives, 
+\begin{align*}
+\lim_{t \to 0} \frac{(\op f)(\state[]) - f(\state[]) }{t} 
+&= \lim_{t \to 0} \frac{1}{t} \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds \\
+&= \frac{d}{dt}\bigg|_{t=0} \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds \\
+&= \E[(\gen f)(\state[0]) | \state[0] = \stateValue[]] \\
+&= (\gen f)(\stateValue[]), 
+\end{align*}
+where the penultimate line uses the fundamental theorem of calculus. The result is proven. 
+\end{proof}
+
+Note that \ref{Ito_formula_generator} also gives a nice, compact way to write the $\ito$ formula in terms of the generator. 
 
 
 
