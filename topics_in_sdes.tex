@@ -222,6 +222,17 @@ Note that \ref{Ito_formula_generator} also gives a nice, compact way to write th
 f(\state) =  f(\state[0]) + \int_{0}^{t} (\gen f)(\state[s]) ds + \int_{0}^{t} f^\prime(\state[s]) \sigma(\state[s]) d\BM[s].
 \end{align}
 
+The way to think about this ties back to our motivation for the definition of the generator. What the above result gives us is a PDE describing 
+the evolution of statistics of the SDE. 
+\begin{align}
+\frac{d}{dt} \E[f(\state) | \state[0] = \stateValue[0]] = \mu(x) f^\prime(x) + \frac{1}{2} \sigma^2(x) f^{\prime\prime}(x),
+\end{align}
+noting that the righthand side is $(\gen f)(\stateValue[0])$, as just derived above. The time-derivative of the SDE statistic on the left is 
+related to the state derivatives on the right. As a specific example, choosing $f$ to be the identity would yields a PDE describing the 
+evolution of the mean of $\state$. 
+
+
+
 % The Fokker-Planck Equation
 \subsection{The Fokker-Planck Equation}
 The \textbf{Fokker-Planck equation} equation, also known as the \textbf{Kolmogorov forward equation}, is a partial differential equation (PDE) describing the evolution of the 
@@ -237,8 +248,8 @@ justifications under the rug. Later in this section we re-cast this derivation u
 (The Fokker-Planck/Forward Kolmogorov Equation) The transition density $p(t, \stateValue[0], \stateValue)$ associated with the time-homogenous SDE
 \ref{time_hom_SDE} satisfies the PDE
 \begin{align}
-\frac{\partial p}{\partial t} = -\frac{\partial}{\partial x} [p(t, \stateValue[0], \stateValue[])\mu(\stateValue[])] + \frac{1}{2} \frac{\partial^2}{\partial x^2} [p(t, \stateValue[0], \stateValue[]) \sigma^2(\stateValue[])]
-\end{align}.
+\frac{\partial p}{\partial t} = -\frac{\partial}{\partial x} [p(t, \stateValue[0], \stateValue[])\mu(\stateValue[])] + \frac{1}{2} \frac{\partial^2}{\partial x^2} [p(t, \stateValue[0], \stateValue[]) \sigma^2(\stateValue[])].
+\end{align}
 \end{thm}
 
 \begin{proof}
@@ -273,10 +284,26 @@ $p = p(t, \stateValue[0], \stateValue)$. We thus have,
 \E[f(\state[T], T) | \state[0] = \stateValue[0]] - f(\stateValue[0], 0)
 &= \int_{0}^{T} \int_{-\infty}^{\infty} p\frac{\partial f}{\partial t} dxdt + \int_{0}^{T} \int_{-\infty}^{\infty} p\mu \frac{\partial f}{\partial x} dxdt + \frac{1}{2} \int_{0}^{T} \int_{-\infty}^{\infty} p\sigma^2 \frac{\partial^2 f}{\partial x^2} dxdt
 \end{align*}
+We now deal with each of this integrals in turn. Our goal is to eliminate derivatives the of $f$, instead picking up derivatives of $p$. 
 
+\bigskip
+\noindent
+\textbf{First Integral:} The strategy for this term is to flip the order of integration (by Fubini) and then integrate by parts with respect to $t$. 
+Integrating by parts with $u(t) = p(t, \stateValue[0], \stateValue)$ and $v^\prime(t) = \frac{\partial f}{\partial t}$ yields 
+\begin{align*}
+t
+\end{align*}
 
 \end{proof}
 
+We have phrased the Fokker-Planck equation as describing the evolution of the transition density, but note that this is essentially the same thing as 
+describing the evolution of the density of $\state$ itself. The density $p_t(\stateValue[])$ of $\state$ will always depend on the initial condition. If the initial condition is 
+deterministic, say $\stateValue[0]$, then we simply have $p_t(\stateValue[]) = p(t, \stateValue[0], \stateValue[])$. Essentially, what we showed above can be re-phrased
+as the initial value problem
+\begin{align}
+&\frac{\partial p}{\partial t} = -\frac{\partial}{\partial x} [p(t, \stateValue[0], \stateValue[])\mu(\stateValue[])] + \frac{1}{2} \frac{\partial^2}{\partial x^2} [p(t, \stateValue[0], \stateValue[]) \sigma^2(\stateValue[])] \\
+&p(0, \stateValue[0], \stateValue[]) = \delta_{\stateValue[0]}(\stateValue[]) \nonumber
+\end{align}
 
 
 
