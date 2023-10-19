@@ -181,7 +181,7 @@ is given by
 There are multiple ways to arrive at this formula. Here we consider a straightforward application of the $\ito$ formula. Let $f \in \mathcal{C}^2$ have compact support. 
 We apply the $\ito$ formula to $f(\state)$ to obtain 
 \begin{align*}
-f(\state)
+df(\state)
 &= f^\prime(\state) d\state + \frac{1}{2} f^{\prime\prime}(\state) d[\state, \state](t) \\
 &= f^\prime(\state) d\state + \frac{1}{2} f^{\prime\prime}(\state) \sigma^2(\state) dt \\
 &= f^\prime(\state) \left[\mu(\state) dt + \sigma(\state) d\BM \right] + \frac{1}{2} f^{\prime\prime}(\state) \sigma^2(\state) dt \\
@@ -190,25 +190,25 @@ f(\state)
 
 Now, we notice that the expression in brackets is precisely what we are claiming to be the generator $(\gen f)(\state)$. Plugging this notation in, we have shown
 \begin{align}
-f(\state) = (\gen f)(\state) dt +  f^\prime(\state) \sigma(\state) d\BM. \label{Ito_formula_generator}
+df(\state) = (\gen f)(\state) dt +  f^\prime(\state) \sigma(\state) d\BM. \label{Ito_formula_generator}
 \end{align}
 
 Converting this differential to its integral representation (i.e. integrating from $0$ to $t$), we obtain 
 \[
-f(\state) - f(\state[0]) = \int_{0}^{t} (\gen f)(\state[s]) ds + \int_{0}^{t} f^\prime(\state[s]) \sigma(\state[s]) d\BM[s]
+f(\state) - f(\stateValue[]) = \int_{0}^{t} (\gen f)(\state[s]) ds + \int_{0}^{t} f^\prime(\state[s]) \sigma(\state[s]) d\BM[s]
 \]
 We now consider taking the expectation, conditional on $\state[0] = \stateValue[]$, of both sides. This yields 
 \[
-\E[f(\state) | \state[0] = \stateValue[]] - f(\state[]) = \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds + \E\left[\int_{0}^{t} f^\prime(\state[s]) \sigma(\state[s]) d\BM[s] \bigg| \state[0] = \stateValue[] \right] 
+\E[f(\state) | \state[0] = \stateValue[]] - f(\stateValue[]) = \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds + \E\left[\int_{0}^{t} f^\prime(\state[s]) \sigma(\state[s]) d\BM[s] \bigg| \state[0] = \stateValue[] \right] 
 \]
-We have applied Fubini's theorem for the first term on the righthand side. We make a few observations. First, note that the lefthand side is precisely $(\op f)(\state[]) - f(\state[])$. The second term on the righthand side 
+We have applied Fubini's theorem for the first term on the righthand side. We make a few observations. First, note that the lefthand side is precisely $(\op f)(\stateValue[]) - f(\stateValue[])$. The second term on the righthand side 
 is an $\ito$ integral. Using the assumption that $f$, and hence $f^\prime$, has compact support, then we conclude the expectation of this $\ito$ integral is zero. Applying these two observations, we now have
 \[
-(\op f)(\state[]) - f(\state[])  = \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds.
+(\op f)(\stateValue[]) - f(\stateValue[])  = \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds.
 \] 
 Now, we can recover the definition of the generator on the lefthand side by dividing through by $t$ and letting $t \to 0$. Doing so gives, 
 \begin{align*}
-\lim_{t \to 0} \frac{(\op f)(\state[]) - f(\state[]) }{t} 
+\lim_{t \to 0} \frac{(\op f)(\stateValue[]) - f(\stateValue[]) }{t} 
 &= \lim_{t \to 0} \frac{1}{t} \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds \\
 &= \frac{d}{dt}\bigg|_{t=0} \int_{0}^{t} \E[(\gen f)(\state[s]) | \state[0] = \stateValue[]] ds \\
 &= \E[(\gen f)(\state[0]) | \state[0] = \stateValue[]] \\
@@ -217,7 +217,66 @@ Now, we can recover the definition of the generator on the lefthand side by divi
 where the penultimate line uses the fundamental theorem of calculus. The result is proven. 
 \end{proof}
 
-Note that \ref{Ito_formula_generator} also gives a nice, compact way to write the $\ito$ formula in terms of the generator. 
+Note that \ref{Ito_formula_generator} also gives a nice, compact way to write the $\ito$ formula in terms of the generator; in integral form, 
+\begin{align}
+f(\state) =  f(\state[0]) + \int_{0}^{t} (\gen f)(\state[s]) ds + \int_{0}^{t} f^\prime(\state[s]) \sigma(\state[s]) d\BM[s].
+\end{align}
+
+% The Fokker-Planck Equation
+\subsection{The Fokker-Planck Equation}
+The \textbf{Fokker-Planck equation} equation, also known as the \textbf{Kolmogorov forward equation}, is a partial differential equation (PDE) describing the evolution of the 
+probability density of the solution of the SDE. Recall that we are considering time-homogenous SDEs, so the density under consideration here as the form 
+$p(t, \stateValue[0], \stateValue[])$: the density of starting at state $\stateValue[0]$ and ending up at state $\stateValue[]$ after time $t$. The equation we will derive is known 
+as the \textit{forward} equation as the PDE will describe the evolution of this density in the \textit{forward variables} $t$ and $\stateValue[]$, as opposed to considering derivatives
+with respect to the starting location $\stateValue[0]$. 
+
+There are many ways to derive this equation. The derivation below simply applies the $\ito$ formula and then uses integration by parts, sweeping some of the theoretical 
+justifications under the rug. Later in this section we re-cast this derivation using more generic tools from operator theory. 
+
+\begin{thm}
+(The Fokker-Planck/Forward Kolmogorov Equation) The transition density $p(t, \stateValue[0], \stateValue)$ associated with the time-homogenous SDE
+\ref{time_hom_SDE} satisfies the PDE
+\begin{align}
+\frac{\partial p}{\partial t} = -\frac{\partial}{\partial x} [p(t, \stateValue[0], \stateValue[])\mu(\stateValue[])] + \frac{1}{2} \frac{\partial^2}{\partial x^2} [p(t, \stateValue[0], \stateValue[]) \sigma^2(\stateValue[])]
+\end{align}.
+\end{thm}
+
+\begin{proof}
+Let $f(\stateValue[], t)$ be a twice continuously-differentiable function which vanishes outside of the time interval $(0, T)$. As usual, we start by applying the 
+$\ito$ formula,
+\begin{align*}
+df(\stateValue[], t) 
+&= \frac{\partial f}{\partial x} d\state + \frac{1}{2} \frac{\partial^2 f}{\partial x^2} \sigma^2(\state) dt + \frac{\partial f}{\partial t} dt \\
+&= \left[\frac{\partial f}{\partial t} + \frac{\partial f}{\partial x}\mu(\state) + \frac{1}{2}\frac{\partial^2 f}{\partial x^2}\sigma^2(\state) \right]dt + \frac{\partial f}{\partial x}\sigma(\state) d\BM,
+\end{align*}
+where in the second step we plugged in the differential $d\state$ and grouped terms. Integrating from $0$ to $T$, 
+\begin{align*}
+f(\state[T], T) - f(\state[0], 0) 
+&= \int_{0}^{T} \left[\frac{\partial f}{\partial t} + \frac{\partial f}{\partial x}\mu(\state) + \frac{1}{2}\frac{\partial^2 f}{\partial x^2}\sigma^2(\state) \right]dt 
+	+ \int_{0}^{T} \frac{\partial f}{\partial x}\sigma(\state) d\BM
+\end{align*}
+and now taking expectation conditional on $\state[0] = \stateValue[0]$,
+\begin{align*}
+\E[f(\state[T], T) | \state[0] = \stateValue[0]] - f(\stateValue[0], 0)
+&= \int_{0}^{T} \E\left[\frac{\partial f}{\partial t} + \frac{\partial f}{\partial x}\mu(\state) + \frac{1}{2}\frac{\partial^2 f}{\partial x^2}\sigma^2(\state) \bigg| \state[0] = \stateValue[0] \right]dt.
+\end{align*}
+On the righthand side, we have taken two steps. We reversed the order of integration in the first term, which can be justified using Fubini's theorem.
+We also applied the fact that the expectation of the second term is zero, using the facts that it is an $\ito$ integral and that $f$ was assumed to have compact support. 
+We now re-write the expectation in the remaining term using the transition density, 
+\begin{align*}
+\E[f(\state[T], T) | \state[0] = \stateValue[0]] - f(\stateValue[0], 0)
+&= \int_{0}^{T} \int_{-\infty}^{\infty} \left[\frac{\partial f}{\partial t} + \frac{\partial f}{\partial x}\mu(\state) + \frac{1}{2}\frac{\partial^2 f}{\partial x^2}\sigma^2(\state)\right] p(t,\stateValue[0],\stateValue[]) dx dt
+\end{align*}
+At this point we will apply linearity to write this as the sum of three integrals, and consider each in turn. To lighten notation, we drop the function arguments, writing, for example, 
+$p = p(t, \stateValue[0], \stateValue)$. We thus have, 
+\begin{align*}
+\E[f(\state[T], T) | \state[0] = \stateValue[0]] - f(\stateValue[0], 0)
+&= \int_{0}^{T} \int_{-\infty}^{\infty} p\frac{\partial f}{\partial t} dxdt + \int_{0}^{T} \int_{-\infty}^{\infty} p\mu \frac{\partial f}{\partial x} dxdt + \frac{1}{2} \int_{0}^{T} \int_{-\infty}^{\infty} p\sigma^2 \frac{\partial^2 f}{\partial x^2} dxdt
+\end{align*}
+
+
+\end{proof}
+
 
 
 
