@@ -322,7 +322,11 @@ $\dimBM$ independent Brownian motions driving the system. We will write these in
 noting that we will be switching between the functional and subscript notation for dependence on time. This will prevent double-subscripts. 
 It is not difficult to  show that the quadratic variation between independent Brownian motions is zero, 
 \[
-d\BM[i](t) d\BM[j](t) = t \delta_{ij}. 
+d\BM[i](t) d\BM[j](t) = \delta_{ij} dt,
+\]
+that is, 
+\[
+d\B\BM d\B\BM^\top = \B{I} dt.
 \]
 Given a vector-valued function $G: \R \to \R^{\dimBM}$, we can then define the SDE
 \begin{align*}
@@ -349,7 +353,7 @@ d\state[i](t) &= \mu_i(\state,t) dt + \sum_{j=1}^{\dimBM} \sigma_{ij}(\state,t) 
 \end{align*}
 and the entire system can be represented succinctly as
 \begin{align}
-d\B\state &= \B\mu(\state,t) dt + \B\sigma(\state,t) d\B\BM, \label{SDE_multidim}
+d\B\state &= \B\mu(\B\state,t) dt + \B\sigma(\B\state,t) d\B\BM, \label{SDE_multidim}
 \end{align}
 noting that $\B\sigma$ is a matrix-valued function. One can derive the covariation 
 \begin{align*}
@@ -359,6 +363,11 @@ where $\diffMat$ is known as the \textbf{diffusion matrix}. This fact can be wri
 \begin{align*}
 d\B\state d\B\state^\top = \B\sigma\B\sigma^\top dt = \diffMat dt.
 \end{align*}
+Finally, we note that this setup can be generalized to introduce correlation among the different driving Brownian motions. Such correlation would manifest as 
+\[
+d\B\BM d\B\BM^\top = \B{Q} dt, 
+\]
+for some covariance matrix $\B{Q}$. \textbf{TODO: expand on this, see Saarka book.}
 
 \subsection{$\ito$'s Formula}
 We now provide the generalization of the $\ito$ formula for scalar-valued functions $f: \R^{\dimState} \to \R$. The formula is given in differential form as
@@ -386,8 +395,28 @@ To note one more special case, consider the $\ito$ diffusion \ref{SDE_multidim}.
 \begin{align*}
 df(\B\state, t) &= \frac{\partial f(\B\state,t)}{\partial t}dt + \langle \nabla f(\B\state,t), d\B\state \rangle + \frac{1}{2} \langle \nabla^2 f(\B\state,t), \diffMat dt  \rangle.
 \end{align*}
+Finally, we note that the $\ito$ formula can be generalized to vector-valued functions $f$ by simply applying the above formula in a componentwise fashion. The subsequent 
+section shows how the $\ito$ formula applied to an $\ito$ process can be written more succinctly using the generator. 
 
+\subsection{Generator and Adjoint}
+The multivariate generator and adjoint are also similar to their univariate analogs. Indeed, for the $\ito$ process 
+\[
+d\B\state = \B\mu(\B\state,t) dt + \B\sigma(\B\state,t) d\B\BM
+\]
+we have,
+\begin{align*}
+\gen f &= \langle \nabla f, \B\mu \rangle + \frac{1}{2} \langle \nabla^2 f, \diffMat \rangle \\
+\gen^* f &= -\langle \nabla, \B\mu f \rangle + \frac{1}{2} \langle \nabla^2, \diffMat f\rangle
+\end{align*}
 
+Recall the definition of the diffusion matrix $\diffMat = \B\sigma \B\sigma^\top$. Note that these equations are defined for potentially time-inhomogenous diffusions 
+($\B\mu$ and $\B\sigma$ are potentially functions of $t$), but the function $f$ is only a function of $x$. A generalization to functions of the form 
+$f(x,t)$ is provided in Saarka 5.1 under the name \textit{generalized generator}. The notation used in the expression for the generator $\gen$ should be familiar from 
+the notation introduced for the $\ito$ formula in the previous section. The notation is used similarly for the adjoint $\gen^*$, but to be clear we note that this notation 
+should be interpreted as 
+\[
+\gen^* f(\B{x}) = -\sum_{n=1}^{\dimState} \frac{\partial}{\partial x_i}\left[\B\mu(\B{x})f(\B{x}) \right] + \frac{1}{2} \sum_{i=1}^{\dimState}\sum_{j=1}^{\dimState} \frac{\partial^2}{\partial x_i \partial x_j}\left[\diffMat_{ij}f(\bx) \right].
+\]
 
 
 \end{document}
