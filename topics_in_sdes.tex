@@ -19,6 +19,7 @@
 \usepackage{tikz}
 
 % Custom Commands
+\newcommand{\B}[1]{\boldsymbol{#1}}
 \newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
 \newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
 \newcommand*{\suchthat}{\,\mathrel{\big|}\,}
@@ -43,7 +44,9 @@
 \newcommand{\opId}{\mathcal{I}} % Identity operator. 
 \newcommand{\gen}{\mathcal{L}} % Infinitesimal generator
 \newcommand{\ito}{\text{It}\hat{\text{o}}}
-
+\newcommand{\dimBM}{d} % Number of Brownian motions
+\newcommand{\dimState}{n} 
+\newcommand{\diffMat}{\mathbf{A}} % Diffusion matrix 
 
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -108,6 +111,8 @@ and therefore we introduce a few definitions. First, define the operator $\op$ d
 (\op f)(\stateValue[]) := \E[f(\state) | \state[0] = \stateValue[]].
 \]
 
+Note that this is a generalization of the finite-state space setting, where $\op$ is a matrix and $f$ a column vector constructed by evaluating $f$ at each state. 
+
 As a specific example, if we take $f(u) = \mathbbm{1}_B(u)$ for some Borel set $B$, then this becomes 
 \[
 (\op f)(\stateValue[]) = \E[\mathbbm{1}_B(\state) | \state[0] = \stateValue[]] = \Prob(\state \in B | \state[0] = \stateValue[]).
@@ -121,14 +126,14 @@ Similarly, choosing $f(u) = \mathbbm{1}(u \leq y)$ yields the transition distrib
 Let's now plug this new definition for $\op$ back into the derivative expression we had before. Doing so, and letting $\opId$ denote the identity operator, yields 
 \begin{align*}
 \frac{d}{dt} (\op f)(\stateValue[0]) 
-&= \lim_{h \to 0} \frac{(\op[h] f)(\stateValue[0]) - f(\stateValue[0])}{h} \\
-&= \lim_{h \to 0} \frac{(\op[h] f)(\stateValue[0]) - (\opId f)(\stateValue[0])}{h} \\
-&= \lim_{h \to 0} \frac{(\op[h] - \opId)[f](\stateValue[0])}{h} \\
-&= \left(\lim_{h \to 0} \frac{\op[h] - \opId}{h}\right)[f](\stateValue[0])
+&= \lim_{h \to 0} \frac{(\op[t+h] f)(\stateValue[0]) - (\op[t] f)(\stateValue[0])}{h} \\
+&= \lim_{h \to 0} \frac{(\op[t]\op[h] f)(\stateValue[0]) - (\op[t] f)(\stateValue[0])}{h} \\
+&= \lim_{h \to 0} \frac{\op[t] \left[(\op[h] f)(\stateValue[0]) - f(\stateValue[0])\right]}{h} \\
+&= \op[t] \left(\lim_{h \to 0} \frac{\op[h] - \opId}{h}\right)[f](x_0) \\
 \end{align*}
 
 We can thus view the expression in parentheses as another operator that acts on $f$ in order to give the instantaneous time-evolution of the quantity 
-$\E[f(\state) | \state[0] = \stateValue[0]]$. This new operator, called the \textbf{infinitesimal generator} is very important. We have thus defined 
+$\E[f(\state) | \state[0] = \stateValue[0]]$. This new operator, called the \textbf{infinitesimal generator} and denoted $\gen$, is very important. We have thus defined 
 two fundamental operators, $\op$ and $\gen$, which are explored in detail in the following two sections. 
 
 % The Markov Semigroup
@@ -143,7 +148,7 @@ The \textbf{infinitesimal generator}, or just \textbf{generator}, of a time-homo
 \end{align}
 which is just the expression we stumbled across in the previous section. In fact, what we showed in that section is 
 \begin{align}
-\frac{d}{dt} (\op f)(\stateValue[0]) = \frac{d}{dt} \E[f(\state) | \state[0] = \stateValue[0]] = (\gen f)(\stateValue[0]). \label{generator_time_deriv}
+\frac{d}{dt} (\op f)(\stateValue[0]) = \frac{d}{dt} \E[f(\state) | \state[0] = \stateValue[0]] = \op \gen f(\stateValue[0]). \label{generator_time_deriv}
 \end{align}
 Currently, this quantity is quite-abstract; however, we will shortly derive the specific form it takes for the time-homogenous SDE \ref{time_hom_SDE}. Before that, 
 we give a bit more motivation about why the generator will be such a key object to study. 
@@ -153,7 +158,7 @@ transition distribution function. Under certain conditions, the transition densi
 Notice that this form of the transition density relies on the time-homogeneity assumption; it gives the density of transitioning from state $x$ to state $y$ in a time 
 interval of length $t$, independent of the actual starting time. In this case, the expression \ref{generator_time_deriv} becomes 
 \begin{align*}
-\frac{d}{dt} \Prob(\state \leq y | \state[0] = \stateValue[0]) = p(t, \stateValue[0], y) = (\gen f)(\stateValue[0]), 
+\frac{d}{dt} \Prob(\state \leq y | \state[0] = \stateValue[0]) = p(t, \stateValue[0], y) = \op \gen f(\stateValue[0]), 
 \end{align*}
 so we see that the generator is intimately tied to the transition distribution of the diffusion process. 
 This will lead to some powerful results. Peaking ahead, we might 
@@ -231,8 +236,6 @@ noting that the righthand side is $(\gen f)(\stateValue[0])$, as just derived ab
 related to the state derivatives on the right. As a specific example, choosing $f$ to be the identity would yields a PDE describing the 
 evolution of the mean of $\state$. 
 
-
-
 % The Fokker-Planck Equation
 \subsection{The Fokker-Planck Equation}
 The \textbf{Fokker-Planck equation} equation, also known as the \textbf{Kolmogorov forward equation}, is a partial differential equation (PDE) describing the evolution of the 
@@ -304,6 +307,85 @@ as the initial value problem
 &\frac{\partial p}{\partial t} = -\frac{\partial}{\partial x} [p(t, \stateValue[0], \stateValue[])\mu(\stateValue[])] + \frac{1}{2} \frac{\partial^2}{\partial x^2} [p(t, \stateValue[0], \stateValue[]) \sigma^2(\stateValue[])] \\
 &p(0, \stateValue[0], \stateValue[]) = \delta_{\stateValue[0]}(\stateValue[]) \nonumber
 \end{align}
+
+% SDEs in Multiple Dimensions
+\section{SDEs in Multiple Dimensions}
+
+\subsection{$\ito$ processes}
+There are two ways we can consider adding more dimensions here: 1.) a scalar SDE being driven by multiple Brownian motions, and 
+2.) a system of SDEs (with each equation potentially being driven by multiple Brownian motions). Most of the results discussed above have 
+natural analogs to these settings; the notation just becomes more burdensome. Beginning with the first case, suppose we have 
+$\dimBM$ independent Brownian motions driving the system. We will write these in the vector 
+\[
+\B\BM := \begin{pmatrix} \BM[1](t) & \dots & \BM[\dimBM](t) \end{pmatrix}^\top,
+\]
+noting that we will be switching between the functional and subscript notation for dependence on time. This will prevent double-subscripts. 
+It is not difficult to  show that the quadratic variation between independent Brownian motions is zero, 
+\[
+d\BM[i](t) d\BM[j](t) = t \delta_{ij}. 
+\]
+Given a vector-valued function $G: \R \to \R^{\dimBM}$, we can then define the SDE
+\begin{align*}
+d\state &= \mu(\state) dt + \sum_{j=1}^{\dimBM} G_j(\state) d\BM[j](t), 
+\end{align*}
+which is to be interpreted as 
+\begin{align*}
+\state &= \state[0] + \int_{0}^{t} \mu(\state[s]) ds + \sum_{j=1}^{\dimBM} \int_{0}^{t} G_j(\state[s]) d\BM[j](s).
+\end{align*}
+To lighten notation, we write 
+\begin{align*}
+d\state &= \mu(\state) dt + \langle G(\state), d\B\BM \rangle.
+\end{align*}
+Dot product notation in place of the inner product notation is also common. We next generalize to the situation where there are $\dimState$ 
+SDEs, which we write in the vector
+\[
+\B\state := \begin{pmatrix} \state[1](t) & \dots & \state[\dimState](t) \end{pmatrix}^\top.
+\]
+Each of these state variables may be driven by all of the Brownian motions, yielding a coupled system of $\dimState$ equations
+driven by $\dimBM$ Brownian motions. For functions $\mu(\cdot, t): \R^{\dimState} \to \R^{\dimState}$ and $\sigma(\cdot, t): \R^{\dimState} \to \R^{\dimState \times \dimBM}$ this
+ system can be written component-wise as,
+\begin{align*}
+d\state[i](t) &= \mu_i(\state,t) dt + \sum_{j=1}^{\dimBM} \sigma_{ij}(\state,t) d\BM[j](t), 
+\end{align*}
+and the entire system can be represented succinctly as
+\begin{align}
+d\B\state &= \B\mu(\state,t) dt + \B\sigma(\state,t) d\B\BM, \label{SDE_multidim}
+\end{align}
+noting that $\B\sigma$ is a matrix-valued function. One can derive the covariation 
+\begin{align*}
+&d\state[i](t) d\state[j](t) = \diffMat_{ij} dt, &&\diffMat = \B\sigma \B\sigma^\top, 
+\end{align*}
+where $\diffMat$ is known as the \textbf{diffusion matrix}. This fact can be written in matrix form as 
+\begin{align*}
+d\B\state d\B\state^\top = \B\sigma\B\sigma^\top dt = \diffMat dt.
+\end{align*}
+
+\subsection{$\ito$'s Formula}
+We now provide the generalization of the $\ito$ formula for scalar-valued functions $f: \R^{\dimState} \to \R$. The formula is given in differential form as
+\begin{align*}
+df(\B\state) &= \sum_{i=1}^{\dimState} \frac{\partial f(\B\state)}{\partial x_i} d\state[i](t) + \frac{1}{2} \sum_{i=1}^{\dimState}\sum_{j=1}^{\dimState} \frac{\partial^2 f(\B\state)}{\partial x_i \partial x_j} d\state[i](t) d\state[j](t).
+\end{align*}
+Notice that in the second term the mixed $i,j$ partial derivative is matched with the $i,j$ covariation. A sum of this form brings to mind a trace of a matrix product, or some sort of generalized inner product indexed by the 
+two variables $i,j$. Notationally, we opt for the latter and choose to denote the above formula using the shorthand 
+\begin{align*}
+df(\B\state) &= \langle \nabla f(\B\state), d\B\state \rangle + \frac{1}{2} \langle \nabla^2 f(\B\state), d\B\state d\B\state^\top  \rangle,
+\end{align*}
+where $\nabla^2$ is used to denote the Hessian here. We note that there are a variety of other notations for the sum in the second term, including 
+\begin{align*}
+\text{tr}\left\{(\nabla^2 f(\B\state)) d\B\state d\B\state^\top \right\} \text{ and } (d\B\state d\B\state^\top) : \nabla\nabla f.
+\end{align*}
+
+Note that we can choose one of the entries of the vector $\B\state$ to simply equal $t$. Doing so gives us the formula for functions of the form $f(\B\state, t)$, which are 
+often of interest. To obtain this, note that the covariation between $t$ and all of the Brownian motions is zero. Moreover, the quadratic variation of $t$ is also zero. Therefore, 
+all terms corresponding to the $t$ drop out of the second term. We thus obtain, 
+\begin{align*}
+df(\B\state, t) &= \frac{\partial f(\B\state,t)}{\partial t}dt  + \langle \nabla f(\B\state), d\B\state \rangle + \frac{1}{2} \langle \nabla^2 f(\B\state), d\B\state d\B\state^\top  \rangle.
+\end{align*}
+
+To note one more special case, consider the $\ito$ diffusion \ref{SDE_multidim}. Recalling the form of the covariation term in this case, we obtain 
+\begin{align*}
+df(\B\state, t) &= \frac{\partial f(\B\state,t)}{\partial t}dt + \langle \nabla f(\B\state,t), d\B\state \rangle + \frac{1}{2} \langle \nabla^2 f(\B\state,t), \diffMat dt  \rangle.
+\end{align*}
 
 
 
