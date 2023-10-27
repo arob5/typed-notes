@@ -450,7 +450,7 @@ so the invariant density can be viewed as an element of the null space of the ad
 Here we discuss how to define a diffusion that has a desired target stationary distribution. In general this is difficult. However, a specific class of SDEs is amenable to 
 this task, which are known as \textbf{Langevin diffusions}. We start with such a diffusion of the form 
 \begin{align}
-d\B\state = -\frac{1}{2} \nabla \potential(\B\state) dt + \sigma d\BM \label{Langevin_diffusion_1},
+d\B\state = -\frac{1}{2} \nabla \potential(\B\state) dt + \sigma d\B\BM \label{Langevin_diffusion_1},
 \end{align}
 where $\sigma > 0$ is a constant, and $\potential$ is a \textbf{potential function}. This equation can be thought of as describing the trajectory of a particle then tends 
 to be in the \textit{potential well} specified by $\potential$, but in a noisy fashion due to the noise $d\BM$ with variance $\sigma^2$. 
@@ -469,10 +469,59 @@ so
 \[
 \potential(\bx) = -\sigma^2\left(\log \invariantDens(\bx) + \log Z \right).
 \]
-However, note that the potential only appears in the diffusion \ref{Langevin_diffusion_1} through its gradient. Therefore, the normalizing constant won't affect the 
-resulting SDE. This is great news for developing sampling algorithms, where we typically only know the target density up to a normalizing constant. 
+However, note that the potential only appears in the diffusion \ref{Langevin_diffusion_1} through its gradient. Therefore, the normalizing constant $\log Z$ won't affect the 
+resulting SDE. This is great news for developing sampling algorithms, where we typically only know the target density up to a normalizing constant. Therefore, in this case 
+we see that setting the potential to the scaled negative log density 
+\[
+\potential(\bx) = -\sigma^2 \log \invariantDens(\bx)
+\]
+would do the trick, with the understanding that the density $\invariantDens(\bx)$ need not be normalized. Intuitively, this makes sense; we know the density looks something like 
+a downward facing bowl, so the negative log density will indeed look like some sort of ``well''. Continuing on the discussion of reverse-engineering this process, suppose we are 
+given a (potentially unnormalized) density $\invariantDens(\bx)$ and set the potential function as above. Then its gradient is 
+\[
+\nabla \potential(\bx) = -\sigma^2 \nabla \log \invariantDens(\bx). 
+\]
+Plugging this choice into the diffusion \ref{Langevin_diffusion_1} then yields 
+\begin{align}
+d\B\state = \frac{\sigma^2}{2} \nabla \log \invariantDens(\state) dt + \sigma d\B\BM \label{Langevin_diffusion_2}. 
+\end{align}
+Note that we could have set $\sigma = 1$ in \ref{Langevin_diffusion_1} and then adjusted the potential accordingly to maintain the desired stationary distribution. The choice of 
+how to set the diffusion coefficient in \ref{Langevin_diffusion_1} is thus a design choice. We can actually generalize this and replace $\sigma^2$ in \ref{Langevin_diffusion_2} 
+with a positive definite matrix $\Sigma$. The correct scaling on the diffusion term is then the square root of this matrix, $\Sigma^{1/2}$. When we write $\Sigma^{1/2}$ we assume 
+this is a symmetric square root of $\Sigma$. This yields a more general Langevin diffusion 
+\begin{align}
+d\B\state = \frac{1}{2} \Sigma \nabla \log \invariantDens(\state) dt + \Sigma^{1/2} d\B\BM \label{Langevin_diffusion_3}.
+\end{align}
+Given that \ref{Langevin_diffusion_3} will be the typical starting point for our considerations of algorithm design, we take the time to actually verify the claim that the 
+\ref{Langevin_diffusion_3} has invariant distribution with density $\invariantDens(\bx)$. 
+
+\begin{prop}
+The Langevin diffusion \ref{Langevin_diffusion_3} has a stationary distribution with probability density $\invariantDens(\bx)$. 
+\end{prop}
+
+\begin{proof}
+We check that $\gen^* \invariantDens = 0$. The equation \ref{Langevin_diffusion_3} defines an $\ito$ process and therefore has adjoint
+\[
+\gen^* \invariantDens(\bx) = -\left\langle \nabla, \frac{1}{2} \Sigma \invariantDens(\bx) \nabla \log \invariantDens(\bx) \right\rangle + \frac{1}{2} \left\langle \nabla^2, \Sigma \invariantDens(\bx)\right\rangle
+\]
+We can simplify the expression by plugging in 
+\[
+\nabla \log \invariantDens(\bx) = \frac{\nabla \invariantDens(\bx)}{\invariantDens(\bx)}
+\]
+and noting that the $\invariantDens(\bx)$ terms cancel in the first term. Thus, we have 
+\begin{align*}
+\gen^* \invariantDens(\bx) 
+&= -\frac{1}{2}  \left\langle \nabla, \Sigma \nabla \invariantDens(\bx) \right\rangle + \frac{1}{2} \left\langle \nabla^2, \Sigma \invariantDens(\bx)\right\rangle \\
+&= -\frac{1}{2} \sum_{i=1}^{\dimState} \frac{\partial}{\partial x_i} \left[\Sigma \nabla \invariantDens(\bx) \right]_i + \frac{1}{2} \sum_{i,j=1}^{\dimState} \frac{\partial^2}{\partial x_i \partial x_j} \left[\Sigma_{ij} \invariantDens(\bx) \right] \\
+&= -\frac{1}{2} \sum_{i=1}^{\dimState} D\left[\Sigma \nabla \invariantDens(\bx) \right]_{ii} + \frac{1}{2} \sum_{i,j=1}^{\dimState} \Sigma_{ij}  \frac{\partial^2}{\partial x_i \partial x_j} \left[\invariantDens(\bx) \right] \\
+&= -\frac{1}{2} \text{tr}\left\{D\left[\Sigma \nabla \invariantDens(\bx) \right] \right\} + \frac{1}{2} \text{tr}\left\{\Sigma \nabla^2 \invariantDens(\bx) \right\} \\
+&= -\frac{1}{2} \text{tr}\left\{\Sigma D \nabla \invariantDens(\bx) \right\} + \frac{1}{2} \text{tr}\left\{\Sigma \nabla^2 \invariantDens(\bx) \right\} \\
+&= -\frac{1}{2} \text{tr}\left\{\Sigma \nabla^2 \invariantDens(\bx) \right\} + \frac{1}{2} \text{tr}\left\{\Sigma \nabla^2 \invariantDens(\bx) \right\} \\
+&= 0
+\end{align*}
 
 
+\end{proof}
 
 
 \end{document}
