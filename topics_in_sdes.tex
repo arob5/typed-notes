@@ -47,6 +47,8 @@
 \newcommand{\dimBM}{d} % Number of Brownian motions
 \newcommand{\dimState}{n} 
 \newcommand{\diffMat}{\mathbf{A}} % Diffusion matrix 
+\newcommand{\invariantDens}{h} % Density of invariant distribution
+\newcommand{\potential}{\Phi} % Potential function
 
 \DeclarePairedDelimiterX\innerp[2]{(}{)}{#1\delimsize\vert\mathopen{}#2}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -415,8 +417,62 @@ $f(x,t)$ is provided in Saarka 5.1 under the name \textit{generalized generator}
 the notation introduced for the $\ito$ formula in the previous section. The notation is used similarly for the adjoint $\gen^*$, but to be clear we note that this notation 
 should be interpreted as 
 \[
-\gen^* f(\B{x}) = -\sum_{n=1}^{\dimState} \frac{\partial}{\partial x_i}\left[\B\mu(\B{x})f(\B{x}) \right] + \frac{1}{2} \sum_{i=1}^{\dimState}\sum_{j=1}^{\dimState} \frac{\partial^2}{\partial x_i \partial x_j}\left[\diffMat_{ij}f(\bx) \right].
+\gen^* f(\B{x}) = -\sum_{n=1}^{\dimState} \frac{\partial}{\partial x_i}\left[\B\mu(\B{x},t)f(\B{x}) \right] + \frac{1}{2} \sum_{i=1}^{\dimState}\sum_{j=1}^{\dimState} \frac{\partial^2}{\partial x_i \partial x_j}\left[\diffMat_{ij}(\bx,t)f(\bx) \right].
 \]
+
+% Stationary Distributions 
+\section{Stationary Distributions}
+In this section we are considering time-homogenous diffusions 
+\[
+d\B\state = \B\mu(\B\state) dt + \B\sigma(\B\state) d\B\BM
+\]
+If we consider a diffusion process $\{\B\state\}$ with initial condition $\B{\state[0]} \sim \nu$, then $\nu$ is said to be a \textbf{stationary} or \textbf{invariant}
+distribution of the process if $\B\state \sim \nu$ for all $t \geq 0$; equivalently, 
+\[
+\nu(A) = \nu P(A), \text{ for all measurable } A,
+\]
+where $P(x,A)$ denotes the one-step transition operator of the time-homogenous diffusion. In general, finding stationary distributions using this integral 
+equation is difficult, but Fokker-Planck equation gives a much more convenient criterion when the stationary distribution has a density $\invariantDens$. By Fokker-Planck, 
+\[
+\frac{\partial \invariantDens}{\partial t} = \gen^* \invariantDens.
+\]
+However, the invariant density must satisfy 
+\[
+\frac{\partial \invariantDens}{\partial t} = 0.
+\]
+Combining these, we obtain the condition 
+\begin{align}
+\gen^* \invariantDens = 0, 
+\end{align}
+so the invariant density can be viewed as an element of the null space of the adjoint operator. \textbf{TODO: include example of stationary dist for OU process}
+
+\subsection{Designing Diffusions for Algorithms}
+Here we discuss how to define a diffusion that has a desired target stationary distribution. In general this is difficult. However, a specific class of SDEs is amenable to 
+this task, which are known as \textbf{Langevin diffusions}. We start with such a diffusion of the form 
+\begin{align}
+d\B\state = -\frac{1}{2} \nabla \potential(\B\state) dt + \sigma d\BM \label{Langevin_diffusion_1},
+\end{align}
+where $\sigma > 0$ is a constant, and $\potential$ is a \textbf{potential function}. This equation can be thought of as describing the trajectory of a particle then tends 
+to be in the \textit{potential well} specified by $\potential$, but in a noisy fashion due to the noise $d\BM$ with variance $\sigma^2$. 
+By potential well, we simply mean that the particle tends to move in the negative direction of the gradient - the direction of steepest descent. This equation has 
+stationary distribution 
+\[
+\invariantDens(\bx) = \frac{1}{Z} \exp\left\{-\frac{\potential(\bx)}{\sigma^2} \right\},
+\]
+with normalization constant $Z$. This can be checked by confirming $\gen^* \invariantDens = 0$. We will be using this fact to reverse engineer this process; that is, we 
+will have a target density $\invariantDens$ and want to choose the potential correctly so that the resulting SDE has invariant distribution with this density. To this end, let's 
+think about how the density relates to the potential in the above equations. We have 
+\[
+\log \invariantDens(\bx) = -\frac{\potential(\bx)}{\sigma^2}  - \log(Z), 
+\]
+so 
+\[
+\potential(\bx) = -\sigma^2\left(\log \invariantDens(\bx) + \log Z \right).
+\]
+However, note that the potential only appears in the diffusion \ref{Langevin_diffusion_1} through its gradient. Therefore, the normalizing constant won't affect the 
+resulting SDE. This is great news for developing sampling algorithms, where we typically only know the target density up to a normalizing constant. 
+
+
 
 
 \end{document}
