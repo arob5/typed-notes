@@ -102,10 +102,12 @@ $\{x_k\}_{k=0}^{K}$, where
 x_k \approx x(t_k), \qquad t_k := k \Delta t + t_0,  \qquad K := \frac{T-t_0}{\Delta t},  \qquad k = 0, 1, \dots, K.
 \end{align}
 Here, $\Delta t > 0$ is some fixed \textbf{step size}, although there also adaptive algorithms that consider tuning the step size as the algorithm progresses. 
+We will also utilize the notation $h := \Delta t$ when succinctness is desired. 
+
 One thing to keep in mind as we progress through numerical integration schemes is that one major concern is that errors can accumulate 
 over time. The approximation error introduced at time step $t_k$ will propagate to time step $t_{k+1}$, and so on. Can tiny errors quickly snowball into 
 large issues as time progresses, or will the algorithm be relatively robust to small errors? These are the kind of questions we must answer in 
-order to be confident that the numerical approximations returned by these algorithms are faithful to the exact trajectories. 
+order to be confident that the numerical approximations returned by these algorithms are faithful to the exact trajectories.
 
 The reason these algorithms are called \textbf{numerical integrators} follows from considering the integral formulation of \ref{IVP}, 
 \begin{align}
@@ -113,11 +115,30 @@ x(t) = x_0 + \int_{t_0}^{t} f(x(s), s) ds.
 \end{align}
 Given the value $x(t_k)$ we can consider the analogous integral that produces the value $x(t_{k+1})$, 
 \begin{align}
-x(t_{k+1}) = x(t_k) + \int_{t_k}^{t_{k+1}} f(x(s), s) ds = x(t_k) + \int_{t_k}^{t_k + \Delta t} f(x(s), s) ds \label{IVP_integral}
+x(t_{k+1}) = x(t_k) + \int_{t_k}^{t_{k+1}} f(x(s), s) ds = x(t_k) + \int_{t_k}^{t_k + h} f(x(s), s) ds \label{IVP_integral}
 \end{align}
 
 If we could compute the integral in \ref{IVP_integral} exactly, then we could exactly calculate the value of $x(t_k)$ at any chosen point $t_k$; i.e., 
 $x_k = x(x(t_k))$. Since this is typically not possible, numerical solution techniques typically can be viewed as approximating this integral in some way.  
+
+\subsection{Overview of Error Analysis}
+ A natural \textbf{global error} measure we will consider is 
+\begin{align}
+E_h &= \max_{1 \leq k \leq K} \norm{x(t_k) - x_k},
+\end{align}
+for some norm $\norm{\cdot}$. Controlling this error bounds the error across all of the discretization points $t_k$. A numerical scheme will be called 
+\textbf{convergent} if 
+\begin{align*}
+E_h \to 0 \text{ as } h \to 0.
+\end{align*}
+A more quantitative consideration is the rate at which the global error goes to zero as the step size decreases. This notion is formalized via the 
+\textbf{order} of the algorithm. The algorithm is said to be of order $p$ if 
+\begin{align*}
+E_h = O(h^p), 
+\end{align*}
+meaning that the error of higher-order integrators converges faster as the step size shrinks.  
+
+
 
 
 \subsection{Forward Euler}
@@ -131,15 +152,34 @@ step size $\Delta t$, except that the \textit{descent direction} is replaced by 
 integration point of view \ref{IVP_integral}, suppose we have current value $x_k$ and seek to produce $x_{k+1}$. The forward Euler update follows from 
 the approximation 
 \begin{align*}
-x(t_{k+1}) = x(t_k) + \int_{t_k}^{t_k + \Delta t} f(x(s),s) ds \approx x_k + \int_{t_k}^{t_k + \Delta t} f(x_k,t_k) ds = x_k + \Delta t f(x_k, t_k) =: x_{k+1}
+x(t_{k+1}) = x(t_k) + \int_{t_k}^{t_k + h} f(x(s),s) ds \approx x_k + \int_{t_k}^{t_k + h} f(x_k,t_k) ds = x_k + h f(x_k, t_k) =: x_{k+1}
 \end{align*}
 Notice that there are two sources of approximation error here: 
 \begin{enumerate}
 \item The true value $x(t_k)$ is replaced by the approximation $x_k$ produced by the previous step of the algorithm. 
-\item The integral is approximated by assuming that its value is approximately constant in the interval $[t_k, t_k + \Delta t]$, with the constant value given by 
+\item The integral is approximated by assuming that its value is approximately constant in the interval $[t_k, t_k + h]$, with the constant value given by 
 evaluating the integrand at the left endpoint.
 \end{enumerate}
-The choice to evaluate at the left endpoint is what gives the \textit{forward} Euler method its name. 
+The choice to evaluate at the left endpoint is what gives the \textit{forward} Euler method its name. Yet another way to arrive at the forward Euler method 
+is to consider a first-order Taylor approximation of $x(t)$. We can approximate $x(t+h)$ by expanding around the point $t$, 
+\begin{align}
+x(t+h) 
+&= x(t) + \dot{x}(t)h + O(h^2) \nonumber \\
+&= x(t) + f(x(t), t)h + O(h^2) \nonumber \\
+&\approx x(t) + f(x(t),t)h. \label{local_truncation_error}
+\end{align}
+Note that the only error in \ref{local_truncation_error} is due to dropping the lower order terms $O(h^2)$. We call this the \textbf{local truncation error}. This 
+definition serves to isolate the error induced by the linearization, excluding errors that are propagated from earlier steps of the algorithm. To better illustrate
+the various sources of errors, consider 
+\begin{align*}
+x(t_k + h) 
+&= x(t_k) + f(x(t_k), t_k)h + O(h^2) \\
+&\approx x(t_k) + f(x(t_k), t_k)h && \text{local truncation error} \\
+&\approx x_k + f(x_k, t_k)h && \text{propagated error}.
+\end{align*}
+
+\subsubsection{Error Analysis}
+
 
 
 \end{document}
