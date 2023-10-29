@@ -87,9 +87,59 @@ We begin with the simplest, finite-dimensional case.
 Motivate that adjoint equation essentially arises from integration by parts. But since it's not necessarily defined on the whole space, and since 
 boundary conditions might mess up the exact adjoint equivalence, we instead define what's known as the formal adjoint. 
 
+% Numerical Methods
+\section{Numerical Methods for ODEs}
+Here we consider numerical integrators for solving the initial value problem (IVP) 
+\begin{align}
+&\dot{x}(t) = f(x(t), t), &&x(t_0) = x_0, \label{IVP}
+\end{align}
+where $x(t) \in \R^n$ and $f: \R^{n+1} \to \R^n$. We will adopt the notational convention of suppressing the 
+functional dependence on $t$, writing \ref{IVP} as $\dot{x} = f(x,t)$. Note that this setup considers non-autonomous 
+systems, where the vector field $f(x,t)$ is itself allowed to change with time. The numerical schemes we will consider 
+here seek to approximate the trajectory $\{x(t) : t_0 \leq t \leq T\}$ by constructing a discretized approximation 
+$\{x_k\}_{k=0}^{K}$, where 
+\begin{align}
+x_k \approx x(t_k), \qquad t_k := k \Delta t + t_0,  \qquad K := \frac{T-t_0}{\Delta t},  \qquad k = 0, 1, \dots, K.
+\end{align}
+Here, $\Delta t > 0$ is some fixed \textbf{step size}, although there also adaptive algorithms that consider tuning the step size as the algorithm progresses. 
+One thing to keep in mind as we progress through numerical integration schemes is that one major concern is that errors can accumulate 
+over time. The approximation error introduced at time step $t_k$ will propagate to time step $t_{k+1}$, and so on. Can tiny errors quickly snowball into 
+large issues as time progresses, or will the algorithm be relatively robust to small errors? These are the kind of questions we must answer in 
+order to be confident that the numerical approximations returned by these algorithms are faithful to the exact trajectories. 
+
+The reason these algorithms are called \textbf{numerical integrators} follows from considering the integral formulation of \ref{IVP}, 
+\begin{align}
+x(t) = x_0 + \int_{t_0}^{t} f(x(s), s) ds. 
+\end{align}
+Given the value $x(t_k)$ we can consider the analogous integral that produces the value $x(t_{k+1})$, 
+\begin{align}
+x(t_{k+1}) = x(t_k) + \int_{t_k}^{t_{k+1}} f(x(s), s) ds = x(t_k) + \int_{t_k}^{t_k + \Delta t} f(x(s), s) ds \label{IVP_integral}
+\end{align}
+
+If we could compute the integral in \ref{IVP_integral} exactly, then we could exactly calculate the value of $x(t_k)$ at any chosen point $t_k$; i.e., 
+$x_k = x(x(t_k))$. Since this is typically not possible, numerical solution techniques typically can be viewed as approximating this integral in some way.  
 
 
-
+\subsection{Forward Euler}
+Note that $f(x,t)$ is a (potentially time-varying) vector field, giving the instantaneous velocity of the particle $x(t)$. Perhaps the most obvious numerical 
+approach is thus to simply take a small step in the direction indicated by the vector field,
+\begin{align}
+x_{k+1} := x_k + \Delta t f(x_k, t_k). \label{forward_Euler}
+\end{align}
+The algorithm given by repeating the update \ref{forward_Euler} is known as \textbf{forward Euler}. It is reminiscent of a gradient descent update with 
+step size $\Delta t$, except that the \textit{descent direction} is replaced by the direction indicated by the vector field $f$. Looking at this from the 
+integration point of view \ref{IVP_integral}, suppose we have current value $x_k$ and seek to produce $x_{k+1}$. The forward Euler update follows from 
+the approximation 
+\begin{align*}
+x(t_{k+1}) = x(t_k) + \int_{t_k}^{t_k + \Delta t} f(x(s),s) ds \approx x_k + \int_{t_k}^{t_k + \Delta t} f(x_k,t_k) ds = x_k + \Delta t f(x_k, t_k) =: x_{k+1}
+\end{align*}
+Notice that there are two sources of approximation error here: 
+\begin{enumerate}
+\item The true value $x(t_k)$ is replaced by the approximation $x_k$ produced by the previous step of the algorithm. 
+\item The integral is approximated by assuming that its value is approximately constant in the interval $[t_k, t_k + \Delta t]$, with the constant value given by 
+evaluating the integrand at the left endpoint.
+\end{enumerate}
+The choice to evaluate at the left endpoint is what gives the \textit{forward} Euler method its name. 
 
 
 \end{document}

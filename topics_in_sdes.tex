@@ -20,6 +20,7 @@
 
 % Custom Commands
 \newcommand{\B}[1]{\boldsymbol{#1}}
+\newcommand{\Gaussian}{\mathcal{N}}
 \newcommand*{\norm}[1]{\left\lVert#1\right\rVert}
 \newcommand*{\abs}[1]{\left\lvert#1\right\rvert}
 \newcommand*{\suchthat}{\,\mathrel{\big|}\,}
@@ -420,6 +421,11 @@ should be interpreted as
 \gen^* f(\B{x}) = -\sum_{n=1}^{\dimState} \frac{\partial}{\partial x_i}\left[\B\mu(\B{x},t)f(\B{x}) \right] + \frac{1}{2} \sum_{i=1}^{\dimState}\sum_{j=1}^{\dimState} \frac{\partial^2}{\partial x_i \partial x_j}\left[\diffMat_{ij}(\bx,t)f(\bx) \right].
 \]
 
+% Numerical Methods
+\section{Numerical Methods}
+
+
+
 % Stationary Distributions 
 \section{Stationary Distributions}
 In this section we are considering time-homogenous diffusions 
@@ -519,9 +525,26 @@ and noting that the $\invariantDens(\bx)$ terms cancel in the first term. Thus, 
 &= -\frac{1}{2} \text{tr}\left\{\Sigma \nabla^2 \invariantDens(\bx) \right\} + \frac{1}{2} \text{tr}\left\{\Sigma \nabla^2 \invariantDens(\bx) \right\} \\
 &= 0
 \end{align*}
-
-
 \end{proof}
+
+As an example, let's construct a Langevin diffusion with stationary distribution $\Gaussian(\B\mu, \Sigma)$. In this case, the unnormalized log density is 
+\[
+\log \invariantDens(\bx) = -\frac{1}{2} (\bx - \B\mu)^\top \Sigma^{-1}(\bx - \B\mu) = -\frac{1}{2} \norm{\Sigma^{-1}(\bx - \B\mu)}^2_2
+\]
+so 
+\[
+\nabla \log \invariantDens(\bx) = -\Sigma^{-1} (\bx - \B\mu). 
+\]
+Plugging this into \ref{Langevin_diffusion_3} we obtain 
+\[
+d\state = -\frac{1}{2} \Sigma^{-1} (\bx - \B\mu) dt + d\B\BM.
+\]
+We notice this is the Ornstein-Uhlenbeck (OU) process when $\B\mu = 0$, and a shifted version of this process otherwise. 
+
+% Langevin Diffusions for Sampling Algorithms
+\section{Langevin Diffusions for Sampling Algorithms}
+
+
 
 
 \end{document}
