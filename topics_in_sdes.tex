@@ -394,10 +394,13 @@ all terms corresponding to the $t$ drop out of the second term. We thus obtain,
 df(\B\state, t) &= \frac{\partial f(\B\state,t)}{\partial t}dt  + \langle \nabla f(\B\state), d\B\state \rangle + \frac{1}{2} \langle \nabla^2 f(\B\state), d\B\state d\B\state^\top  \rangle.
 \end{align*}
 
-To note one more special case, consider the $\ito$ diffusion \ref{SDE_multidim}. Recalling the form of the covariation term in this case, we obtain 
-\begin{align*}
-df(\B\state, t) &= \frac{\partial f(\B\state,t)}{\partial t}dt + \langle \nabla f(\B\state,t), d\B\state \rangle + \frac{1}{2} \langle \nabla^2 f(\B\state,t), \diffMat dt  \rangle.
-\end{align*}
+To note one more special case, consider the $\ito$ diffusion \ref{SDE_multidim}. Recalling the covariation term takes the form $d\B\state d\B\state^\top = \diffMat dt$ in this case, we obtain 
+\begin{align}
+df(\B\state, t) 
+&= \frac{\partial f(\B\state,t)}{\partial t}dt + \langle \nabla f(\B\state,t), \B\mu(\B\state,t) dt + \B\sigma(\B\state,t) d\B\BM \rangle + \frac{1}{2} \langle \nabla^2 f(\B\state,t), \diffMat dt  \rangle \label{Ito_formula_diffusion} \\
+&= \left[\frac{\partial f(\B\state,t)}{\partial t} + \langle \nabla f(\B\state,t), \B\mu(\B\state,t) \rangle + \frac{1}{2} \langle \nabla^2 f(\B\state,t), \diffMat \rangle \right] dt + 
+\left\langle \nabla f(\B\state,t), \sigma(\B\state, t) d\B\BM  \right\rangle \nonumber
+\end{align}
 Finally, we note that the $\ito$ formula can be generalized to vector-valued functions $f$ by simply applying the above formula in a componentwise fashion. The subsequent 
 section shows how the $\ito$ formula applied to an $\ito$ process can be written more succinctly using the generator. 
 
@@ -414,12 +417,20 @@ we have,
 
 Recall the definition of the diffusion matrix $\diffMat = \B\sigma \B\sigma^\top$. Note that these equations are defined for potentially time-inhomogenous diffusions 
 ($\B\mu$ and $\B\sigma$ are potentially functions of $t$), but the function $f$ is only a function of $x$. A generalization to functions of the form 
-$f(x,t)$ is provided in Saarka 5.1 under the name \textit{generalized generator}. The notation used in the expression for the generator $\gen$ should be familiar from 
-the notation introduced for the $\ito$ formula in the previous section. The notation is used similarly for the adjoint $\gen^*$, but to be clear we note that this notation 
-should be interpreted as 
-\[
-\gen^* f(\B{x}) = -\sum_{n=1}^{\dimState} \frac{\partial}{\partial x_i}\left[\B\mu(\B{x},t)f(\B{x}) \right] + \frac{1}{2} \sum_{i=1}^{\dimState}\sum_{j=1}^{\dimState} \frac{\partial^2}{\partial x_i \partial x_j}\left[\diffMat_{ij}(\bx,t)f(\bx) \right].
-\]
+$f(x,t)$ is provided in Saarka 5.1 under the name \textit{generalized generator}. To be clear on the notation used in these expressions, note that they 
+can be fully written out as 
+\begin{align*}
+\gen f(\bx) &= \sum_{i=1}^{\dimState} \frac{\partial}{\partial x_i} \left[f(\bx)\right] \B\mu_i(\bx,t) + 
+\frac{1}{2}\sum_{i=1}^{\dimState}\sum_{j=1}^{\dimState} \frac{\partial^2}{\partial x_i \partial x_j}\left[f(\bx)\right] \diffMat_{ij} \\
+\gen^* f(\bx) 
+&= -\sum_{i=1}^{\dimState} \frac{\partial}{\partial x_i}\left[\B\mu_i(\B{x},t)f(\B{x}) \right] + \frac{1}{2} \sum_{i=1}^{\dimState}\sum_{j=1}^{\dimState} \frac{\partial^2}{\partial x_i \partial x_j}\left[\diffMat_{ij}(\bx,t)f(\bx) \right].
+\end{align*}
+
+The $\ito$ formula applied to a $\ito$ diffusion can be written succinctly using the generator. Indeed, notice that the term in brackets in \ref{Ito_formula_diffusion} is precisely the 
+generator $\gen f(\B\state, t)$ (plus the time derivative). Thus, the $\ito$ formula for the $\ito$ diffusion \ref{SDE_multidim} can be written 
+\begin{align}
+df(\B\state, t) &= \left[\frac{\partial f(\B\state,t)}{\partial t} + \gen f(\B\state, t)\right] dt + \left\langle \nabla f(\B\state,t), \sigma(\B\state, t) d\B\BM  \right\rangle.
+\end{align}
 
 % Numerical Methods
 \section{Numerical Methods}
