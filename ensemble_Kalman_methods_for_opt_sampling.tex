@@ -57,16 +57,58 @@
 We begin by considering a dynamical system which is subject to noise, coupled with an associated observation process. 
 We utilize the notation 
 \begin{align}
-\dstate[\timeStep+1] &= \fwdOne(\dstate) + \indexTimeStep{\noiseDynamic}, 	  &&\indexTimeStep{\noiseDynamic} \overset{iid}{\sim} \Gaussian(0, \CovNoiseDynamic) \label{dynamic_model} \\
-\ddataObs[\timeStep+1] &= \obsOpLin \ddataObs + \indexTimeStep[\timeStep+1]{\noiseObs}, &&\indexTimeStep[\timeStep+1]{\noiseObs} \overset{iid}{\sim} \Gaussian(0, \CovNoiseObs) \nonumber \\
+\dstate[\timeStep+1] &= \fwdOne(\dstate) + \indexTimeStep{\noiseDynamic}, 	  		 &&\indexTimeStep{\noiseDynamic} \overset{iid}{\sim} \Gaussian(0, \CovNoiseDynamic) \label{dynamic_model} \\
+\ddataObs[\timeStep+1] &= \obsOp \ddataObs + \indexTimeStep[\timeStep+1]{\noiseObs}, &&\indexTimeStep[\timeStep+1]{\noiseObs} \overset{iid}{\sim} \Gaussian(0, \CovNoiseObs) \nonumber \\
 \dstate[0] &\sim \Gaussian(\stateMean[0], \stateCov[0]) && \nonumber \dstate[0] \perp \{\indexTimeStep{\noiseDynamic}\} \perp \{\indexTimeStep{\noiseObs}\}, \nonumber 
 \end{align}
 where $\dstate \in \R^{\dimState}$ is the latent state of interest, described by a deterministic evolution operator $\fwdOne: \R^{\dimState} \to \R^{\dimState}$ which is perturbed by 
 Gaussian noise $\indexTimeStep{\noiseDynamic}$. The third line gives a probabilistic initial condition for the dynamical system, also assumed to be Gaussian. 
-The second line describes the observation process, in which the observed data $\ddataObs \in \R^{\dimObs}$ is modeled as a linear 
-function $\obsOpLin$ of the underlying state, perturbed by Gaussian observation noise $\noiseObs$. The final line also gives the crucial assumption that the dynamics noise, observation 
-noise, and initial condition are all independent. 
+The second line describes the observation process, in which the observed data $\ddataObs \in \R^{\dimObs}$ is modeled as a
+function $\obsOp$ of the underlying state, perturbed by Gaussian observation noise $\noiseObs$. The final line also gives the crucial assumption that the dynamics noise, observation 
+noise, and initial condition are all independent. Letting $\dataObsCum := \{\ddataObs[1], \dots, \ddataObs\}$ denote the accumulation of data up through time $\timeStep$, the primary 
+target of inference is the \textit{filtering distribution} $\filterMeas$ of the state $\dstate$ given $\dataObsCum$, 
+\begin{align}
+\dstate|\dataObsCum \sim \filterMeas.
+\end{align}
+We typically assume the probability measure $\filterMeas$ has a density $\filterDens$ with respect to Lebesgue measure, such that 
+\[
+\filterMeas(A) = \int_A \filterDens(\state) d\state. 
+\]
+We now consider how the measure $\filterMeas$ is transformed into $\filterMeas[\timeStep+1]$ one time step in the future. In light of the dynamical model \ref{dynamic_model}, this transformation 
+proceeds in two stages. 
+\begin{enumerate}
+\item \textbf{Prediction:} First the state distribution is propagated through the forward dynamics model. Noting that this model is Markovian, this can be formulated in terms of the associated 
+Markov transition kernel $\predictOp$, which we note is time-homogenous under the model assumptions. We denote the distribution resulting from this operation as $\predictMeas[\timeStep+1]$
+(with associated density $\predictDens[\timeStep+1]$, when applicable) and refer to it as the \textit{predicted distribution}. This distribution is given by 
+\begin{align}
+\predictMeas[\timeStep+1](A) := \filterMeas \predictOp(A) &= \int \predictOp(\state, A) \filterMeas(d\state).
+\end{align}
+We note that the operator $\predictOp$ is linear in the space of measures, and preserved probability measures under convex combinations. Under the model assumptions, this operator 
+takes the concrete form 
+\begin{align*}
+\predictOp(\state, A) &= \int \Gaussian(\state^\prime | \state, \CovNoiseDynamic) d\state^\prime
+\end{align*}
+so that 
+\begin{align}
+\predictMeas[\timeStep+1](A) &= \int \left[\int \Gaussian(\state^\prime | \state, \CovNoiseDynamic) d\state^\prime\right] \filterMeas(d\state). \label{predict_integral}
+\end{align}
 
+\item \textbf{Analysis}: In the next stage the predicted distribution $\predictMeas[\timeStep+1]$ is combined with the new observation $\ddataObs[\timeStep+1]$ via Bayes' rule.
+This operation can be formalized by the application of an operator $\analysisOp$, which depends on time through the observation $\ddataObs[\timeStep+1]$. Under the independence 
+assumptions in \ref{dynamic_model}, this application of Bayes' rule can be written as 
+\begin{align*}
+\filterMeas[\timeStep+1](A) = \predictMeas[\timeStep+1] \analysisOp(A) = \frac{\int_A \Gaussian(\ddataObs[\timeStep+1]|\obsOp(\state), \CovNoiseObs) \predictMeas[\timeStep+1](d\state)}{\int \Gaussian(\ddataObs[\timeStep+1]|\obsOp(\state), \CovNoiseObs) \predictMeas[\timeStep+1](d\state)}.
+\end{align*}
+We notice that the numerator defines a linear operator in $\filterMeas[\timeStep+1]$. However, this linear operator is then composed with a non-linear operator which normalizes the measure 
+in order to return a probability measure. The operator $\analysisOp$ is thus non-linear. 
+\end{enumerate}
+
+We have shown that the filtering distribution update is given by 
+\begin{align}
+\filterMeas[\timeStep+1] = \predictMeas[\timeStep+1] \analysisOp = \filterMeas \predictOp \analysisOp,
+\end{align}
+with $\predictOp$ is linear Markov operator, and $\analysisOp$ a non-linear likelihood operator. The standard goal in the filtering setting is to approximate these operations in order 
+to obtain an approximation of $\filterMeas[\timeStep+1]$. 
 
 \subsection{The Kalman and Ensemble Kalman Filter}
 \subsection{Langevin Diffusions}
