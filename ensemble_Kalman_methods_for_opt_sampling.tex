@@ -1,0 +1,83 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Local custom commands. 
+\include{local-defs-EKI}
+\newcommand{\bphi}{\boldsymbol{\phi}}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+% Title and author
+\title{Ensemble Kalman Methods for Inversion: Optimization and Sampling}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\section{Background}
+
+\subsection{Inverse Problems}
+
+\subsection{Filtering Stochastic Dynamical Systems}
+We begin by considering a dynamical system which is subject to noise, coupled with an associated observation process. 
+We utilize the notation 
+\begin{align}
+\dstate[\timeStep+1] &= \fwdOne(\dstate) + \indexTimeStep{\noiseDynamic}, 	  &&\indexTimeStep{\noiseDynamic} \overset{iid}{\sim} \Gaussian(0, \CovNoiseDynamic) \label{dynamic_model} \\
+\ddataObs[\timeStep+1] &= \obsOpLin \ddataObs + \indexTimeStep[\timeStep+1]{\noiseObs}, &&\indexTimeStep[\timeStep+1]{\noiseObs} \overset{iid}{\sim} \Gaussian(0, \CovNoiseObs) \nonumber \\
+\dstate[0] &\sim \Gaussian(\stateMean[0], \stateCov[0]) && \nonumber \dstate[0] \perp \{\indexTimeStep{\noiseDynamic}\} \perp \{\indexTimeStep{\noiseObs}\}, \nonumber 
+\end{align}
+where $\dstate \in \R^{\dimState}$ is the latent state of interest, described by a deterministic evolution operator $\fwdOne: \R^{\dimState} \to \R^{\dimState}$ which is perturbed by 
+Gaussian noise $\indexTimeStep{\noiseDynamic}$. The third line gives a probabilistic initial condition for the dynamical system, also assumed to be Gaussian. 
+The second line describes the observation process, in which the observed data $\ddataObs \in \R^{\dimObs}$ is modeled as a linear 
+function $\obsOpLin$ of the underlying state, perturbed by Gaussian observation noise $\noiseObs$. The final line also gives the crucial assumption that the dynamics noise, observation 
+noise, and initial condition are all independent. 
+
+
+\subsection{The Kalman and Ensemble Kalman Filter}
+\subsection{Langevin Diffusions}
+
+\section{Ensemble Kalman Inversion}
+
+
+\end{document} 
+
+
+
+
+
+
