@@ -140,11 +140,14 @@
 \newcommand{\fwdOne}{\Psi} % One-step flow map
 \newcommand{\indexTimeStep}[2][\timeStep]{{#2}_{#1}} % Adds discrete time index to a variable.
 \newcommand{\dstate}[1][\timeStep]{\indexTimeStep[#1]{\state}} % State vector indexed by discrete time. 
+\newcommand{\dstatePred}[1][\timeStep]{\indexTimeStep[#1]{\hat{\state}}}
 \newcommand{\noiseDynamic}{\eta}
 \newcommand{\CovNoiseDynamic}{\Sigma_{\noiseDynamic}}
 \newcommand{\dimState}{D}
 \newcommand{\stateMean}[1][\timeStep]{\indexTimeStep[#1]{m}}
 \newcommand{\stateCov}[1][\timeStep]{\indexTimeStep[#1]{C}}
+\newcommand{\stateMeanPred}[1][\timeStep]{\indexTimeStep[#1]{\hat{m}}}
+\newcommand{\stateCovPred}[1][\timeStep]{\indexTimeStep[#1]{\hat{C}}}
 
 \newcommand{\dataObs}{y}
 \newcommand{\ddataObs}[1][\timeStep]{\indexTimeStep[#1]{\dataObs}} % Observation indexed by discrete time. 
@@ -158,8 +161,10 @@
 \newcommand{\filterDens}[1][\timeStep]{\pi_{#1}} % Filtering density
 \newcommand{\predictMeas}[1][\timeStep]{\hat{\mu}_{#1}} % Filtering distribution/law (measure)
 \newcommand{\predictDens}[1][\timeStep]{\hat{\pi}_{#1}} % Filtering density
+\newcommand{\filterDensPred}[1][\timeStep]{\hat{\pi}_{#1}} 
 \newcommand{\predictOp}{\mathcal{P}} % Prediction operator (Markov kernel)
 \newcommand{\analysisOp}[1][\timeStep]{\mathcal{A}_{#1}} % Analysis (likelihood) operator 
+\newcommand{\KGain}[1][\timeStep]{K_{#1}} % Kalman Gain 
 
 \newcommand{\NTimeOut}[1]{T_{#1}} % Number of time steps \NTimeOut -> \indexObj{\Ntime}
 \newcommand{\indexTime}[2][\timeIdx]{{#2}_{#1}} % Adds time index to a variable.

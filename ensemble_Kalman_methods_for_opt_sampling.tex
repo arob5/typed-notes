@@ -58,7 +58,7 @@ We begin by considering a dynamical system which is subject to noise, coupled wi
 We utilize the notation 
 \begin{align}
 \dstate[\timeStep+1] &= \fwdOne(\dstate) + \indexTimeStep{\noiseDynamic}, 	  		 &&\indexTimeStep{\noiseDynamic} \overset{iid}{\sim} \Gaussian(0, \CovNoiseDynamic) \label{dynamic_model} \\
-\ddataObs[\timeStep+1] &= \obsOp \ddataObs + \indexTimeStep[\timeStep+1]{\noiseObs}, &&\indexTimeStep[\timeStep+1]{\noiseObs} \overset{iid}{\sim} \Gaussian(0, \CovNoiseObs) \nonumber \\
+\ddataObs[\timeStep+1] &= \obsOp(\dstate[\timeStep+1]) + \indexTimeStep[\timeStep+1]{\noiseObs}, &&\indexTimeStep[\timeStep+1]{\noiseObs} \overset{iid}{\sim} \Gaussian(0, \CovNoiseObs) \nonumber \\
 \dstate[0] &\sim \Gaussian(\stateMean[0], \stateCov[0]) && \nonumber \dstate[0] \perp \{\indexTimeStep{\noiseDynamic}\} \perp \{\indexTimeStep{\noiseObs}\}, \nonumber 
 \end{align}
 where $\dstate \in \R^{\dimState}$ is the latent state of interest, described by a deterministic evolution operator $\fwdOne: \R^{\dimState} \to \R^{\dimState}$ which is perturbed by 
@@ -83,14 +83,14 @@ Markov transition kernel $\predictOp$, which we note is time-homogenous under th
 \begin{align}
 \predictMeas[\timeStep+1](A) := \filterMeas \predictOp(A) &= \int \predictOp(\state, A) \filterMeas(d\state).
 \end{align}
-We note that the operator $\predictOp$ is linear in the space of measures, and preserved probability measures under convex combinations. Under the model assumptions, this operator 
+We note that the operator $\predictOp$ is linear in the space of measures, and preserves probability measures under convex combinations. Under the model assumptions, this operator 
 takes the concrete form 
 \begin{align*}
-\predictOp(\state, A) &= \int \Gaussian(\state^\prime | \state, \CovNoiseDynamic) d\state^\prime
+\predictOp(\state, A) &= \int_A \Gaussian(\state^\prime | \state, \CovNoiseDynamic) d\state^\prime
 \end{align*}
 so that 
 \begin{align}
-\predictMeas[\timeStep+1](A) &= \int \left[\int \Gaussian(\state^\prime | \state, \CovNoiseDynamic) d\state^\prime\right] \filterMeas(d\state). \label{predict_integral}
+\predictMeas[\timeStep+1](A) &= \int \left[\int_A \Gaussian(\state^\prime | \state, \CovNoiseDynamic) d\state^\prime\right] \filterMeas(d\state). \label{predict_integral}
 \end{align}
 
 \item \textbf{Analysis}: In the next stage the predicted distribution $\predictMeas[\timeStep+1]$ is combined with the new observation $\ddataObs[\timeStep+1]$ via Bayes' rule.
@@ -107,10 +107,65 @@ We have shown that the filtering distribution update is given by
 \begin{align}
 \filterMeas[\timeStep+1] = \predictMeas[\timeStep+1] \analysisOp = \filterMeas \predictOp \analysisOp,
 \end{align}
-with $\predictOp$ is linear Markov operator, and $\analysisOp$ a non-linear likelihood operator. The standard goal in the filtering setting is to approximate these operations in order 
+with $\predictOp$ linear Markov operator, and $\analysisOp$ a non-linear likelihood operator. The standard goal in the filtering setting is to approximate these operations in order 
 to obtain an approximation of $\filterMeas[\timeStep+1]$. 
 
 \subsection{The Kalman and Ensemble Kalman Filter}
+
+\subsubsection{The Kalman Filter}
+Under the additional assumption that the operators $\fwdOne$ and $\obsOp$ in \ref{dynamic_model} are linear, then the filtering distribution update can be performed 
+analytically. We show in turn that the operators $\predictOp$ and $\analysisOp$ preserve Gaussianity. Suppose that the current filtering distribution is given by 
+$\dstate \sim \Gaussian(\stateMean, \stateCov)$. 
+
+\begin{enumerate}
+\item \textbf{Prediction}: The prediction update simply follows from noting that 
+\begin{align*}
+\dstate[\timeStep+1] &= \fwdOne \dstate + \indexTimeStep{\noiseDynamic}, 
+&&\dstate \sim \Gaussian(\stateMean, \stateCov), \indexTimeStep{\noiseDynamic} \sim \Gaussian(0, \CovNoiseDynamic)
+\end{align*}
+under the assumption that $\fwdOne$ is linear implies that $\dstate[\timeStep+1]$ is also Gaussian. Thus, 
+\begin{align*}
+\dstatePred[\timeStep+1] &\sim \Gaussian(\stateMeanPred[\timeStep+1], \stateCovPred[\timeStep+1]) \\
+\stateMeanPred[\timeStep+1] &:= \fwdOne \stateMean \\
+\stateCovPred[\timeStep+1]  &:= \fwdOne \stateCov \fwdOne^\top + \CovNoiseDynamic.
+\end{align*}
+
+\item \textbf{Analysis}: We write the observation operator as $\obsOpLin \in \R^{\dimObs \times \dimState}$ when it is assumed linear. 
+The updated filtering density is given by 
+\begin{align*}
+\filterDens[\timeStep+1](\dstate[\timeStep+1]) 
+&= p(\dstate[\timeStep+1] | \dataObsCum, \ddataObs[\timeStep+1]) \\
+&\propto p(\ddataObs[\timeStep+1] | \dstate[\timeStep+1]) \filterDensPred(\dstate[\timeStep+1]) \\
+&= \Gaussian(\ddataObs[\timeStep+1] | \obsOpLin \dstate[\timeStep+1], \CovNoiseObs) \Gaussian(\dstate[\timeStep+1] | \stateMeanPred[\timeStep+1], \stateCovPred[\timeStep+1]).
+\end{align*}
+The analysis update thus reduces to finding the posterior distribution of a standard Gaussian linear regression model. The well-known form of the posterior gives 
+\begin{align*}
+\dstate[\timeStep+1] | \dataObsCum[\timeStep+1] &\sim \Gaussian(\stateMean[\timeStep+1], \stateCov[\timeStep+1]) \\
+\stateCov[\timeStep+1] &= \left[\stateCovPred[\timeStep+1]^{-1} + \obsOpLin^\top \CovNoiseObs^{-1} \obsOpLin \right]^{-1} \\
+\stateMean[\timeStep+1] &= \stateCov[\timeStep+1] \left[\stateCovPred[\timeStep+1]^{-1} \stateMeanPred[\timeStep+1] + \obsOpLin^\top \CovNoiseObs^{-1} \ddataObs[\timeStep+1] \right].
+\end{align*}  
+In applications with high-dimensional state spaces such that $\dimState >> \dimObs$, the inversion of the $\dimState \times \dimState$ matrix in the above update formula may be 
+computationally intractable. An application of the Woodbury matrix identity allows these formulae to be re-written in terms of an $\dimObs \times \dimObs$ matrix inverse. 
+The equivalent mean and covariance update is given by
+\begin{align*}
+\stateCov[\timeStep+1] &= \left[\idMat_{\dimState} - \KGain[\timeStep+1] \obsOpLin \right] \stateCovPred[\timeStep+1] \\
+\stateMean[\timeStep+1] &= \stateMeanPred[\timeStep+1] + \KGain[\timeStep+1] \left[\ddataObs[\timeStep+1] - \obsOpLin \stateMeanPred[\timeStep+1] \right] \\
+\KGain[\timeStep+1] &:= \stateCovPred[\timeStep+1] \obsOpLin^\top \left[\obsOpLin \stateCovPred[\timeStep+1] \obsOpLin^\top + \CovNoiseObs \right]^{-1}
+\end{align*}
+where the matrix $\KGain[\timeStep+1]$ is referred to as the \textit{Kalman gain}. 
+
+
+
+\end{enumerate}
+
+
+
+
+
+
+\subsubsection{The Ensemble Kalman Filter}
+
+
 \subsection{Langevin Diffusions}
 
 \section{Ensemble Kalman Inversion}
