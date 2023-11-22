@@ -48,12 +48,19 @@
 \newcommand{\spar}{u} % Parameter (scalar, non-bold)
 \newcommand{\bpar}{\mathbf{u}} % Parameter vector (bold)
 \newcommand{\parSpace}{\mathcal{U}} % Parameter space
+\newcommand{\dimData}{N}
+\newcommand{\noise}{\epsilon} % Observation noise random variable 
+\newcommand{\covObsNoise}{\Sigma_{\noise}} % Covariance matrix of observation noise. 
 \newcommand{\fwd}{G} % Forward model
 \newcommand{\Npar}{D} % Dimension of parameter space
 \newcommand{\Nobj}{P} % Number of output variables/data constraints/objectives
 \newcommand{\llik}{\mathcal{L}} % Log-likelihood 
 \newcommand{\priorDens}{\pi_0} % Prior density 
+\newcommand{\priorMeas}{\mu_0} % Prior measure
 \newcommand{\postDens}{\pi} % Posterior density
+\newcommand{\postMeas}{\mu} % Posterior measure
+\newcommand{\priorMean}{m_0} 
+\newcommand{\priorCov}{C_0}
 \newcommand{\objIdx}{p} % Primary index for indexing objective (i.e. data constraint or output variable) in multi-objective problems.
 \newcommand{\indexObj}[2][\objIdx]{{#2}^{(#1)}} % Adds objective index to a variable.
 \newcommand{\designMat}[1][\designIdx]{\mathbf{U}_{#1}} % Design matrix of input parameters (in rows) at which response is observed. 
@@ -69,6 +76,10 @@
 
 \newcommand{\SSRVecPredOut}[2]{\SSR_{#1}^{(#2)}} % TODO: change this 
 
+% Ensemble Kalman Inversion and Sampling
+\newcommand{\dpar}[1][\timeStep]{\indexTimeStep[#1]{\spar}} % Parameter vector indexed by discrete time. 
+\newcommand{\exState}{z} % Extended state
+\newcommand{\dexState}[1][\timeStep]{\indexTimeStep[#1]{\exState}}
 
 % --------------------------------------------------------------------------------------------------
 % Gaussian Processes. 

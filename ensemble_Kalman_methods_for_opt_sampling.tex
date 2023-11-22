@@ -115,7 +115,7 @@ to obtain an approximation of $\filterMeas[\timeStep+1]$.
 \subsubsection{The Kalman Filter}
 Under the additional assumption that the operators $\fwdOne$ and $\obsOp$ in \ref{dynamic_model} are linear, then the filtering distribution update can be performed 
 analytically. We show in turn that the operators $\predictOp$ and $\analysisOp$ preserve Gaussianity. Suppose that the current filtering distribution is given by 
-$\dstate \sim \Gaussian(\stateMean, \stateCov)$. 
+$\dstate|\dataObsCum \sim \Gaussian(\stateMean, \stateCov)$. 
 
 \begin{enumerate}
 \item \textbf{Prediction}: The prediction update simply follows from noting that 
@@ -153,14 +153,7 @@ The equivalent mean and covariance update is given by
 \KGain[\timeStep+1] &:= \stateCovPred[\timeStep+1] \obsOpLin^\top \left[\obsOpLin \stateCovPred[\timeStep+1] \obsOpLin^\top + \CovNoiseObs \right]^{-1}
 \end{align*}
 where the matrix $\KGain[\timeStep+1]$ is referred to as the \textit{Kalman gain}. 
-
-
-
 \end{enumerate}
-
-
-
-
 
 
 \subsubsection{The Ensemble Kalman Filter}
@@ -168,7 +161,57 @@ where the matrix $\KGain[\timeStep+1]$ is referred to as the \textit{Kalman gain
 
 \subsection{Langevin Diffusions}
 
-\section{Ensemble Kalman Inversion}
+\section{Ensemble Kalman Methods for Inverse Problems}
+We now turn our attention to the application of ensemble Kalman methods to the solution of Bayesian inverse problems. 
+The generic setting of interest is 
+\begin{align}
+\dataObs &= \fwd(\spar) + \noise \label{inverse_problem} \\
+\noise &\sim \Gaussian(0, \covObsNoise) \nonumber \\
+\spar &\sim \Gaussian(\priorMean, \priorCov), \nonumber
+\end{align}
+where $\spar \in \R^{\Npar}$ is the unknown parameter of interest and $\dataObs \in \R^{\dimData}$ is an observed 
+data vector which is assumed to result from a potentially non-linear forward mapping $\fwd: \R^{\Npar} \to \R^{\dimData}$
+corrupted by Gaussian noise $\noise$. We consider the Bayesian approach, whereby the parameter is equipped with 
+Gaussian prior and the goal is to characterize the posterior distribution $\spar|\dataObs \sim \postMeas$. 
+
+We first discuss ensemble Kalman inversion (EKI), which can be understood as an ensemble approach to approximating the 
+maximum a posteriori (MAP) estimate of $\postMeas$. We then build on EKI and introduce the ensemble Kalman sampler (EKS), 
+which produces approximate samples from $\postMeas$.  
+
+\subsection{Ensemble Kalman Inversion}
+While there are many ways to introduce the EKI algorithm, we follow the approach detailed in \textbf{TODO}, which introduces 
+artificial dynamics into the inverse problem \ref{inverse_problem} in order to apply an ensemble Kalman approach. We begin 
+by noting that \ref{inverse_problem} can be viewed as a rather trivial dynamical system with state vector $\spar$,
+\begin{align}
+\dpar[\timeStep+1] &\sim \Gaussian(\priorMean, \priorCov) \label{inverse_problem_dynamic1} \\
+\indexTimeStep[\timeStep+1]{\dataObs} &= \fwd(\dpar[\timeStep+1]) + \indexTimeStep[\timeStep+1]{\noise}. \nonumber
+\end{align}
+In this formulation, $\fwd$ is thought of as the observation operator. In order to re-write \ref{inverse_problem_dynamic1}
+in a form more suitable to application of the EnKF, we would like the observation operator to be linear. We can achieve this
+by introducing a new state
+\begin{align}
+\dexState := \begin{pmatrix} \dpar & \fwd(\dpar) \end{pmatrix}^\top \in \R^{\Npar + \dimData}.
+\end{align}
+The observation equation in \ref{inverse_problem_dynamic1} can now be written as 
+\begin{align*}
+\indexTimeStep[\timeStep+1]{\dataObs} 
+&= \begin{pmatrix} 0 & \idMat_{\dimData} \end{pmatrix} \begin{pmatrix} \dpar[\timeStep+1] \\ \fwd(\dpar[\timeStep+1]) \end{pmatrix} + \indexTimeStep[\timeStep+1]{\noise} \\
+&= \obsOpLin \dexState[\timeStep+1] + \indexTimeStep[\timeStep+1]{\noise} 
+\end{align*}
+where we have defined the linear observation operator 
+\begin{align}
+\obsOpLin := \begin{pmatrix} 0 & \idMat_{\dimData} \end{pmatrix} \in \R^{\dimData \times (\Npar + \dimData)}.
+\end{align}
+The dynamics in $\dexState$ are trivially given by the identity operator 
+\begin{align*}
+\dexState[\timeStep+1] &= \idMat \dexState[\timeStep],
+\end{align*}
+which will imply that the ensemble of particles will only be updated during the analysis step of the EnKF. The complete extended state space
+model is thus given by 
+\begin{align}
+\dexState[\timeStep+1] &= \idMat \dexState[\timeStep] \label{inverse_problem_dynamic} \\
+\indexTimeStep[\timeStep+1]{\dataObs} &= \obsOpLin \dexState[\timeStep+1] + \indexTimeStep[\timeStep+1]{\noise} \nonumber.
+\end{align}
 
 
 \end{document} 
