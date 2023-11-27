@@ -39,6 +39,7 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{thm}{Theorem}
 \newtheorem{corollary}{Corollary}
+\newtheorem{alg}{Algorithm}
 
 % Title and author
 \title{Ensemble Kalman Methods for Inversion: Optimization and Sampling}
@@ -179,8 +180,11 @@ maximum a posteriori (MAP) estimate of $\postMeas$. We then build on EKI and int
 which produces approximate samples from $\postMeas$.  
 
 \subsection{Ensemble Kalman Inversion}
-While there are many ways to introduce the EKI algorithm, we follow the approach detailed in \textbf{TODO}, which introduces 
-artificial dynamics into the inverse problem \ref{inverse_problem} in order to apply an ensemble Kalman approach. We begin 
+
+\subsubsection{Extending the State Space}
+While there are many ways to introduce the EKI algorithm, we start with the motivation used in the paper, which first introduced 
+the EKI algorithm. This method introduces an artificial dynamical system via an extended state space approach, whereby the 
+inverse problem is embedded as the observation equation of the system. We begin 
 by noting that \ref{inverse_problem} can be viewed as a rather trivial dynamical system with state vector $\spar$,
 \begin{align}
 \dpar[\timeStep+1] &\sim \Gaussian(\priorMean, \priorCov) \label{inverse_problem_dynamic1} \\
@@ -202,17 +206,82 @@ where we have defined the linear observation operator
 \begin{align}
 \obsOpLin := \begin{pmatrix} 0 & \idMat_{\dimData} \end{pmatrix} \in \R^{\dimData \times (\Npar + \dimData)}.
 \end{align}
-The dynamics in $\dexState$ are trivially given by the identity operator 
-\begin{align*}
-\dexState[\timeStep+1] &= \idMat \dexState[\timeStep],
-\end{align*}
-which will imply that the ensemble of particles will only be updated during the analysis step of the EnKF. The complete extended state space
+We note that the evolution leaves the $\spar$ portion of the input unchanged, which will imply that the ensemble of $\spar$-particles will 
+only be updated during the analysis step of the EnKF, as described below. The complete extended state space
 model is thus given by 
 \begin{align}
-\dexState[\timeStep+1] &= \idMat \dexState[\timeStep] \label{inverse_problem_dynamic} \\
+\dexState[\timeStep+1] &= \mathcal{E}(\dexState[\timeStep]) \label{inverse_problem_dynamic} \\
 \indexTimeStep[\timeStep+1]{\dataObs} &= \obsOpLin \dexState[\timeStep+1] + \indexTimeStep[\timeStep+1]{\noise} \nonumber.
 \end{align}
+The baseline EKI algorithm results from a direct application of the EnKF to the artificial dynamical system \ref{inverse_problem_dynamic}. 
+\begin{alg} Ensemble Kalman Inversion \\
+\begin{enumerate}
+\item \textbf{Initial Ensemble.}  
+\item \textbf{Prediction.}
+\item \textbf{Analysis.} 
+\end{enumerate}
+\end{alg}
+A more practical algorithm for efficient computation is presented in the appendix. 
 
+\subsubsection{Am Improved EKI Formulation}
+The extended state space formulation suffers from a variety of weaknesses. We now present a unifying perspective which has been developed 
+in a series of papers \textbf{cite}. The main idea is to construct a sequence of measures $\postMeas_0, \postMeas_1, \dots$ which converge either 
+to the target measure $\postMeas$ or to a Dirac measure centered at a least squares or MAP estimate. In this way, slight variations of the subsequent
+setup will either produce sampling or optimization algorithms. 
+
+In all cases, the sequence of measures is constructed via a recursion of the form 
+\begin{align} 
+\postMeas_{\timeStep+1}(d\spar) := \frac{1}{Z_{\timeStep+1}} \exp\left(-h \SSR(\spar) \right) \postMeas_{\timeStep}(d\spar) \label{measure_recursion}
+\end{align}
+with $Z_{\timeStep}$ denoting the normalizing constant for $\postMeas_{\timeStep}$. In the case where $\postMeas_{\timeStep}$ 
+is absolutely continuous with respect to the Lebesgue measure (as is the case 
+when the prior is Gaussian) then the updates can be written using the (Lebesgue) densities
+\begin{align}
+\postDens_{\timeStep+1}(\spar) = \frac{1}{Z_{\timeStep+1}} \exp\left(-\frac{1}{\Ntimestep} \SSR(\spar) \right) \postDens_{\timeStep}(\spar). 
+\end{align}
+We now discuss how different variations of this setup lead to algorithms either for sampling or optimization. 
+
+\bigskip
+\noindent
+\textbf{Sampling in Finite Time.} We begin by discussing the case whereby the prior measure is transformed into the posterior measure 
+in a finite sequence of $\Ntimestep < \infty$ updates. In this case we choose $h := \Ntimestep^{-1}$. 
+Iterating the likelihood tempering update, we have that 
+\begin{align}
+\postMeas_{\Ntimestep}(d\spar) 
+&= \frac{1}{\prod_{\timeStep=1}^{\Ntimestep} Z_{\timeStep}} \exp\left(-\sum_{\timeStep=1}^{\Ntimestep} \frac{1}{\Ntimestep} \SSR(\spar)  \right) \priorMeas(d\spar) \nonumber \\
+&= \frac{1}{\prod_{\timeStep=1}^{\Ntimestep} Z_{\timeStep}} \exp\left(-\SSR(\spar)  \right) \priorMeas(d\spar) \nonumber \\
+&= \postMeas(d\spar),
+\end{align}
+so indeed the prior is mapped to the posterior in a sequence of $\Ntimestep$ updates. 
+Algorithms can thus be developed by applying particle-based filtering algorithms to approximate the mappings $\postMeas_{\timeStep} \mapsto \postMeas_{\timeStep+1}$.  
+These algorithms are rigid in the sense that they must be initialized from the prior and iterated for exactly $\Ntimestep$ steps. On the other hand, they benefit from 
+avoiding the need for asymptotic convergence convergence, instead converging in finite time. 
+
+\bigskip
+\noindent
+\textbf{Data Misfit Optimization in Infinite Time.} Let us instead consider the choice $h := 1$, so that  
+\begin{align} 
+\postMeas_{\timeStep}(d\spar) := \frac{1}{Z_{\timeStep+1}} \exp\left(-\timeStep \SSR(\spar) \right) \priorMeas(d\spar).
+\end{align}
+In this case, the infinite sequence $\{\postMeas_{\timeStep}\}$ will collapse on the minimizer of $\SSR(\spar)$ as $\timeStep \to \infty$, 
+restricted to the support of $\priorMeas$; that is, 
+\begin{align*}
+&\postMeas_{\timeStep}(A) \to \delta_{\spar^\dagger}(A), &&\spar^{\dagger} = \text{argmin}_{\spar \in \text{supp}(\priorMeas)} \SSR(\spar)
+\end{align*}
+for any Borel set $A \subset \R^{\Npar}$. \textbf{TODO: prove this} In this case, the initial condition is forgotten, so the resulting algorithms 
+need not be initialized from the prior. 
+
+\bigskip
+\noindent
+\textbf{MAP Optimization or Sampling in Infinite Time.} We observed in the previous section that the choice of $h = 1$ causes the algorithm 
+to collapse on the optimizer of $\SSR(\spar)$. It is natural to wonder if this setting can be modified to 1.) include regularization, and thus 
+instead converge to the minimizer of $\SSR_R(\spar)$, or 2.) include carefully designed noise such that $\postMeas_{\timeStep}$ converges
+to the posterior $\postMeas$ in infinite time. Based on the previous case, the recursion \ref{measure_recursion} must be modified to include 
+information about $\priorMeas$. This will be accomplished via the generalization 
+\begin{align} 
+\postMeas_{\timeStep+1}(d\spar) = \frac{1}{Z_{\timeStep+1}} \exp\left(-\SSR(\spar) \right) (\postMeas_{\timeStep} P_{\timeStep})(d\spar) \label{measure_recursion_regularized},
+\end{align}
+where $\{P_{\timeStep}\}$ are suitably chosen Markov kernels. 
 
 \end{document} 
 
