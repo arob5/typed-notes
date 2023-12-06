@@ -1,0 +1,128 @@
+\documentclass[12pt]{article}
+\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage[main=english]{babel}
+\usepackage[rm={lining,tabular},sf={lining,tabular},tt={lining,tabular,monowidth}]{cfr-lm}
+\usepackage{amsthm,amssymb,latexsym,gensymb,mathtools,mathrsfs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf,enumitem,microtype,dcolumn,booktabs,hyperref,url,fancyhdr}
+\usepackage{algorithmic}
+\usepackage[ruled,vlined,commentsnumbered,titlenotnumbered]{algorithm2e}
+\usepackage{bbm}
+
+% Plotting
+\usepackage{pgfplots}
+\usepackage{xinttools} % for the \xintFor***
+\usepgfplotslibrary{fillbetween}
+\pgfplotsset{compat=1.8}
+\usepackage{tikz}
+
+% Local custom commands. 
+\include{local-defs-EKI}
+\newcommand{\bphi}{\boldsymbol{\phi}}
+
+\setlist{topsep=1ex,parsep=1ex,itemsep=0ex}
+\setlist[1]{leftmargin=\parindent}
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=(\alph*),ref=(\alph*)}
+
+% For embedding images
+\graphicspath{ {./images/} }
+
+% Specifically for paper formatting 
+\renewcommand{\baselinestretch}{1.2} % Spaces manuscript for easy reading
+
+% Formatting definitions, propositions, etc. 
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{alg}{Algorithm}
+\newtheorem{dynamics}{Artificial Dynamics}
+
+% Title and author
+\title{Multiscale Methods for Sampling Posterior Distributions in Bayesian Inverse Problems}
+\author{Andrew Roberts}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+% Abstract
+\section{Abstract}
+In this paper, we numerically investigate an algorithm recently proposed for sampling a Bayesian posterior distribution using 
+multiscale dynamics. This method joins a growing list of derivative-free Bayesian inversion methods aimed at solving inverse 
+problems with expensive forward models. In particular, the multiscale sampling method can be viewed as a competitor to 
+a class of algorithms which apply ensemble Kalman techniques to inverse problems. In order to provide context, we begin by 
+briefly reviewing the literature on these so-called ensemble Kalman inversion methods. We then describe the multiscale 
+method, highlighting its theoretical properties in continuous time, as well as its numerical discretization. The algorithm is 
+numerically assessed on two inverse problems: a linear Gaussian example with known posterior, and a non-linear inverse 
+problem stemming from a system of ordinary differential equations (ODEs) describing terrestrial carbon dynamics. The algorithm 
+is validated against an adaptive random walk Metropolis-Hastings (RWMH) algorithm, a standard baseline for derivative-free posterior 
+sampling. Emphasis is placed on evaluating the ability of the algorithms to represent the true posterior using as few forward model 
+evaluations as possible. 
+
+% Setting and Literature Review
+\section{Setting and Literature Review}
+The general setting of interest is non-linear Bayesian inverse problems with Gaussian likelihood and prior
+\begin{align}
+\dataObs &= \fwd(\spar) + \noise \label{inverse_problem} \\
+\noise &\sim \Gaussian(0, \covObsNoise) \nonumber \\
+\spar &\sim \Gaussian(\priorMean, \priorCov), \nonumber
+\end{align}
+where $\spar \in \R^{\Npar}$ is the unknown parameter of interest and $\dataObs \in \R^{\dimData}$ is an observed 
+data vector which is assumed to result from a potentially non-linear forward mapping $\fwd: \R^{\Npar} \to \R^{\dimData}$
+corrupted by Gaussian noise $\noise$. We consider the Bayesian approach, whereby the parameter is equipped with 
+Gaussian prior and the goal is to characterize the posterior distribution $\spar|\dataObs \sim \postMeas$. Letting
+$\priorDens$ and $\postDens$ denote the prior and posterior (Lebesgue) densities, we can write the posterior density 
+as 
+\begin{align*}
+&\postDens(\spar) = \frac{1}{Z} \exp\left\{-\SSR_1(\spar) \right\}, &&\SSR_1(\spar) = \SSR(\spar) + \SSR_0(\spar) \\
+&\SSR(\spar) := \frac{1}{2}\norm{\dataObs - \fwd(\spar)}_{\covObsNoise}, &&\SSR_0(\spar) := \frac{1}{2} \norm{\spar-\priorMean}_{\priorCov},
+\end{align*}
+where $Z$ denotes the normalizing constant. 
+We utilize the notation $\langle a, b \rangle_{A} := \langle a, A^{-1} b \rangle$ and $\norm{a}_A^2 = \langle a, a \rangle_{A}$, for positive 
+definite matrix $A$. 
+
+A wide class of algorithms aims to sample from $\postMeas$ by introducing an artificial stochastic dynamical system 
+implying a sequence of probability measures $\postMeas_1, \postMeas_2, \dots$ which converge to the posterior in 
+some sense. A subset of these algorithms define this sequence such that it is initialized from the prior and transforms the 
+prior into the posterior in a finite sequence of steps. This idea can be realized via the following likelihood tempering 
+scheme 
+\begin{align*}
+\postDens_{\timeStep+1}(\spar) = \frac{1}{Z_{\timeStep+1}} \exp\left(-\frac{1}{\Ntimestep} \SSR(\spar) \right) \postDens_{\timeStep}(\spar),
+\end{align*}
+which defines a prior-to-posterior in precisely $\Ntimestep$ steps. Particle methods are then used to approximate the updates
+$\postMeas_\timeStep \mapsto \postMeas_{\timeStep+1}$. A sequential Monte Carlo (SMC) approach to this problem is explored in \cite{Kantas} 
+and ensemble Kalman approximations are discussed in \cite{Iglesias}. A fundamentally different approach to the Bayesian inversion problem is to 
+construct an infinite sequence $\postMeas_1, \postMeas_2, \dots$ such that samples are produced in infinite time. Prior initialization is not required 
+with this approach, as the methodology relies on the ergodic behavior of the dynamical system. The sequence defined by 
+\begin{align}
+\postDens_{\timeStep+1}(\spar) = \frac{1}{Z_{\timeStep+1}} \exp\left(-\SSR(\spar) \right) \postDens_{\timeStep}(\spar). 
+\end{align}
+is explored in \cite{Huang}, where it is shown that the resulting algorithm collapses on the minimizer of $\SSR(\spar)$. Algorithms for sampling, as opposed
+to optimization, can be developed by carefully adding noise into the procedure. This is accomplished with the ensemble Kalman sampler (EKS), proposed in 
+\cite{Garbuno}, and is improved upon in \cite{Garbuno2} with the affine invariant Langevin dynamics (ALDI) algorithm. Improved formulations and generalized 
+perspectives on EKI methods for optimization are discussed in \cite{Huang} and \cite{Chada}. 
+
+% The Multiscale Sampling Method 
+\section{The Multiscale Sampling Method}
+
+
+
+
+
+\begin{thebibliography}{20}
+\bibitem{Pavliotis} Pavliotis, Grigorios A. et al. “Derivative-Free Bayesian Inversion Using Multiscale Dynamics.” SIAM J. Appl. Dyn. Syst. 21 (2021): 284-326. 
+\bibitem{Kantas} Kantas, Nikolas et al. “Sequential Monte Carlo Methods for High-Dimensional Inverse Problems: A Case Study for the Navier-Stokes Equations.” SIAM/ASA J. Uncertain. Quantification 2 (2013): 464-489. 
+\bibitem{Iglesias} Iglesias, Marco and Law, Kody and Stuart, Andrew. (2013). Ensemble Kalman methods for inverse problems. Inverse Problems. 29. 045001. 10.1088/0266-5611/29/4/045001. 
+\bibitem{Huang} Huang, Daniel Zhengyu et al. “Iterated Kalman methodology for inverse problems.” J. Comput. Phys. 463 (2021): 111262.
+\bibitem{Garbuno} Garbuno Iñigo, Alfredo \& Hoffmann, Franca \& Li, Wuchen \& Stuart, Andrew. (2020). Interacting Langevin Diffusions: Gradient Structure and Ensemble Kalman Sampler. SIAM Journal on Applied Dynamical Systems. 19. 412-441. 10.1137/19M1251655. 
+\bibitem{Garbuno2} Garbuno Iñigo, Alfredo \& Nüsken, Nikolas \& Reich, Sebastian. (2019). Affine invariant interacting Langevin dynamics for Bayesian inference. 
+\bibitem{Chada} Chada, Neil \& Chen, Yuming \& Sanz-Alonso, Daniel. (2020). Iterative Ensemble Kalman Methods: A Unified Perspective with Some New Variants. 
+\end{thebibliography}
+
+\end{document}
