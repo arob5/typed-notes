@@ -150,8 +150,13 @@ about iteration $1000$. At this point, the error of the multiscale algorithm lev
 fact that the posterior distribution is only the stationary distribution of the multiscale system in the refinement limit; thus, the multiscale method appears 
 to be reaching a level of irreducible error around this point. 
 
-We also plot the RWMH and multiscale algorithm samples for TODO, each with the first 1000 iterations 
-removed as burn-in, against the contours of the true posterior.   
+We also plot the RWMH and multiscale algorithm samples overlaid on contours of the true posterior density, each with the first 1000 iterations 
+removed as burn-in \ref{fig:lin_Gaus_contour}. The multiscale samples correspond to the algorithm with best-performing parameter choices from 
+the previous experiment; in this case, $\Delta=10^{-3}, \sigma=10^{-4}, \delta=10^{-4}$. We see that both algorithms do a good job  of representing 
+the true posterior, but the multiscale samples appear to be slightly over-dispersed. Again, this likely corresponds to the fact that the stationary distribution 
+of the multiscale system, which approximates the true posterior, is actually a slightly over-dispersed version of the target distribution. Given the the mutliscale 
+method faithfully recovers the true posterior mean, this figure illustrates that it is this over-dispersion error in the covariance matrix that is leading to the 
+irreducible error in the KL divergence observed in the previous plot. 
 
 \begin{figure}[h] 
 \centering
@@ -159,6 +164,17 @@ removed as burn-in, against the contours of the true posterior.
 \caption{KL divergence between true and approximate distributions, as a function of iteration. The RWMH error is given by the black line.}
 \label{fig:lin_Gaus_KL}
 \end{figure}
+
+\begin{figure}[h] 
+\centering
+\includegraphics[width=0.9\textwidth]{lin_Gaus_contour_rwmh_vs_multiscale.png}
+\caption{Samples produced by RWMH (black) and the multiscale method with $\Delta=10^{-3}, \sigma=10^{-4}, \delta=10^{-4}$ (gray) overlaid on contours of the true posterior density. The first 1000 samples
+are dropped as burn-in for both algorithms.}
+\label{fig:lin_Gaus_contour}
+\end{figure}
+
+\subsection{Non-Linear Forward Model}
+
 
 
 
