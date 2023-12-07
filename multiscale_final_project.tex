@@ -103,13 +103,42 @@ with this approach, as the methodology relies on the ergodic behavior of the dyn
 \begin{align}
 \postDens_{\timeStep+1}(\spar) = \frac{1}{Z_{\timeStep+1}} \exp\left(-\SSR(\spar) \right) \postDens_{\timeStep}(\spar). 
 \end{align}
-is explored in \cite{Huang}, where it is shown that the resulting algorithm collapses on the minimizer of $\SSR(\spar)$. Algorithms for sampling, as opposed
+is explored in \cite{Huang}, where it is shown that the resulting algorithm collapses on the minimizer of $\SSR(\spar)$. Algorithms for approximate posterior sampling, as opposed
 to optimization, can be developed by carefully adding noise into the procedure. This is accomplished with the ensemble Kalman sampler (EKS), proposed in 
 \cite{Garbuno}, and is improved upon in \cite{Garbuno2} with the affine invariant Langevin dynamics (ALDI) algorithm. Improved formulations and generalized 
 perspectives on EKI methods for optimization are discussed in \cite{Huang} and \cite{Chada}. 
 
 % The Multiscale Sampling Method 
 \section{The Multiscale Sampling Method}
+The method proposed in \cite{Pavliotis} departs from the use of ensemble Kalman methods, instead relying on multiscale dynamics. The method is based on a slow-fast system 
+of stochastic differential equations (SDEs); an ensemble $\{\xi_t^{(j)}\}_{j=1}^{J}$ of ``fast exploring'' particles help to guide a single ``distinguished'' particle $\spar_t$, such that the marginal 
+distribution of $\spar$ tends to the posterior $\postMeas$ (approximately) in infinite time. This combines the notion of using an ensemble of particles to approximate gradients (as in the 
+EKI methods discussed above) with elements of popular Langevin sampling methods, which explore a distribution using a single particle. The method, formulated in continuous-time, is 
+based on the following slow-fast system of SDEs. 
+\begin{align}
+d\spar_t &= -\frac{1}{J\sigma^2} \sum_{j=1}^{J} \left\langle \fwd(\spar_t^{(j)})-\fwd(\spar_t), \fwd(\spar_t)-\dataObs \right\rangle_{\covObsNoise}(\spar_t^{(j)}-\spar_t) - \hat{C}(\xi_t)(\spar_t - \priorMean) + \sqrt{2\hat{C}(\xi_t)} dW_t
+\end{align}
+where $W_t, \{W_t^{(j)}\}$ are independent Brownian motions, and $\delta$ and $\sigma$ are positive parameters. We write $\xi_t := \{\xi_t^{(j)}\}_{j=1}^{J}$ and $\hat{C}(\xi_t)$ the empirical covariance 
+of these fast particles. 
+
+% Numerical Experiments
+\section{Numerical Experiments}
+We now test the multiscale sampling method, varying its tuning parameters and comparing performance against an adaptive RWMH algorithm \cite{Haario}. All experiments 
+are performed using $J=8$ fast particles. For each experiment, all algorithms utilize the same initial condition $u_0$, which is sampled from the prior. 
+Posterior approximation is assessed as a function of the iteration number; it will be explicitly noted when burn-in is removed. We note that this comparison may appear to 
+unfairly favor the multiscale algorithm over RWMH, as each iteration of the former requires $J+1$ forward model evaluations while RWMH only requires one. However, our 
+interest is primarily in wall-clock time, and the $J+1$ evaluations will typically be able to be performed in parallel for reasonably-sized $J$. 
+
+\subsection{Linear Gaussian Model}
+We begin with a two-dimensional linear Gaussian model, evaluating the algorithms against the known closed-form Gaussian posterior. In particular, we consider the model 
+
+\begin{align}
+\dataObs &= \fwd \spar + \noise \\
+\noise &\sim \Gaussian(0, 0.4I) \nonumber \\
+\spar &\sim \Gaussian(0, I), \nonumber
+\end{align}
+where $\fwd \in \R^{100 \times 2}$ is a matrix with rows sampled from a zero-mean Gaussian with unit variances and covariance $0.7$. 
+The data $y$ is generated from the exact likelihood with ground-truth parameter $\spar_\star \approx (1.216, 0.331)$.
 
 
 
@@ -123,6 +152,7 @@ perspectives on EKI methods for optimization are discussed in \cite{Huang} and \
 \bibitem{Garbuno} Garbuno Iñigo, Alfredo \& Hoffmann, Franca \& Li, Wuchen \& Stuart, Andrew. (2020). Interacting Langevin Diffusions: Gradient Structure and Ensemble Kalman Sampler. SIAM Journal on Applied Dynamical Systems. 19. 412-441. 10.1137/19M1251655. 
 \bibitem{Garbuno2} Garbuno Iñigo, Alfredo \& Nüsken, Nikolas \& Reich, Sebastian. (2019). Affine invariant interacting Langevin dynamics for Bayesian inference. 
 \bibitem{Chada} Chada, Neil \& Chen, Yuming \& Sanz-Alonso, Daniel. (2020). Iterative Ensemble Kalman Methods: A Unified Perspective with Some New Variants. 
+\bibitem{Haario} Heikki Haario, Eero Saksman, Johanna Tamminen "An adaptive Metropolis algorithm," Bernoulli, Bernoulli 7(2), 223-242, (April 2001)
 \end{thebibliography}
 
 \end{document}
