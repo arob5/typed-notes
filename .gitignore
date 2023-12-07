@@ -9,3 +9,4 @@
 *.html
 .ipynb_checkpoints/
 experimental_design_for_GPs_files/
+multiscale_paper_figures/
